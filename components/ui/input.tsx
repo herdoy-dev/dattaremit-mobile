@@ -23,6 +23,8 @@ interface InputProps {
   onPress?: () => void;
   multiline?: boolean;
   className?: string;
+  labelClassName?: string;
+  inputClassName?: string;
 }
 
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -41,6 +43,8 @@ export function Input({
   onPress,
   multiline = false,
   className = "",
+  labelClassName,
+  inputClassName,
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const focusProgress = useSharedValue(0);
@@ -55,7 +59,7 @@ export function Input({
 
   const content = (
     <View className={className}>
-      <Text className="mb-1.5 text-sm font-medium text-light-text dark:text-dark-text">
+      <Text className={`mb-1.5 text-sm font-medium ${labelClassName || "text-light-text dark:text-dark-text"}`}>
         {label}
       </Text>
       <AnimatedView
@@ -80,7 +84,7 @@ export function Input({
           onBlur={() => {
             focusProgress.value = withTiming(0, { duration: 200 });
           }}
-          className="flex-1 py-3.5 text-base text-light-text dark:text-dark-text"
+          className={`flex-1 py-3.5 text-base ${inputClassName || "text-light-text dark:text-dark-text"}`}
         />
         {secureTextEntry && (
           <Pressable

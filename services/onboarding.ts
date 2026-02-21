@@ -1,7 +1,8 @@
 // import { api } from "./api";
 
 export interface ProfilePayload {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   dateOfBirth: string;
   phoneNumber: string;
   nationality: string;
@@ -13,13 +14,6 @@ export interface AddressPayload {
   street: string;
   postalCode: string;
   state: string;
-}
-
-export interface KycPayload {
-  documentType: string;
-  documentNumber: string;
-  documentImage: string;
-  selfieImage: string;
 }
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -35,7 +29,7 @@ export const onboardingService = {
     return { success: true };
   },
 
-  async submitKyc(_payload: KycPayload) {
+  async requestKycLink() {
     await delay(500);
     return { success: true };
   },

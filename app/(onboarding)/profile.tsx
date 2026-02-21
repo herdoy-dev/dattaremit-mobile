@@ -1,23 +1,35 @@
 import { useState } from "react";
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useMutation } from "@tanstack/react-query";
-import { User, Phone } from "lucide-react-native";
+import { User } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CustomDatePicker } from "@/components/ui/custom-date-picker";
 import { CountrySelector } from "@/components/ui/country-selector";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
-import { validateRequired, validatePhone, validateDateOfBirth } from "@/lib/validation";
+import {
+  validateRequired,
+  validatePhone,
+  validateDateOfBirth,
+} from "@/lib/validation";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { setStep } = useOnboardingStore();
 
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [nationality, setNationality] = useState("");
@@ -32,23 +44,28 @@ export default function ProfileScreen() {
   });
 
   const validate = () => {
-    const nameErr = validateRequired(fullName, "Full name");
+    const firstNameErr = validateRequired(firstName, "First name");
+    const lastNameErr = validateRequired(lastName, "Last name");
     const dobErr = validateDateOfBirth(dateOfBirth);
     const phoneErr = validatePhone(phoneNumber);
     const nationalityErr = validateRequired(nationality, "Nationality");
     setErrors({
-      fullName: nameErr,
+      firstName: firstNameErr,
+      lastName: lastNameErr,
       dateOfBirth: dobErr,
       phoneNumber: phoneErr,
       nationality: nationalityErr,
     });
-    return !nameErr && !dobErr && !phoneErr && !nationalityErr;
+    return (
+      !firstNameErr && !lastNameErr && !dobErr && !phoneErr && !nationalityErr
+    );
   };
 
   const handleSubmit = () => {
     if (!validate()) return;
     profileMutation.mutate({
-      fullName,
+      firstName,
+      lastName,
       dateOfBirth,
       phoneNumber,
       nationality,
@@ -80,40 +97,59 @@ export default function ProfileScreen() {
             entering={FadeInDown.delay(200).duration(600).springify()}
             className="gap-5"
           >
-            <Input
-              label="Full Name"
-              value={fullName}
-              onChangeText={(t) => {
-                setFullName(t);
-                if (errors.fullName) setErrors((e) => ({ ...e, fullName: null }));
-              }}
-              placeholder="Enter your full name"
-              autoCapitalize="words"
-              error={errors.fullName}
-              icon={<User size={20} color="#9CA3AF" />}
-            />
+            <View className="flex-row gap-3">
+              <Input
+                label="First Name"
+                value={firstName}
+                onChangeText={(t) => {
+                  setFirstName(t);
+                  if (errors.firstName)
+                    setErrors((e) => ({ ...e, firstName: null }));
+                }}
+                placeholder="First name"
+                autoCapitalize="words"
+                error={errors.firstName}
+                icon={<User size={20} color="#9CA3AF" />}
+                className="flex-1"
+              />
+
+              <Input
+                label="Last Name"
+                value={lastName}
+                onChangeText={(t) => {
+                  setLastName(t);
+                  if (errors.lastName)
+                    setErrors((e) => ({ ...e, lastName: null }));
+                }}
+                placeholder="Last name"
+                autoCapitalize="words"
+                error={errors.lastName}
+                icon={<User size={20} color="#9CA3AF" />}
+                className="flex-1"
+              />
+            </View>
 
             <CustomDatePicker
               label="Date of Birth"
               value={dateOfBirth}
               onChange={(d) => {
                 setDateOfBirth(d);
-                if (errors.dateOfBirth) setErrors((e) => ({ ...e, dateOfBirth: null }));
+                if (errors.dateOfBirth)
+                  setErrors((e) => ({ ...e, dateOfBirth: null }));
               }}
               error={errors.dateOfBirth}
             />
 
-            <Input
+            <PhoneInput
               label="Phone Number"
               value={phoneNumber}
-              onChangeText={(t) => {
+              onChangePhone={(t) => {
                 setPhoneNumber(t);
-                if (errors.phoneNumber) setErrors((e) => ({ ...e, phoneNumber: null }));
+                if (errors.phoneNumber)
+                  setErrors((e) => ({ ...e, phoneNumber: null }));
               }}
-              placeholder="+1 234 567 890"
-              keyboardType="phone-pad"
+              placeholder="Enter phone number"
               error={errors.phoneNumber}
-              icon={<Phone size={20} color="#9CA3AF" />}
             />
 
             <CountrySelector
@@ -121,7 +157,8 @@ export default function ProfileScreen() {
               value={nationality}
               onChange={(v) => {
                 setNationality(v);
-                if (errors.nationality) setErrors((e) => ({ ...e, nationality: null }));
+                if (errors.nationality)
+                  setErrors((e) => ({ ...e, nationality: null }));
               }}
               placeholder="Select your nationality"
               error={errors.nationality}

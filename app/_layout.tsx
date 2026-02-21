@@ -12,6 +12,7 @@ import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import "react-native-reanimated";
 
+import { useEffect } from "react";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeStore, buildThemeVars } from "@/store/theme-store";
 import { setAuthToken } from "@/services/api";
@@ -34,8 +35,14 @@ function ClerkTokenSync() {
 }
 
 export default function RootLayout() {
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
   const { colors } = useThemeStore();
+
+  useEffect(() => {
+    if (colorScheme !== "dark") {
+      setColorScheme("dark");
+    }
+  }, []);
   const themeVars = buildThemeVars(colors);
 
   return (

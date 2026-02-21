@@ -159,7 +159,7 @@ const VALID_PRESETS: ThemePreset[] = ["ocean", "forest", "sunset", "rose", "indi
 
 type Listener = () => void;
 
-let currentPreset: ThemePreset = "ocean";
+let currentPreset: ThemePreset = "teal";
 let isLoaded = false;
 const listeners = new Set<Listener>();
 

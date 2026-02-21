@@ -40,7 +40,7 @@ export function CustomDropdown({
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rotation = useSharedValue(0);
-  const { primary } = useThemeColors();
+  const { primary, border } = useThemeColors();
 
   const selectedOption = options.find((o) => o.value === value);
 
@@ -75,13 +75,8 @@ export function CustomDropdown({
 
       <Pressable
         onPress={toggle}
-        className={`flex-row items-center justify-between rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface ${
-          isOpen
-            ? "border-primary"
-            : error
-              ? "border-red-500"
-              : "border-light-border dark:border-dark-border"
-        }`}
+        className="flex-row items-center justify-between rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
+        style={{ borderColor: isOpen ? primary : error ? "#EF4444" : value ? primary : border }}
       >
         {icon && <View className="mr-3">{icon}</View>}
         <Text
