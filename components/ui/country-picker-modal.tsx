@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { X, Search } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { COLORS } from "@/constants/theme";
 import { buildThemeVars, hexToRgba } from "@/store/theme-store";
 import { type Country, COUNTRIES, getFlagEmoji } from "@/lib/countries";
 
@@ -76,12 +77,12 @@ export function CountryPickerModal({
           <View
             className="flex-row items-center rounded-xl border-2 border-light-border bg-light-surface px-3.5 dark:border-dark-border dark:bg-dark-surface"
           >
-            <Search size={18} color="#9CA3AF" />
+            <Search size={18} color={COLORS.placeholder} />
             <TextInput
               value={search}
               onChangeText={setSearch}
               placeholder="Search country..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={COLORS.placeholder}
               autoCorrect={false}
               className="ml-2.5 flex-1 py-3 text-base text-light-text dark:text-dark-text"
             />

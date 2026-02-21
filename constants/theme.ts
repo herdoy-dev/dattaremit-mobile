@@ -5,6 +5,13 @@
 
 import { Platform } from 'react-native';
 
+export const COLORS = {
+  placeholder: "#9CA3AF",
+  error: "#EF4444",
+  success: "#059669",
+  warning: "#D97706",
+} as const;
+
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 

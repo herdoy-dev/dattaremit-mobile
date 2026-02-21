@@ -2,25 +2,12 @@ import { useState, useMemo } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
-import {
-  TrendingUp,
-  TrendingDown,
-  Search,
-  Filter,
-} from "lucide-react-native";
+import { Search, Filter } from "lucide-react-native";
 import { Input } from "@/components/ui/input";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-
-type FilterType = "all" | "sent" | "received";
-
-interface Transaction {
-  id: string;
-  name: string;
-  type: "sent" | "received";
-  amount: string;
-  date: string;
-  category: string;
-}
+import { TransactionItem } from "@/components/ui/transaction-item";
+import { COLORS } from "@/constants/theme";
+import type { Transaction, FilterType } from "@/types/transaction";
 
 const TRANSACTIONS: Transaction[] = [
   { id: "1", name: "John Doe", type: "sent", amount: "-$250.00", date: "Feb 21, 2026", category: "Transfer" },
@@ -53,7 +40,7 @@ export default function ActivityTab() {
       const matchesSearch =
         !searchQuery ||
         tx.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tx.category.toLowerCase().includes(searchQuery.toLowerCase());
+        tx.category?.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesFilter && matchesSearch;
     });
   }, [activeFilter, searchQuery]);
@@ -77,7 +64,7 @@ export default function ActivityTab() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search transactions..."
-          icon={<Search size={18} color="#9CA3AF" />}
+          icon={<Search size={18} color={COLORS.placeholder} />}
         />
       </View>
 
@@ -118,7 +105,7 @@ export default function ActivityTab() {
       >
         {filteredTransactions.length === 0 ? (
           <View className="items-center justify-center py-16">
-            <Filter size={48} color="#9CA3AF" />
+            <Filter size={48} color={COLORS.placeholder} />
             <Text className="mt-4 text-base font-medium text-light-text-muted dark:text-dark-text-muted">
               No transactions found
             </Text>
@@ -130,38 +117,7 @@ export default function ActivityTab() {
                 key={tx.id}
                 entering={FadeInDown.delay(index * 60).duration(400)}
               >
-                <Pressable className="flex-row items-center rounded-2xl bg-light-surface p-4 dark:bg-dark-surface">
-                  <View
-                    className={`mr-3 h-11 w-11 items-center justify-center rounded-xl ${
-                      tx.type === "received"
-                        ? "bg-green-100 dark:bg-green-900/30"
-                        : "bg-red-100 dark:bg-red-900/30"
-                    }`}
-                  >
-                    {tx.type === "received" ? (
-                      <TrendingDown size={20} color="#059669" />
-                    ) : (
-                      <TrendingUp size={20} color="#EF4444" />
-                    )}
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-semibold text-light-text dark:text-dark-text">
-                      {tx.name}
-                    </Text>
-                    <Text className="mt-0.5 text-xs text-light-text-muted dark:text-dark-text-muted">
-                      {tx.category} · {tx.date}
-                    </Text>
-                  </View>
-                  <Text
-                    className={`text-sm font-bold ${
-                      tx.type === "received"
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {tx.amount}
-                  </Text>
-                </Pressable>
+                <TransactionItem transaction={tx} />
               </Animated.View>
             ))}
           </View>

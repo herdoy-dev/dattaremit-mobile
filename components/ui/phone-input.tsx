@@ -8,6 +8,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { ChevronDown } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { COLORS } from "@/constants/theme";
 import { CountryPickerModal } from "@/components/ui/country-picker-modal";
 import { type Country, COUNTRIES, getFlagEmoji } from "@/lib/countries";
 
@@ -70,7 +71,7 @@ export function PhoneInput({
 
   const borderStyle = useAnimatedStyle(() => ({
     borderColor: error
-      ? "#EF4444"
+      ? COLORS.error
       : interpolateColor(focusProgress.value, [0, 1], [border, borderFocus]),
   }));
 
@@ -95,7 +96,7 @@ export function PhoneInput({
           <Text className="ml-1.5 text-base text-light-text dark:text-dark-text">
             {selectedCountry.dial}
           </Text>
-          <ChevronDown size={16} color="#9CA3AF" className="ml-1" />
+          <ChevronDown size={16} color={COLORS.placeholder} className="ml-1" />
         </Pressable>
 
         {/* Divider */}
@@ -107,7 +108,7 @@ export function PhoneInput({
           value={localNumber}
           onChangeText={handleTextChange}
           placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={COLORS.placeholder}
           keyboardType="phone-pad"
           onFocus={() => {
             focusProgress.value = withTiming(1, { duration: 200 });

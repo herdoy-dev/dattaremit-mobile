@@ -4,6 +4,7 @@ import { Home, Activity, UserCircle } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { hexToRgba } from "@/store/theme-store";
+import { COLORS } from "@/constants/theme";
 
 export default function TabLayout() {
   const { colorScheme } = useColorScheme();
@@ -22,7 +23,7 @@ export default function TabLayout() {
           paddingBottom: Platform.OS === "ios" ? 32 : 16,
         },
         tabBarActiveTintColor: primary,
-        tabBarInactiveTintColor: isDark ? "#6B6B6B" : "#9CA3AF",
+        tabBarInactiveTintColor: isDark ? "#6B6B6B" : COLORS.placeholder,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",

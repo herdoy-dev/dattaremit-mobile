@@ -11,6 +11,7 @@ import Animated, {
 import { ChevronDown, Check } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { hexToRgba } from "@/store/theme-store";
+import { COLORS } from "@/constants/theme";
 
 export interface DropdownOption {
   label: string;
@@ -76,7 +77,7 @@ export function CustomDropdown({
       <Pressable
         onPress={toggle}
         className="flex-row items-center justify-between rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
-        style={{ borderColor: isOpen ? primary : error ? "#EF4444" : value ? primary : border }}
+        style={{ borderColor: isOpen ? primary : error ? COLORS.error : value ? primary : border }}
       >
         {icon && <View className="mr-3">{icon}</View>}
         <Text
@@ -89,7 +90,7 @@ export function CustomDropdown({
           {selectedOption?.label || placeholder}
         </Text>
         <Animated.View style={chevronStyle}>
-          <ChevronDown size={20} color={isOpen ? primary : "#9CA3AF"} />
+          <ChevronDown size={20} color={isOpen ? primary : COLORS.placeholder} />
         </Animated.View>
       </Pressable>
 

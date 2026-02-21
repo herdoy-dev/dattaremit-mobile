@@ -8,6 +8,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { COLORS } from "@/constants/theme";
 
 interface InputProps {
   label: string;
@@ -53,7 +54,7 @@ export function Input({
 
   const borderStyle = useAnimatedStyle(() => ({
     borderColor: error
-      ? "#EF4444"
+      ? COLORS.error
       : interpolateColor(focusProgress.value, [0, 1], [border, borderFocus]),
   }));
 
@@ -72,7 +73,7 @@ export function Input({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={COLORS.placeholder}
           secureTextEntry={secureTextEntry && !showPassword}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
@@ -92,9 +93,9 @@ export function Input({
             hitSlop={8}
           >
             {showPassword ? (
-              <EyeOff size={20} color="#9CA3AF" />
+              <EyeOff size={20} color={COLORS.placeholder} />
             ) : (
-              <Eye size={20} color="#9CA3AF" />
+              <Eye size={20} color={COLORS.placeholder} />
             )}
           </Pressable>
         )}

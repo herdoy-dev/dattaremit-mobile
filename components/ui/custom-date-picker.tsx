@@ -2,6 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { View, Text, Pressable, FlatList } from "react-native";
 import { Calendar } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { COLORS } from "@/constants/theme";
 import { hexToRgba } from "@/store/theme-store";
 import { CustomModal } from "@/components/ui/custom-modal";
 
@@ -218,9 +219,9 @@ export function CustomDatePicker({
       <Pressable
         onPress={handleOpen}
         className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
-        style={{ borderColor: error ? "#EF4444" : value ? primary : border }}
+        style={{ borderColor: error ? COLORS.error : value ? primary : border }}
       >
-        <Calendar size={20} color={value ? primary : "#9CA3AF"} />
+        <Calendar size={20} color={value ? primary : COLORS.placeholder} />
         <Text
           className={`ml-3 flex-1 text-base ${
             value

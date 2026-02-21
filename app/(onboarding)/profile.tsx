@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   View,
   Text,
@@ -13,27 +12,40 @@ import { useMutation } from "@tanstack/react-query";
 import { User } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { CustomDatePicker } from "@/components/ui/custom-date-picker";
 import { CountrySelector } from "@/components/ui/country-selector";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
+import { useForm } from "@/hooks/use-form";
 import {
   validateRequired,
   validatePhone,
   validateDateOfBirth,
 } from "@/lib/validation";
+import { COLORS } from "@/constants/theme";
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { setStep } = useOnboardingStore();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [nationality, setNationality] = useState("");
-  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const { values, errors, setValue, validate } = useForm(
+    {
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+      phoneNumber: "",
+      nationality: "",
+    },
+    {
+      firstName: (v) => validateRequired(v, "First name"),
+      lastName: (v) => validateRequired(v, "Last name"),
+      dateOfBirth: (v) => validateDateOfBirth(v),
+      phoneNumber: (v) => validatePhone(v),
+      nationality: (v) => validateRequired(v, "Nationality"),
+    }
+  );
 
   const profileMutation = useMutation({
     mutationFn: onboardingService.submitProfile,
@@ -43,32 +55,14 @@ export default function ProfileScreen() {
     },
   });
 
-  const validate = () => {
-    const firstNameErr = validateRequired(firstName, "First name");
-    const lastNameErr = validateRequired(lastName, "Last name");
-    const dobErr = validateDateOfBirth(dateOfBirth);
-    const phoneErr = validatePhone(phoneNumber);
-    const nationalityErr = validateRequired(nationality, "Nationality");
-    setErrors({
-      firstName: firstNameErr,
-      lastName: lastNameErr,
-      dateOfBirth: dobErr,
-      phoneNumber: phoneErr,
-      nationality: nationalityErr,
-    });
-    return (
-      !firstNameErr && !lastNameErr && !dobErr && !phoneErr && !nationalityErr
-    );
-  };
-
   const handleSubmit = () => {
     if (!validate()) return;
     profileMutation.mutate({
-      firstName,
-      lastName,
-      dateOfBirth,
-      phoneNumber,
-      nationality,
+      firstName: values.firstName,
+      lastName: values.lastName,
+      dateOfBirth: values.dateOfBirth,
+      phoneNumber: values.phoneNumber,
+      nationality: values.nationality,
     });
   };
 
@@ -100,76 +94,52 @@ export default function ProfileScreen() {
             <View className="flex-row gap-3">
               <Input
                 label="First Name"
-                value={firstName}
-                onChangeText={(t) => {
-                  setFirstName(t);
-                  if (errors.firstName)
-                    setErrors((e) => ({ ...e, firstName: null }));
-                }}
+                value={values.firstName}
+                onChangeText={(t) => setValue("firstName", t)}
                 placeholder="First name"
                 autoCapitalize="words"
                 error={errors.firstName}
-                icon={<User size={20} color="#9CA3AF" />}
+                icon={<User size={20} color={COLORS.placeholder} />}
                 className="flex-1"
               />
 
               <Input
                 label="Last Name"
-                value={lastName}
-                onChangeText={(t) => {
-                  setLastName(t);
-                  if (errors.lastName)
-                    setErrors((e) => ({ ...e, lastName: null }));
-                }}
+                value={values.lastName}
+                onChangeText={(t) => setValue("lastName", t)}
                 placeholder="Last name"
                 autoCapitalize="words"
                 error={errors.lastName}
-                icon={<User size={20} color="#9CA3AF" />}
+                icon={<User size={20} color={COLORS.placeholder} />}
                 className="flex-1"
               />
             </View>
 
             <CustomDatePicker
               label="Date of Birth"
-              value={dateOfBirth}
-              onChange={(d) => {
-                setDateOfBirth(d);
-                if (errors.dateOfBirth)
-                  setErrors((e) => ({ ...e, dateOfBirth: null }));
-              }}
+              value={values.dateOfBirth}
+              onChange={(d) => setValue("dateOfBirth", d)}
               error={errors.dateOfBirth}
             />
 
             <PhoneInput
               label="Phone Number"
-              value={phoneNumber}
-              onChangePhone={(t) => {
-                setPhoneNumber(t);
-                if (errors.phoneNumber)
-                  setErrors((e) => ({ ...e, phoneNumber: null }));
-              }}
+              value={values.phoneNumber}
+              onChangePhone={(t) => setValue("phoneNumber", t)}
               placeholder="Enter phone number"
               error={errors.phoneNumber}
             />
 
             <CountrySelector
               label="Nationality"
-              value={nationality}
-              onChange={(v) => {
-                setNationality(v);
-                if (errors.nationality)
-                  setErrors((e) => ({ ...e, nationality: null }));
-              }}
+              value={values.nationality}
+              onChange={(v) => setValue("nationality", v)}
               placeholder="Select your nationality"
               error={errors.nationality}
             />
 
             {profileMutation.isError && (
-              <View className="rounded-xl bg-red-50 p-3 dark:bg-red-900/20">
-                <Text className="text-sm text-red-600 dark:text-red-400">
-                  Failed to save profile. Please try again.
-                </Text>
-              </View>
+              <ErrorBanner message="Failed to save profile. Please try again." />
             )}
 
             <Button

@@ -1,42 +1,39 @@
-import { useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  ImageBackground,
-} from "react-native";
+import { View, Text, Pressable, ScrollView, ImageBackground } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { useSignIn, useSSO } from "@clerk/clerk-expo";
+import { useSignIn } from "@clerk/clerk-expo";
 import { Mail, Lock } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { GoogleIcon, AppleIcon } from "@/components/icons/social-icons";
 import { useOnboardingStore } from "@/store/onboarding-store";
+import { useForm } from "@/hooks/use-form";
+import { useSocialAuth } from "@/hooks/use-social-auth";
 import { validateEmail, validatePassword } from "@/lib/validation";
+import { COLORS } from "@/constants/theme";
 
 export default function LoginScreen() {
   const router = useRouter();
   const { setStep } = useOnboardingStore();
   const { signIn, setActive, isLoaded } = useSignIn();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{
-    email?: string | null;
-    password?: string | null;
-  }>({});
-  const [loadingAction, setLoadingAction] = useState<string | null>(null);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const { values, errors, setValue, validate } = useForm(
+    { email: "", password: "" },
+    {
+      email: (v) => validateEmail(v),
+      password: (v) => validatePassword(v),
+    }
+  );
 
-  const validate = () => {
-    const emailErr = validateEmail(email);
-    const passErr = validatePassword(password);
-    setErrors({ email: emailErr, password: passErr });
-    return !emailErr && !passErr;
-  };
+  const {
+    handleSocialAuth,
+    loadingAction,
+    setLoadingAction,
+    authError,
+    setAuthError,
+  } = useSocialAuth();
 
   const handleLogin = async () => {
     if (!validate() || !isLoaded) return;
@@ -44,7 +41,10 @@ export default function LoginScreen() {
     setAuthError(null);
 
     try {
-      const result = await signIn.create({ identifier: email, password });
+      const result = await signIn.create({
+        identifier: values.email,
+        password: values.password,
+      });
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
@@ -54,40 +54,12 @@ export default function LoginScreen() {
     } catch (err: any) {
       setAuthError(
         err?.errors?.[0]?.longMessage ||
-          "Invalid email or password. Please try again.",
+          "Invalid email or password. Please try again."
       );
     } finally {
       setLoadingAction(null);
     }
   };
-
-  const { startSSOFlow } = useSSO();
-
-  const handleSocialAuth = useCallback(
-    async (strategy: "oauth_google" | "oauth_apple") => {
-      setLoadingAction(strategy);
-      setAuthError(null);
-
-      try {
-        const { createdSessionId, setActive: ssoSetActive } =
-          await startSSOFlow({ strategy });
-
-        if (createdSessionId && ssoSetActive) {
-          await ssoSetActive({ session: createdSessionId });
-          await setStep("profile");
-          router.replace("/(onboarding)/profile");
-        }
-      } catch (err: any) {
-        setAuthError(
-          err?.errors?.[0]?.longMessage ||
-            "Social sign-in failed. Please try again.",
-        );
-      } finally {
-        setLoadingAction(null);
-      }
-    },
-    [startSSOFlow, setStep, router],
-  );
 
   return (
     <ImageBackground
@@ -115,42 +87,29 @@ export default function LoginScreen() {
           >
             <Input
               label="Email"
-              value={email}
-              onChangeText={(t) => {
-                setEmail(t);
-                if (errors.email) setErrors((e) => ({ ...e, email: null }));
-              }}
+              value={values.email}
+              onChangeText={(t) => setValue("email", t)}
               placeholder="Enter your email"
               keyboardType="email-address"
               error={errors.email}
-              icon={<Mail size={20} color="#9CA3AF" />}
+              icon={<Mail size={20} color={COLORS.placeholder} />}
               labelClassName="text-white"
               inputClassName="text-white"
             />
 
             <Input
               label="Password"
-              value={password}
-              onChangeText={(t) => {
-                setPassword(t);
-                if (errors.password)
-                  setErrors((e) => ({ ...e, password: null }));
-              }}
+              value={values.password}
+              onChangeText={(t) => setValue("password", t)}
               placeholder="Enter your password"
               secureTextEntry
               error={errors.password}
-              icon={<Lock size={20} color="#9CA3AF" />}
+              icon={<Lock size={20} color={COLORS.placeholder} />}
               labelClassName="text-white"
               inputClassName="text-white"
             />
 
-            {authError && (
-              <View className="rounded-xl bg-red-50 p-3 dark:bg-red-900/20">
-                <Text className="text-sm text-red-600 dark:text-red-400">
-                  {authError}
-                </Text>
-              </View>
-            )}
+            {authError && <ErrorBanner message={authError} />}
 
             <Button
               title="Forgot Password?"

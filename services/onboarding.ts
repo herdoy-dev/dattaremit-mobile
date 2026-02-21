@@ -16,7 +16,7 @@ export interface AddressPayload {
   state: string;
 }
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { delay } from "@/lib/utils";
 
 export const onboardingService = {
   async submitProfile(_payload: ProfilePayload) {

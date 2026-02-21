@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { ChevronDown } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { COLORS } from "@/constants/theme";
 import { CountryPickerModal } from "@/components/ui/country-picker-modal";
 import { COUNTRIES, getFlagEmoji } from "@/lib/countries";
 
@@ -36,7 +37,7 @@ export function CountrySelector({
       <Pressable
         onPress={() => setModalVisible(true)}
         className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
-        style={{ borderColor: error ? "#EF4444" : value ? primary : border }}
+        style={{ borderColor: error ? COLORS.error : value ? primary : border }}
       >
         {selectedCountry ? (
           <>
@@ -52,7 +53,7 @@ export function CountrySelector({
             {placeholder}
           </Text>
         )}
-        <ChevronDown size={20} color="#9CA3AF" />
+        <ChevronDown size={20} color={COLORS.placeholder} />
       </Pressable>
 
       {error && <Text className="mt-1 text-xs text-red-500">{error}</Text>}

@@ -5,8 +5,6 @@ import {
   Send,
   Download,
   Landmark,
-  TrendingUp,
-  TrendingDown,
   Eye,
   EyeOff,
   Bell,
@@ -14,40 +12,15 @@ import {
 import { useState, useMemo } from "react";
 import { useRouter } from "expo-router";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { TransactionItem } from "@/components/ui/transaction-item";
+import { COLORS } from "@/constants/theme";
+import type { Transaction } from "@/types/transaction";
 
-const RECENT_TRANSACTIONS = [
-  {
-    id: "1",
-    name: "John Doe",
-    type: "sent",
-    amount: "-$250.00",
-    date: "Today, 2:30 PM",
-    icon: TrendingUp,
-  },
-  {
-    id: "2",
-    name: "Salary Deposit",
-    type: "received",
-    amount: "+$3,500.00",
-    date: "Yesterday",
-    icon: TrendingDown,
-  },
-  {
-    id: "3",
-    name: "Netflix",
-    type: "sent",
-    amount: "-$15.99",
-    date: "Feb 18",
-    icon: TrendingUp,
-  },
-  {
-    id: "4",
-    name: "Jane Smith",
-    type: "received",
-    amount: "+$120.00",
-    date: "Feb 17",
-    icon: TrendingDown,
-  },
+const RECENT_TRANSACTIONS: Transaction[] = [
+  { id: "1", name: "John Doe", type: "sent", amount: "-$250.00", date: "Today, 2:30 PM" },
+  { id: "2", name: "Salary Deposit", type: "received", amount: "+$3,500.00", date: "Yesterday" },
+  { id: "3", name: "Netflix", type: "sent", amount: "-$15.99", date: "Feb 18" },
+  { id: "4", name: "Jane Smith", type: "received", amount: "+$120.00", date: "Feb 17" },
 ];
 
 export default function HomeTab() {
@@ -58,8 +31,8 @@ export default function HomeTab() {
   const QUICK_ACTIONS = useMemo(
     () => [
       { icon: Send, label: "Send", color: primary },
-      { icon: Download, label: "Receive", color: "#059669" },
-      { icon: Landmark, label: "Add Bank", color: "#D97706" },
+      { icon: Download, label: "Receive", color: COLORS.success },
+      { icon: Landmark, label: "Add Bank", color: COLORS.warning },
     ],
     [primary]
   );
@@ -175,35 +148,7 @@ export default function HomeTab() {
                 key={tx.id}
                 entering={FadeInDown.delay(700 + index * 80).duration(500)}
               >
-                <Pressable className="flex-row items-center rounded-2xl bg-light-surface p-4 dark:bg-dark-surface">
-                  <View
-                    className={`mr-3 h-11 w-11 items-center justify-center rounded-xl ${
-                      tx.type === "received" ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30"
-                    }`}
-                  >
-                    <tx.icon
-                      size={20}
-                      color={tx.type === "received" ? "#059669" : "#EF4444"}
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-semibold text-light-text dark:text-dark-text">
-                      {tx.name}
-                    </Text>
-                    <Text className="mt-0.5 text-xs text-light-text-muted dark:text-dark-text-muted">
-                      {tx.date}
-                    </Text>
-                  </View>
-                  <Text
-                    className={`text-sm font-bold ${
-                      tx.type === "received"
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {tx.amount}
-                  </Text>
-                </Pressable>
+                <TransactionItem transaction={tx} />
               </Animated.View>
             ))}
           </View>

@@ -36,9 +36,7 @@ const DUMMY_CONTACTS: Contact[] = [
   { id: "8", name: "Sophie Martin", email: "sophie.m@email.com", phone: "+33 6 12 34 56 78", country: "FR" },
 ];
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { delay } from "@/lib/utils";
 
 export async function searchContacts(query: string): Promise<Contact[]> {
   await delay(300);

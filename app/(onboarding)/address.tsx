@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,21 +6,34 @@ import { useMutation } from "@tanstack/react-query";
 import { MapPin, Building2, Hash } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ErrorBanner } from "@/components/ui/error-banner";
 import { CountrySelector } from "@/components/ui/country-selector";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
+import { useForm } from "@/hooks/use-form";
 import { validateRequired, validatePostalCode } from "@/lib/validation";
+import { COLORS } from "@/constants/theme";
 
 export default function AddressScreen() {
   const router = useRouter();
   const { setStep } = useOnboardingStore();
 
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
-  const [street, setStreet] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [state, setState] = useState("");
-  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const { values, errors, setValue, validate } = useForm(
+    {
+      country: "",
+      city: "",
+      street: "",
+      postalCode: "",
+      state: "",
+    },
+    {
+      country: (v) => validateRequired(v, "Country"),
+      city: (v) => validateRequired(v, "City"),
+      street: (v) => validateRequired(v, "Street address"),
+      postalCode: (v) => validatePostalCode(v),
+      state: (v) => validateRequired(v, "State/Province"),
+    }
+  );
 
   const addressMutation = useMutation({
     mutationFn: onboardingService.submitAddress,
@@ -31,25 +43,15 @@ export default function AddressScreen() {
     },
   });
 
-  const validate = () => {
-    const countryErr = validateRequired(country, "Country");
-    const cityErr = validateRequired(city, "City");
-    const streetErr = validateRequired(street, "Street address");
-    const postalErr = validatePostalCode(postalCode);
-    const stateErr = validateRequired(state, "State/Province");
-    setErrors({
-      country: countryErr,
-      city: cityErr,
-      street: streetErr,
-      postalCode: postalErr,
-      state: stateErr,
-    });
-    return !countryErr && !cityErr && !streetErr && !postalErr && !stateErr;
-  };
-
   const handleSubmit = () => {
     if (!validate()) return;
-    addressMutation.mutate({ country, city, street, postalCode, state });
+    addressMutation.mutate({
+      country: values.country,
+      city: values.city,
+      street: values.street,
+      postalCode: values.postalCode,
+      state: values.state,
+    });
   };
 
   return (
@@ -79,73 +81,54 @@ export default function AddressScreen() {
           >
             <CountrySelector
               label="Country"
-              value={country}
-              onChange={(v) => {
-                setCountry(v);
-                if (errors.country) setErrors((e) => ({ ...e, country: null }));
-              }}
+              value={values.country}
+              onChange={(v) => setValue("country", v)}
               placeholder="Select your country"
               error={errors.country}
             />
 
             <Input
               label="State / Province"
-              value={state}
-              onChangeText={(t) => {
-                setState(t);
-                if (errors.state) setErrors((e) => ({ ...e, state: null }));
-              }}
+              value={values.state}
+              onChangeText={(t) => setValue("state", t)}
               placeholder="Enter state or province"
               autoCapitalize="words"
               error={errors.state}
-              icon={<Building2 size={20} color="#9CA3AF" />}
+              icon={<Building2 size={20} color={COLORS.placeholder} />}
             />
 
             <Input
               label="City"
-              value={city}
-              onChangeText={(t) => {
-                setCity(t);
-                if (errors.city) setErrors((e) => ({ ...e, city: null }));
-              }}
+              value={values.city}
+              onChangeText={(t) => setValue("city", t)}
               placeholder="Enter your city"
               autoCapitalize="words"
               error={errors.city}
-              icon={<MapPin size={20} color="#9CA3AF" />}
+              icon={<MapPin size={20} color={COLORS.placeholder} />}
             />
 
             <Input
               label="Street Address"
-              value={street}
-              onChangeText={(t) => {
-                setStreet(t);
-                if (errors.street) setErrors((e) => ({ ...e, street: null }));
-              }}
+              value={values.street}
+              onChangeText={(t) => setValue("street", t)}
               placeholder="Enter your street address"
               autoCapitalize="words"
               error={errors.street}
-              icon={<MapPin size={20} color="#9CA3AF" />}
+              icon={<MapPin size={20} color={COLORS.placeholder} />}
             />
 
             <Input
               label="Postal Code"
-              value={postalCode}
-              onChangeText={(t) => {
-                setPostalCode(t);
-                if (errors.postalCode) setErrors((e) => ({ ...e, postalCode: null }));
-              }}
+              value={values.postalCode}
+              onChangeText={(t) => setValue("postalCode", t)}
               placeholder="Enter postal code"
               keyboardType="number-pad"
               error={errors.postalCode}
-              icon={<Hash size={20} color="#9CA3AF" />}
+              icon={<Hash size={20} color={COLORS.placeholder} />}
             />
 
             {addressMutation.isError && (
-              <View className="rounded-xl bg-red-50 p-3 dark:bg-red-900/20">
-                <Text className="text-sm text-red-600 dark:text-red-400">
-                  Failed to save address. Please try again.
-                </Text>
-              </View>
+              <ErrorBanner message="Failed to save address. Please try again." />
             )}
 
             <Button
