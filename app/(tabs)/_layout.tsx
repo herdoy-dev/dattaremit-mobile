@@ -1,35 +1,80 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Tabs } from "expo-router";
+import { View, Platform } from "react-native";
+import { Home, Activity, UserCircle } from "lucide-react-native";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { hexToRgba } from "@/store/theme-store";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const { primary, surface, border } = useThemeColors();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarStyle: {
+          backgroundColor: surface,
+          borderTopColor: border,
+          height: Platform.OS === "ios" ? 100 : 80,
+          paddingTop: 12,
+          paddingBottom: Platform.OS === "ios" ? 32 : 16,
+        },
+        tabBarActiveTintColor: primary,
+        tabBarInactiveTintColor: isDark ? "#6B6B6B" : "#9CA3AF",
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "600",
+          marginTop: 4,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Home",
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon focused={focused}>
+              <Home size={22} color={color} />
+            </TabIcon>
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="activity"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Activity",
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon focused={focused}>
+              <Activity size={22} color={color} />
+            </TabIcon>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: "Account",
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon focused={focused}>
+              <UserCircle size={22} color={color} />
+            </TabIcon>
+          ),
         }}
       />
     </Tabs>
+  );
+}
+
+function TabIcon({ children, focused }: { children: React.ReactNode; focused: boolean }) {
+  const { primary } = useThemeColors();
+  return (
+    <View
+      className="items-center justify-center rounded-xl px-3 py-1"
+      style={focused ? { backgroundColor: hexToRgba(primary, 0.1) } : undefined}
+    >
+      {children}
+    </View>
   );
 }
