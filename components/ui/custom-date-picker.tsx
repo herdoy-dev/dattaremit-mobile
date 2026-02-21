@@ -148,7 +148,7 @@ export function CustomDatePicker({
   className = "",
 }: CustomDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { primary } = useThemeColors();
+  const { primary, border } = useThemeColors();
 
   const today = new Date();
   const parsed = value ? new Date(value) : null;
@@ -217,11 +217,8 @@ export function CustomDatePicker({
 
       <Pressable
         onPress={handleOpen}
-        className={`flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface ${
-          error
-            ? "border-red-500"
-            : "border-light-border dark:border-dark-border"
-        }`}
+        className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
+        style={{ borderColor: error ? "#EF4444" : value ? primary : border }}
       >
         <Calendar size={20} color={value ? primary : "#9CA3AF"} />
         <Text

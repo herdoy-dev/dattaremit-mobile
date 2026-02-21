@@ -23,7 +23,7 @@ export function CountrySelector({
   className = "",
 }: CountrySelectorProps) {
   const [modalVisible, setModalVisible] = useState(false);
-  const { primary } = useThemeColors();
+  const { primary, border } = useThemeColors();
 
   const selectedCountry = COUNTRIES.find((c) => c.code === value);
 
@@ -35,11 +35,8 @@ export function CountrySelector({
 
       <Pressable
         onPress={() => setModalVisible(true)}
-        className={`flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface ${
-          error
-            ? "border-red-500"
-            : "border-light-border dark:border-dark-border"
-        }`}
+        className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
+        style={{ borderColor: error ? "#EF4444" : value ? primary : border }}
       >
         {selectedCountry ? (
           <>
