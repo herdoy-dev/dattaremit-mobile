@@ -21,6 +21,7 @@ import { useRouter } from "expo-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
+import { HoldButton } from "@/components/ui/hold-button";
 import { Input } from "@/components/ui/input";
 import {
   searchContacts,
@@ -200,12 +201,10 @@ export default function SendScreen() {
             {/* Send Button */}
             <Animated.View
               entering={FadeInDown.delay(300).duration(500)}
-              className="pb-6"
+              className="pb-10"
             >
-              <Button
-                title="Send Money"
-                onPress={handleSend}
-                size="lg"
+              <HoldButton
+                onComplete={handleSend}
                 loading={mutation.isPending}
               />
             </Animated.View>
