@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "https://api.dattaremit.com/v1";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 type TokenFn = () => Promise<string | null>;
 let _getToken: TokenFn | null = null;
@@ -21,7 +21,7 @@ api.interceptors.request.use(async (config) => {
   if (_getToken) {
     const token = await _getToken();
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers["x-auth-token"] = token;
     }
   }
   return config;

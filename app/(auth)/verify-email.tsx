@@ -6,19 +6,25 @@ import {
   ImageBackground,
   Pressable,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { useSignUp } from "@clerk/clerk-expo";
+import { useSignUp, useSignIn } from "@clerk/clerk-expo";
 import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/onboarding-store";
+import { resolveOnboardingStep } from "@/lib/utils";
+import { onboardingService } from "@/services/onboarding";
 
 const CODE_LENGTH = 6;
 
 export default function VerifyEmailScreen() {
   const router = useRouter();
+  const { flow } = useLocalSearchParams<{ flow?: string }>();
+  const isSignIn = flow === "signin";
+
   const { setStep } = useOnboardingStore();
-  const { signUp, setActive, isLoaded } = useSignUp();
+  const { signUp, setActive: setActiveSignUp, isLoaded: isSignUpLoaded } = useSignUp();
+  const { signIn, setActive: setActiveSignIn, isLoaded: isSignInLoaded } = useSignIn();
 
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const [loading, setLoading] = useState(false);
@@ -26,6 +32,11 @@ export default function VerifyEmailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const inputs = useRef<(TextInput | null)[]>([]);
+
+  const isLoaded = isSignIn ? isSignInLoaded : isSignUpLoaded;
+  const displayEmail = isSignIn
+    ? signIn?.identifier
+    : signUp?.emailAddress;
 
   const handleChange = (text: string, index: number) => {
     // Only allow digits
@@ -55,6 +66,24 @@ export default function VerifyEmailScreen() {
     }
   };
 
+  const routeAfterVerification = async () => {
+    try {
+      const accountData = await onboardingService.getAccountStatus();
+      const step = resolveOnboardingStep(accountData);
+      await setStep(step);
+      const routes: Record<string, string> = {
+        profile: "/(onboarding)/profile",
+        address: "/(onboarding)/address",
+        kyc: "/(onboarding)/kyc",
+        completed: "/(tabs)",
+      };
+      router.replace((routes[step] || "/(onboarding)/profile") as never);
+    } catch {
+      await setStep("profile");
+      router.replace("/(onboarding)/profile");
+    }
+  };
+
   const handleVerify = async (verificationCode?: string) => {
     const finalCode = verificationCode || code.join("");
     if (finalCode.length !== CODE_LENGTH || !isLoaded) return;
@@ -63,14 +92,25 @@ export default function VerifyEmailScreen() {
     setError(null);
 
     try {
-      const result = await signUp.attemptEmailAddressVerification({
-        code: finalCode,
-      });
+      if (isSignIn) {
+        const result = await signIn!.attemptFirstFactor({
+          strategy: "email_code",
+          code: finalCode,
+        });
 
-      if (result.status === "complete" && result.createdSessionId) {
-        await setActive({ session: result.createdSessionId });
-        await setStep("profile");
-        router.replace("/(onboarding)/profile");
+        if (result.status === "complete" && result.createdSessionId) {
+          await setActiveSignIn({ session: result.createdSessionId });
+          await routeAfterVerification();
+        }
+      } else {
+        const result = await signUp!.attemptEmailAddressVerification({
+          code: finalCode,
+        });
+
+        if (result.status === "complete" && result.createdSessionId) {
+          await setActiveSignUp({ session: result.createdSessionId });
+          await routeAfterVerification();
+        }
       }
     } catch (err: any) {
       setError(
@@ -89,7 +129,19 @@ export default function VerifyEmailScreen() {
     setError(null);
 
     try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      if (isSignIn) {
+        const emailFactor = signIn!.supportedFirstFactors?.find(
+          (f: any) => f.strategy === "email_code"
+        );
+        if (emailFactor) {
+          await signIn!.prepareFirstFactor({
+            strategy: "email_code",
+            emailAddressId: (emailFactor as any).emailAddressId,
+          });
+        }
+      } else {
+        await signUp!.prepareEmailAddressVerification({ strategy: "email_code" });
+      }
     } catch (err: any) {
       setError(
         err?.errors?.[0]?.longMessage ||
@@ -125,7 +177,7 @@ export default function VerifyEmailScreen() {
           <Text className="mb-8 text-center text-base text-white/70">
             We've sent a 6-digit code to{"\n"}
             <Text className="font-semibold text-white">
-              {signUp?.emailAddress || "your email"}
+              {displayEmail || "your email"}
             </Text>
           </Text>
         </Animated.View>

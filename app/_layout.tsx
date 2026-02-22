@@ -30,7 +30,9 @@ const queryClient = new QueryClient({
 
 function ClerkTokenSync() {
   const { getToken } = useAuth();
-  setAuthToken(getToken);
+  useEffect(() => {
+    setAuthToken(getToken);
+  }, [getToken]);
   return null;
 }
 

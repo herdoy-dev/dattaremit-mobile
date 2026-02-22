@@ -11,7 +11,9 @@ import { GoogleIcon, AppleIcon } from "@/components/icons/social-icons";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { useForm } from "@/hooks/use-form";
 import { useSocialAuth } from "@/hooks/use-social-auth";
-import { validateEmail, validatePassword } from "@/lib/validation";
+import { validateEmail } from "@/lib/validation";
+import { resolveOnboardingStep } from "@/lib/utils";
+import { onboardingService } from "@/services/onboarding";
 import { COLORS } from "@/constants/theme";
 
 export default function LoginScreen() {
@@ -23,7 +25,7 @@ export default function LoginScreen() {
     { email: "", password: "" },
     {
       email: (v) => validateEmail(v),
-      password: (v) => validatePassword(v),
+      password: (v) => (v ? null : "Password is required"),
     }
   );
 
@@ -48,8 +50,35 @@ export default function LoginScreen() {
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
-        await setStep("profile");
-        router.replace("/(onboarding)/profile");
+
+        // Check server for existing account status
+        try {
+          const accountData = await onboardingService.getAccountStatus();
+          const step = resolveOnboardingStep(accountData);
+          await setStep(step);
+          const routes: Record<string, string> = {
+            profile: "/(onboarding)/profile",
+            address: "/(onboarding)/address",
+            kyc: "/(onboarding)/kyc",
+            completed: "/(tabs)",
+          };
+          router.replace((routes[step] || "/(onboarding)/profile") as never);
+        } catch {
+          await setStep("profile");
+          router.replace("/(onboarding)/profile");
+        }
+      } else {
+        // Email verification required — prepare first factor and redirect
+        const emailFactor = result.supportedFirstFactors?.find(
+          (f: any) => f.strategy === "email_code"
+        );
+        if (emailFactor) {
+          await signIn.prepareFirstFactor({
+            strategy: "email_code",
+            emailAddressId: emailFactor.emailAddressId,
+          });
+          router.push("/(auth)/verify-email?flow=signin");
+        }
       }
     } catch (err: any) {
       setAuthError(

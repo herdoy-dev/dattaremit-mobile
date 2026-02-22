@@ -16,6 +16,8 @@ import {
   validatePassword,
   validateConfirmPassword,
 } from "@/lib/validation";
+import { resolveOnboardingStep } from "@/lib/utils";
+import { onboardingService } from "@/services/onboarding";
 import { COLORS } from "@/constants/theme";
 
 export default function RegisterScreen() {
@@ -53,13 +55,27 @@ export default function RegisterScreen() {
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
-        await setStep("profile");
-        router.replace("/(onboarding)/profile");
+
+        try {
+          const accountData = await onboardingService.getAccountStatus();
+          const step = resolveOnboardingStep(accountData);
+          await setStep(step);
+          const routes: Record<string, string> = {
+            profile: "/(onboarding)/profile",
+            address: "/(onboarding)/address",
+            kyc: "/(onboarding)/kyc",
+            completed: "/(tabs)",
+          };
+          router.replace((routes[step] || "/(onboarding)/profile") as never);
+        } catch {
+          await setStep("profile");
+          router.replace("/(onboarding)/profile");
+        }
       } else {
         await signUp.prepareEmailAddressVerification({
           strategy: "email_code",
         });
-        router.push("/(auth)/verify-email");
+        router.push("/(auth)/verify-email?flow=signup");
       }
     } catch (err: any) {
       setAuthError(

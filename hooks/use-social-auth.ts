@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import { useRouter } from "expo-router";
 import { useSSO } from "@clerk/clerk-expo";
 import { useOnboardingStore } from "@/store/onboarding-store";
+import { resolveOnboardingStep } from "@/lib/utils";
+import { onboardingService } from "@/services/onboarding";
 
 export function useSocialAuth() {
   const router = useRouter();
@@ -21,8 +23,23 @@ export function useSocialAuth() {
 
         if (createdSessionId && ssoSetActive) {
           await ssoSetActive({ session: createdSessionId });
-          await setStep("profile");
-          router.replace("/(onboarding)/profile");
+
+          // Check server for existing account status
+          try {
+            const accountData = await onboardingService.getAccountStatus();
+            const step = resolveOnboardingStep(accountData);
+            await setStep(step);
+            const routes: Record<string, string> = {
+              profile: "/(onboarding)/profile",
+              address: "/(onboarding)/address",
+              kyc: "/(onboarding)/kyc",
+              completed: "/(tabs)",
+            };
+            router.replace((routes[step] || "/(onboarding)/profile") as never);
+          } catch {
+            await setStep("profile");
+            router.replace("/(onboarding)/profile");
+          }
         }
       } catch (err: any) {
         setAuthError(

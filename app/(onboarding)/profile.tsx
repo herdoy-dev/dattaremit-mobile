@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useMutation } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { User } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +45,7 @@ export default function ProfileScreen() {
       dateOfBirth: (v) => validateDateOfBirth(v),
       phoneNumber: (v) => validatePhone(v),
       nationality: (v) => validateRequired(v, "Nationality"),
-    }
+    },
   );
 
   const profileMutation = useMutation({
@@ -139,7 +140,15 @@ export default function ProfileScreen() {
             />
 
             {profileMutation.isError && (
-              <ErrorBanner message="Failed to save profile. Please try again." />
+              <ErrorBanner
+                message={
+                  isAxiosError(profileMutation.error)
+                    ? profileMutation.error.response?.data?.message ||
+                      "Failed to save profile. Please try again."
+                    : profileMutation.error?.message ||
+                      "Failed to save profile. Please try again."
+                }
+              />
             )}
 
             <Button

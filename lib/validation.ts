@@ -52,8 +52,13 @@ export function validatePostalCode(code: string): string | null {
 export function validateDateOfBirth(date: string): string | null {
   if (!date) return "Date of birth is required";
   const dob = new Date(date);
+  if (isNaN(dob.getTime())) return "Enter a valid date of birth";
   const now = new Date();
-  const age = now.getFullYear() - dob.getFullYear();
+  let age = now.getFullYear() - dob.getFullYear();
+  const monthDiff = now.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dob.getDate())) {
+    age--;
+  }
   if (age < 18) return "You must be at least 18 years old";
   if (age > 120) return "Enter a valid date of birth";
   return null;

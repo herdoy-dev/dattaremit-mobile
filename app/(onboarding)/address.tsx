@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useMutation } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { MapPin, Building2, Hash } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,7 +129,15 @@ export default function AddressScreen() {
             />
 
             {addressMutation.isError && (
-              <ErrorBanner message="Failed to save address. Please try again." />
+              <ErrorBanner
+                message={
+                  isAxiosError(addressMutation.error)
+                    ? addressMutation.error.response?.data?.message ||
+                      "Failed to save address. Please try again."
+                    : addressMutation.error?.message ||
+                      "Failed to save address. Please try again."
+                }
+              />
             )}
 
             <Button
