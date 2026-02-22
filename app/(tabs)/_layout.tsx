@@ -1,15 +1,35 @@
-import { Tabs } from "expo-router";
+import { useEffect } from "react";
+import { Tabs, useRouter } from "expo-router";
 import { View, Platform } from "react-native";
 import { Home, Activity, UserCircle } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { hexToRgba } from "@/store/theme-store";
 import { COLORS } from "@/constants/theme";
+import { useOnboardingStore } from "@/store/onboarding-store";
+
+const STEP_ROUTES: Record<string, string> = {
+  welcome: "/(onboarding)/profile",
+  auth: "/(onboarding)/profile",
+  profile: "/(onboarding)/profile",
+  address: "/(onboarding)/address",
+  kyc: "/(onboarding)/kyc",
+};
 
 export default function TabLayout() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const { primary, surface, border } = useThemeColors();
+  const router = useRouter();
+  const { step, isLoaded } = useOnboardingStore();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (step !== "completed") {
+      const route = STEP_ROUTES[step] || "/(onboarding)/profile";
+      router.replace(route as never);
+    }
+  }, [isLoaded, step]);
 
   return (
     <Tabs
