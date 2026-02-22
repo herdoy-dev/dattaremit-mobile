@@ -16,8 +16,10 @@ import {
   LogOut,
   Palette,
 } from "lucide-react-native";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import { useOnboardingStore } from "@/store/onboarding-store";
+import { onboardingService } from "@/services/onboarding";
 import { CustomModal } from "@/components/ui/custom-modal";
 import { SettingItem } from "@/components/ui/setting-item";
 import { ThemePicker } from "@/components/account/theme-picker";
@@ -39,6 +41,31 @@ export default function AccountTab() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  const { data: account, isLoading } = useQuery({
+    queryKey: ["account"],
+    queryFn: () => onboardingService.getAccountStatus(),
+  });
+
+  const user = account?.data?.user;
+  const address = account?.data?.addresses?.[0];
+  const accountStatus = account?.data?.accountStatus;
+
+  const kycStatusMap: Record<string, string> = {
+    ACTIVE: "Verified",
+    PENDING: "Pending",
+    INITIAL: "Not Started",
+    REJECTED: "Rejected",
+  };
+
+  const badgeColorMap: Record<string, { bg: string; text: string }> = {
+    ACTIVE: { bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-700 dark:text-green-400" },
+    PENDING: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400" },
+    INITIAL: { bg: "bg-gray-100 dark:bg-gray-900/30", text: "text-gray-700 dark:text-gray-400" },
+    REJECTED: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400" },
+  };
+
+  const badge = badgeColorMap[accountStatus ?? ""] ?? badgeColorMap.INITIAL;
 
   const handleLogout = async () => {
     await signOut();
@@ -71,15 +98,15 @@ export default function AccountTab() {
           </View>
           <View className="flex-1">
             <Text className="text-lg font-bold text-light-text dark:text-dark-text">
-              User
+              {isLoading ? "..." : `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "User"}
             </Text>
             <Text className="mt-0.5 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              user@example.com
+              {isLoading ? "..." : user?.email ?? "—"}
             </Text>
           </View>
-          <View className="rounded-full bg-green-100 px-2.5 py-0.5 dark:bg-green-900/30">
-            <Text className="text-xs font-medium text-green-700 dark:text-green-400">
-              Verified
+          <View className={`rounded-full px-2.5 py-0.5 ${badge.bg}`}>
+            <Text className={`text-xs font-medium ${badge.text}`}>
+              {isLoading ? "..." : kycStatusMap[accountStatus ?? ""] ?? "Unknown"}
             </Text>
           </View>
         </Animated.View>
@@ -96,25 +123,25 @@ export default function AccountTab() {
             <SettingItem
               icon={<Mail size={18} color={primary} />}
               label="Email"
-              value="user@example.com"
+              value={isLoading ? "..." : user?.email ?? "—"}
             />
             <View className="h-px bg-light-border dark:bg-dark-border" />
             <SettingItem
               icon={<Phone size={18} color={primary} />}
               label="Phone"
-              value="+1 234 567 890"
+              value={isLoading ? "..." : user?.phoneNumberPrefix && user?.phoneNumber ? `${user.phoneNumberPrefix} ${user.phoneNumber}` : "—"}
             />
             <View className="h-px bg-light-border dark:bg-dark-border" />
             <SettingItem
               icon={<MapPin size={18} color={primary} />}
               label="Address"
-              value="New York, US"
+              value={isLoading ? "..." : address ? `${address.city}, ${address.country}` : "No address"}
             />
             <View className="h-px bg-light-border dark:bg-dark-border" />
             <SettingItem
               icon={<Shield size={18} color={primary} />}
               label="KYC Status"
-              value="Verified"
+              value={isLoading ? "..." : kycStatusMap[accountStatus ?? ""] ?? "Unknown"}
             />
           </View>
         </Animated.View>
