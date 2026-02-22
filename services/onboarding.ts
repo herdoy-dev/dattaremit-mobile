@@ -10,6 +10,14 @@ export interface ProfilePayload {
   nationality: string;
 }
 
+export interface DepositAccountPayload {
+  bankName: string;
+  accountHolderName: string;
+  accountNumber: string;
+  routingNumber: string;
+  type: string;
+}
+
 export interface AddressPayload {
   country: string;
   city: string;
@@ -91,6 +99,11 @@ export const onboardingService = {
 
   async getAccountStatus() {
     const response = await api.get("/account");
+    return response.data;
+  },
+
+  async addDepositAccount(payload: DepositAccountPayload) {
+    const response = await api.post("/zynk/deposit-account", payload);
     return response.data;
   },
 };

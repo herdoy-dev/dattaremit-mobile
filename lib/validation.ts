@@ -49,6 +49,20 @@ export function validatePostalCode(code: string): string | null {
   return null;
 }
 
+export function validateAccountNumber(value: string): string | null {
+  if (!value.trim()) return "Account number is required";
+  if (!/^\d{8,18}$/.test(value.trim()))
+    return "Account number must be 8-18 digits";
+  return null;
+}
+
+export function validateRoutingNumber(value: string): string | null {
+  if (!value.trim()) return "Routing number is required";
+  if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(value.trim().toUpperCase()))
+    return "Enter a valid IFSC code (e.g. SBIN0001234)";
+  return null;
+}
+
 export function validateDateOfBirth(date: string): string | null {
   if (!date) return "Date of birth is required";
   const dob = new Date(date);

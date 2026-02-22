@@ -16,7 +16,7 @@ import {
   LogOut,
   Palette,
 } from "lucide-react-native";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
@@ -38,6 +38,7 @@ export default function AccountTab() {
   const isDarkMode = colorScheme === "dark";
   const { primary } = useThemeColors();
   const { preset } = useThemeStore();
+  const queryClient = useQueryClient();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -70,6 +71,7 @@ export default function AccountTab() {
   const handleLogout = async () => {
     await signOut();
     await resetOnboarding();
+    queryClient.clear();
     setShowLogoutModal(false);
     router.replace("/(auth)/welcome");
   };

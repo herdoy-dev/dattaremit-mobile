@@ -1,17 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 
 import { ContactSelect } from "@/components/transfer/contact-select";
 import { AmountEntry } from "@/components/transfer/amount-entry";
 import { SendSuccess } from "@/components/transfer/send-success";
 import { sendMoney, type Contact } from "@/services/transfer";
+import { onboardingService } from "@/services/onboarding";
 import { validateAmount } from "@/lib/validation";
 
 type Step = "select" | "amount" | "success";
 
 export default function SendScreen() {
+  const router = useRouter();
+
+  const { data: account } = useQuery({
+    queryKey: ["account"],
+    queryFn: () => onboardingService.getAccountStatus(),
+  });
+
+  const address = account?.data?.addresses?.[0];
+
+  // Only US users can send money
+  useEffect(() => {
+    if (account && address?.country !== "US") {
+      router.back();
+    }
+  }, [account, address]);
   const [step, setStep] = useState<Step>("select");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);

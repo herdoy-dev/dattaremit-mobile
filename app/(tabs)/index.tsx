@@ -11,8 +11,10 @@ import {
 } from "lucide-react-native";
 import { useState, useMemo } from "react";
 import { useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { TransactionItem } from "@/components/ui/transaction-item";
+import { onboardingService } from "@/services/onboarding";
 import { COLORS } from "@/constants/theme";
 import type { Transaction } from "@/types/transaction";
 
@@ -28,13 +30,27 @@ export default function HomeTab() {
   const router = useRouter();
   const { primary } = useThemeColors();
 
+  const { data: account } = useQuery({
+    queryKey: ["account"],
+    queryFn: () => onboardingService.getAccountStatus(),
+  });
+
+  const user = account?.data?.user;
+  const address = account?.data?.addresses?.[0];
+  const isUSUser = address?.country === "US";
+
   const QUICK_ACTIONS = useMemo(
-    () => [
-      { icon: Send, label: "Send", color: primary },
-      { icon: Download, label: "Receive", color: COLORS.success },
-      { icon: Landmark, label: "Add Bank", color: COLORS.warning },
-    ],
-    [primary]
+    () => {
+      const actions = [];
+      if (isUSUser) {
+        actions.push({ icon: Send, label: "Send", color: primary });
+      } else {
+        actions.push({ icon: Download, label: "Receive", color: COLORS.success });
+      }
+      actions.push({ icon: Landmark, label: "Add Bank", color: COLORS.warning });
+      return actions;
+    },
+    [primary, isUSUser]
   );
 
   function handleQuickAction(label: string) {
@@ -60,7 +76,7 @@ export default function HomeTab() {
               Welcome back
             </Text>
             <Text className="text-xl font-bold text-light-text dark:text-dark-text">
-              User
+              {user?.firstName ?? "User"}
             </Text>
           </View>
           <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-light-surface dark:bg-dark-surface">

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { View, Text, Pressable, Alert, Share } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -7,12 +8,27 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { getReceiveInfo } from "@/services/transfer";
+import { onboardingService } from "@/services/onboarding";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { hexToRgba } from "@/store/theme-store";
 
 export default function ReceiveScreen() {
   const router = useRouter();
   const { primary } = useThemeColors();
+
+  const { data: account } = useQuery({
+    queryKey: ["account"],
+    queryFn: () => onboardingService.getAccountStatus(),
+  });
+
+  const address = account?.data?.addresses?.[0];
+
+  // Only non-US users can receive money
+  useEffect(() => {
+    if (account && address?.country === "US") {
+      router.back();
+    }
+  }, [account, address]);
 
   const { data: info } = useQuery({
     queryKey: ["receiveInfo"],
