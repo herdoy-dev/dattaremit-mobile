@@ -15,7 +15,7 @@ export function resolveOnboardingStep(accountData: {
   };
 }): OnboardingStep {
   const data = accountData?.data;
-  if (!data?.user) return "profile";
+  if (!data?.user) return "referral";
   if (!data.addresses || data.addresses.length === 0) return "address";
 
   switch (data.accountStatus) {

@@ -57,6 +57,7 @@ export default function LoginScreen() {
           const step = resolveOnboardingStep(accountData);
           await setStep(step);
           const routes: Record<string, string> = {
+            referral: "/(onboarding)/referral",
             profile: "/(onboarding)/profile",
             address: "/(onboarding)/address",
             kyc: "/(onboarding)/kyc",
@@ -70,7 +71,8 @@ export default function LoginScreen() {
       } else {
         // Email verification required — prepare first factor and redirect
         const emailFactor = result.supportedFirstFactors?.find(
-          (f: any) => f.strategy === "email_code"
+          (f): f is Extract<typeof f, { strategy: "email_code" }> =>
+            f.strategy === "email_code"
         );
         if (emailFactor) {
           await signIn.prepareFirstFactor({

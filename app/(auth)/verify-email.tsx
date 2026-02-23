@@ -72,6 +72,7 @@ export default function VerifyEmailScreen() {
       const step = resolveOnboardingStep(accountData);
       await setStep(step);
       const routes: Record<string, string> = {
+        referral: "/(onboarding)/referral",
         profile: "/(onboarding)/profile",
         address: "/(onboarding)/address",
         kyc: "/(onboarding)/kyc",
@@ -99,7 +100,7 @@ export default function VerifyEmailScreen() {
         });
 
         if (result.status === "complete" && result.createdSessionId) {
-          await setActiveSignIn({ session: result.createdSessionId });
+          await setActiveSignIn!({ session: result.createdSessionId });
           await routeAfterVerification();
         }
       } else {
@@ -108,7 +109,7 @@ export default function VerifyEmailScreen() {
         });
 
         if (result.status === "complete" && result.createdSessionId) {
-          await setActiveSignUp({ session: result.createdSessionId });
+          await setActiveSignUp!({ session: result.createdSessionId });
           await routeAfterVerification();
         }
       }

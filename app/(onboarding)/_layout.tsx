@@ -6,14 +6,16 @@ import {
 } from "@/store/onboarding-store";
 
 const SEGMENT_TO_STEP: Record<string, OnboardingStep> = {
+  referral: "referral",
   profile: "profile",
   address: "address",
   kyc: "kyc",
 };
 
 const STEP_ROUTES: Record<string, string> = {
-  welcome: "/(onboarding)/profile",
-  auth: "/(onboarding)/profile",
+  welcome: "/(onboarding)/referral",
+  auth: "/(onboarding)/referral",
+  referral: "/(onboarding)/referral",
   profile: "/(onboarding)/profile",
   address: "/(onboarding)/address",
   kyc: "/(onboarding)/kyc",
@@ -48,6 +50,7 @@ export default function OnboardingLayout() {
         animation: "slide_from_right",
       }}
     >
+      <Stack.Screen name="referral" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="address" />
       <Stack.Screen name="kyc" />

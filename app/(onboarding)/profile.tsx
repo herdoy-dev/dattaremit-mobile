@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useMutation } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,9 +29,18 @@ import {
 } from "@/lib/validation";
 import { COLORS } from "@/constants/theme";
 
+const REFERRAL_STORAGE_KEY = "referral_code";
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { setStep } = useOnboardingStore();
+  const referralCodeRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(REFERRAL_STORAGE_KEY).then((code) => {
+      referralCodeRef.current = code;
+    });
+  }, []);
 
   const { values, errors, setValue, validate } = useForm(
     {
@@ -51,6 +62,7 @@ export default function ProfileScreen() {
   const profileMutation = useMutation({
     mutationFn: onboardingService.submitProfile,
     onSuccess: async () => {
+      await AsyncStorage.removeItem(REFERRAL_STORAGE_KEY);
       await setStep("address");
       router.push("/(onboarding)/address");
     },
@@ -64,6 +76,9 @@ export default function ProfileScreen() {
       dateOfBirth: values.dateOfBirth,
       phoneNumber: values.phoneNumber,
       nationality: values.nationality,
+      ...(referralCodeRef.current
+        ? { referredByCode: referralCodeRef.current }
+        : {}),
     });
   };
 

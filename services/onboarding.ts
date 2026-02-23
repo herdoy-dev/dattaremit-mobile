@@ -8,6 +8,7 @@ export interface ProfilePayload {
   dateOfBirth: string;
   phoneNumber: string;
   nationality: string;
+  referredByCode?: string;
 }
 
 export interface DepositAccountPayload {
@@ -74,6 +75,7 @@ export const onboardingService = {
       phoneNumberPrefix: prefix,
       phoneNumber: number,
       nationality: payload.nationality,
+      ...(payload.referredByCode ? { referredByCode: payload.referredByCode } : {}),
     });
 
     return response.data;
@@ -104,6 +106,11 @@ export const onboardingService = {
 
   async addDepositAccount(payload: DepositAccountPayload) {
     const response = await api.post("/zynk/deposit-account", payload);
+    return response.data;
+  },
+
+  async requestReferCode() {
+    const response = await api.post("/referral/request-code");
     return response.data;
   },
 };

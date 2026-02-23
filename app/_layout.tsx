@@ -67,6 +67,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(onboarding)" />
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="(transfer)" />
+                <Stack.Screen name="referral" />
               </Stack>
               <StatusBar style="auto" />
             </ThemeProvider>

@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export type OnboardingStep =
   | "welcome"
   | "auth"
+  | "referral"
   | "profile"
   | "address"
   | "kyc"
@@ -12,6 +13,7 @@ export type OnboardingStep =
 const STEP_ORDER: OnboardingStep[] = [
   "welcome",
   "auth",
+  "referral",
   "profile",
   "address",
   "kyc",

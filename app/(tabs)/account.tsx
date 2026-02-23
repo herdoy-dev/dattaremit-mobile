@@ -15,6 +15,7 @@ import {
   FileText,
   LogOut,
   Palette,
+  Gift,
 } from "lucide-react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
@@ -144,6 +145,20 @@ export default function AccountTab() {
               icon={<Shield size={18} color={primary} />}
               label="KYC Status"
               value={isLoading ? "..." : kycStatusMap[accountStatus ?? ""] ?? "Unknown"}
+            />
+          </View>
+        </Animated.View>
+
+        {/* Referral */}
+        <Animated.View
+          entering={FadeInDown.delay(250).duration(500)}
+          className="mx-6 mt-6"
+        >
+          <View className="rounded-2xl bg-light-surface px-4 dark:bg-dark-surface">
+            <SettingItem
+              icon={<Gift size={18} color={primary} />}
+              label="Refer & Earn Rewards"
+              onPress={() => router.push("/referral")}
             />
           </View>
         </Animated.View>

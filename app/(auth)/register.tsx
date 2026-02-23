@@ -61,6 +61,7 @@ export default function RegisterScreen() {
           const step = resolveOnboardingStep(accountData);
           await setStep(step);
           const routes: Record<string, string> = {
+            referral: "/(onboarding)/referral",
             profile: "/(onboarding)/profile",
             address: "/(onboarding)/address",
             kyc: "/(onboarding)/kyc",
