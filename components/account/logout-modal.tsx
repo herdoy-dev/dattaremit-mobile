@@ -10,7 +10,7 @@ interface LogoutModalProps {
 
 export function LogoutModal({ onLogout, onCancel }: LogoutModalProps) {
   return (
-    <View className="items-center pt-2">
+    <View className="items-center pt-2" accessibilityRole="alert">
       <View className="mb-4 h-14 w-14 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-900/30">
         <LogOut size={28} color={COLORS.error} />
       </View>

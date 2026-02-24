@@ -1,35 +1,18 @@
-import { useEffect } from "react";
-import { Tabs, useRouter } from "expo-router";
+import { Tabs } from "expo-router";
 import { View, Platform } from "react-native";
 import { Home, Activity, UserCircle } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { hexToRgba } from "@/store/theme-store";
+import { useOnboardingGuard } from "@/hooks/use-onboarding-guard";
+import { hexToRgba } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
-import { useOnboardingStore } from "@/store/onboarding-store";
-
-const STEP_ROUTES: Record<string, string> = {
-  welcome: "/(onboarding)/profile",
-  auth: "/(onboarding)/profile",
-  profile: "/(onboarding)/profile",
-  address: "/(onboarding)/address",
-  kyc: "/(onboarding)/kyc",
-};
 
 export default function TabLayout() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const { primary, surface, border } = useThemeColors();
-  const router = useRouter();
-  const { step, isLoaded } = useOnboardingStore();
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    if (step !== "completed") {
-      const route = STEP_ROUTES[step] || "/(onboarding)/profile";
-      router.replace(route as never);
-    }
-  }, [isLoaded, step]);
+  useOnboardingGuard();
 
   return (
     <Tabs
@@ -43,7 +26,7 @@ export default function TabLayout() {
           paddingBottom: Platform.OS === "ios" ? 32 : 16,
         },
         tabBarActiveTintColor: primary,
-        tabBarInactiveTintColor: isDark ? "#6B6B6B" : COLORS.placeholder,
+        tabBarInactiveTintColor: isDark ? COLORS.muted : COLORS.placeholder,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",

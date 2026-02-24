@@ -3,7 +3,9 @@ import { View, Text, Pressable, FlatList } from "react-native";
 import { Calendar } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { COLORS } from "@/constants/theme";
-import { hexToRgba } from "@/store/theme-store";
+import { hexToRgba } from "@/lib/utils";
+import { FieldLabel } from "@/components/ui/field-label";
+import { FieldError } from "@/components/ui/field-error";
 import { CustomModal } from "@/components/ui/custom-modal";
 
 interface CustomDatePickerProps {
@@ -212,14 +214,15 @@ export function CustomDatePicker({
 
   return (
     <View className={className}>
-      <Text className="mb-1.5 text-sm font-medium text-light-text dark:text-dark-text">
-        {label}
-      </Text>
+      <FieldLabel label={label} />
 
       <Pressable
         onPress={handleOpen}
         className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
         style={{ borderColor: error ? COLORS.error : value ? primary : border }}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, ${formatDisplay() || "not set"}`}
+        accessibilityHint="Opens date picker"
       >
         <Calendar size={20} color={value ? primary : COLORS.placeholder} />
         <Text
@@ -236,15 +239,15 @@ export function CustomDatePicker({
       <CustomModal visible={isOpen} onClose={handleCancel} snapPoint={0.45}>
         {/* Cancel / Title / Done header */}
         <View className="mb-4 flex-row items-center justify-between">
-          <Pressable onPress={handleCancel} hitSlop={8}>
+          <Pressable onPress={handleCancel} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel">
             <Text className="text-base text-light-text-muted dark:text-dark-text-muted">
               Cancel
             </Text>
           </Pressable>
           <Text className="text-base font-semibold text-light-text dark:text-dark-text">
-            Date of Birth
+            {label}
           </Text>
-          <Pressable onPress={handleDone} hitSlop={8}>
+          <Pressable onPress={handleDone} hitSlop={8} accessibilityRole="button" accessibilityLabel="Done">
             <Text className="text-base font-semibold text-primary">Done</Text>
           </Pressable>
         </View>
@@ -272,7 +275,7 @@ export function CustomDatePicker({
         </View>
       </CustomModal>
 
-      {error && <Text className="mt-1 text-xs text-red-500">{error}</Text>}
+      <FieldError error={error} />
     </View>
   );
 }

@@ -7,8 +7,8 @@ import {
   LinkExit,
 } from "react-native-plaid-link-sdk";
 import { useMutation } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import { plaidService } from "@/services/plaid";
+import { getApiErrorMessage } from "@/lib/utils";
 
 export function usePlaidLink(options?: { onSuccess?: () => void }) {
   const [error, setError] = useState<string | null>(null);
@@ -23,11 +23,9 @@ export function usePlaidLink(options?: { onSuccess?: () => void }) {
       create({ token: data.data.plaid_token });
       setIsReady(true);
     },
-    onError: (err) => {
+    onError: (err: unknown) => {
       setError(
-        isAxiosError(err)
-          ? err.response?.data?.message || "Failed to initialize bank linking."
-          : "Failed to initialize bank linking."
+        getApiErrorMessage(err, "Failed to initialize bank linking.")
       );
     },
   });
@@ -35,11 +33,9 @@ export function usePlaidLink(options?: { onSuccess?: () => void }) {
   const exchangeMutation = useMutation({
     mutationFn: plaidService.addExternalAccount,
     onSuccess: () => options?.onSuccess?.(),
-    onError: (err) => {
+    onError: (err: unknown) => {
       setError(
-        isAxiosError(err)
-          ? err.response?.data?.message || "Failed to link bank account."
-          : "Failed to link bank account."
+        getApiErrorMessage(err, "Failed to link bank account.")
       );
     },
   });

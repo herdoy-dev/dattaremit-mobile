@@ -4,21 +4,13 @@ import {
   useOnboardingStore,
   type OnboardingStep,
 } from "@/store/onboarding-store";
+import { ONBOARDING_STEP_ROUTES } from "@/constants/onboarding-routes";
 
 const SEGMENT_TO_STEP: Record<string, OnboardingStep> = {
   referral: "referral",
   profile: "profile",
   address: "address",
   kyc: "kyc",
-};
-
-const STEP_ROUTES: Record<string, string> = {
-  welcome: "/(onboarding)/referral",
-  auth: "/(onboarding)/referral",
-  referral: "/(onboarding)/referral",
-  profile: "/(onboarding)/profile",
-  address: "/(onboarding)/address",
-  kyc: "/(onboarding)/kyc",
 };
 
 export default function OnboardingLayout() {
@@ -38,7 +30,7 @@ export default function OnboardingLayout() {
     const requiredStep = SEGMENT_TO_STEP[currentSegment as string];
 
     if (requiredStep && !canAccess(requiredStep)) {
-      const correctRoute = STEP_ROUTES[step] || "/(onboarding)/profile";
+      const correctRoute = ONBOARDING_STEP_ROUTES[step] || "/(onboarding)/profile";
       router.replace(correctRoute as never);
     }
   }, [isLoaded, step, segments, canAccess]);

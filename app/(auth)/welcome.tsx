@@ -6,7 +6,7 @@ import { Shield, ArrowRight, Wallet } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-import { hexToRgba } from "@/store/theme-store";
+import { hexToRgba } from "@/lib/utils";
 
 export default function WelcomeScreen() {
   const router = useRouter();

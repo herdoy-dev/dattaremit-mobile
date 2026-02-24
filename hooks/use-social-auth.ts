@@ -1,14 +1,11 @@
 import { useState, useCallback } from "react";
-import { useRouter } from "expo-router";
 import { useSSO } from "@clerk/clerk-expo";
-import { useOnboardingStore } from "@/store/onboarding-store";
-import { resolveOnboardingStep } from "@/lib/utils";
-import { onboardingService } from "@/services/onboarding";
+import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
+import { getClerkErrorMessage } from "@/lib/utils";
 
 export function useSocialAuth() {
-  const router = useRouter();
-  const { setStep } = useOnboardingStore();
   const { startSSOFlow } = useSSO();
+  const { routeAfterAuth } = usePostAuthRouting();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -23,34 +20,17 @@ export function useSocialAuth() {
 
         if (createdSessionId && ssoSetActive) {
           await ssoSetActive({ session: createdSessionId });
-
-          // Check server for existing account status
-          try {
-            const accountData = await onboardingService.getAccountStatus();
-            const step = resolveOnboardingStep(accountData);
-            await setStep(step);
-            const routes: Record<string, string> = {
-              profile: "/(onboarding)/profile",
-              address: "/(onboarding)/address",
-              kyc: "/(onboarding)/kyc",
-              completed: "/(tabs)",
-            };
-            router.replace((routes[step] || "/(onboarding)/profile") as never);
-          } catch {
-            await setStep("profile");
-            router.replace("/(onboarding)/profile");
-          }
+          await routeAfterAuth();
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         setAuthError(
-          err?.errors?.[0]?.longMessage ||
-            "Social sign-in failed. Please try again."
+          getClerkErrorMessage(err, "Social sign-in failed. Please try again.")
         );
       } finally {
         setLoadingAction(null);
       }
     },
-    [startSSOFlow, setStep, router]
+    [startSSOFlow, routeAfterAuth]
   );
 
   return {

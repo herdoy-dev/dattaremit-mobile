@@ -21,6 +21,9 @@ export function ThemePicker() {
             key={theme.key}
             onPress={() => setPreset(theme.key)}
             className="mb-4 w-1/4 items-center"
+            accessibilityRole="button"
+            accessibilityLabel={`${theme.label} theme`}
+            accessibilityState={{ selected: preset === theme.key }}
           >
             <View
               style={{

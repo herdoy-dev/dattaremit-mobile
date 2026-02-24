@@ -10,8 +10,8 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useMutation } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUser } from "@clerk/clerk-expo";
 import { User } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,8 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { useForm } from "@/hooks/use-form";
+import { getApiErrorMessage } from "@/lib/utils";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
 import {
   validateRequired,
   validatePhone,
@@ -29,15 +31,14 @@ import {
 } from "@/lib/validation";
 import { COLORS } from "@/constants/theme";
 
-const REFERRAL_STORAGE_KEY = "referral_code";
-
 export default function ProfileScreen() {
   const router = useRouter();
   const { setStep } = useOnboardingStore();
+  const { user: clerkUser } = useUser();
   const referralCodeRef = useRef<string | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem(REFERRAL_STORAGE_KEY).then((code) => {
+    AsyncStorage.getItem(STORAGE_KEYS.REFERRAL_CODE).then((code) => {
       referralCodeRef.current = code;
     });
   }, []);
@@ -62,7 +63,7 @@ export default function ProfileScreen() {
   const profileMutation = useMutation({
     mutationFn: onboardingService.submitProfile,
     onSuccess: async () => {
-      await AsyncStorage.removeItem(REFERRAL_STORAGE_KEY);
+      await AsyncStorage.removeItem(STORAGE_KEYS.REFERRAL_CODE);
       await setStep("address");
       router.push("/(onboarding)/address");
     },
@@ -70,12 +71,16 @@ export default function ProfileScreen() {
 
   const handleSubmit = () => {
     if (!validate()) return;
+    if (!clerkUser?.id || !clerkUser?.primaryEmailAddress?.emailAddress) return;
+
     profileMutation.mutate({
       firstName: values.firstName,
       lastName: values.lastName,
       dateOfBirth: values.dateOfBirth,
       phoneNumber: values.phoneNumber,
       nationality: values.nationality,
+      clerkUserId: clerkUser.id,
+      email: clerkUser.primaryEmailAddress.emailAddress,
       ...(referralCodeRef.current
         ? { referredByCode: referralCodeRef.current }
         : {}),
@@ -156,13 +161,10 @@ export default function ProfileScreen() {
 
             {profileMutation.isError && (
               <ErrorBanner
-                message={
-                  isAxiosError(profileMutation.error)
-                    ? profileMutation.error.response?.data?.message ||
-                      "Failed to save profile. Please try again."
-                    : profileMutation.error?.message ||
-                      "Failed to save profile. Please try again."
-                }
+                message={getApiErrorMessage(
+                  profileMutation.error,
+                  "Failed to save profile. Please try again."
+                )}
               />
             )}
 

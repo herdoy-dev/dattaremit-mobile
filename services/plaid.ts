@@ -1,4 +1,4 @@
-import { api } from "./api";
+import apiClient from "@/lib/api-client";
 
 export interface ExternalAccountPayload {
   accountName: string;
@@ -9,14 +9,14 @@ export interface ExternalAccountPayload {
 
 export const plaidService = {
   async createLinkToken(androidPackageName?: string) {
-    const response = await api.post("/zynk/plaid-link-token", {
+    const response = await apiClient.post("/zynk/plaid-link-token", {
       ...(androidPackageName && { android_package_name: androidPackageName }),
     });
     return response.data;
   },
 
   async addExternalAccount(payload: ExternalAccountPayload) {
-    const response = await api.post("/zynk/external-account", payload);
+    const response = await apiClient.post("/zynk/external-account", payload);
     return response.data;
   },
 };

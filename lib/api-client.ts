@@ -1,9 +1,14 @@
 import axios from "axios";
 import { randomUUID } from "expo-crypto";
-import { getClerkInstance } from "@clerk/clerk-expo";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
+type TokenFn = () => Promise<string | null>;
+let _getToken: TokenFn | null = null;
+
+export function setAuthToken(tokenFn: TokenFn) {
+  _getToken = tokenFn;
+}
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -16,14 +21,16 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(async (config) => {
   try {
-    const clerk = getClerkInstance();
-    const authToken = await clerk.session?.getToken();
-    const idempotencyKey = randomUUID();
-    if (idempotencyKey) {
-      config.headers["idempotency-Key"] = idempotencyKey;
+    if (_getToken) {
+      const authToken = await _getToken();
+      if (authToken) {
+        config.headers["x-auth-token"] = authToken;
+      }
     }
-    if (authToken) {
-      config.headers["x-auth-token"] = authToken;
+
+    // Only add idempotency keys for mutating requests
+    if (config.method && ["post", "put", "patch", "delete"].includes(config.method)) {
+      config.headers["idempotency-Key"] = randomUUID();
     }
   } catch (error) {
     if (__DEV__) {

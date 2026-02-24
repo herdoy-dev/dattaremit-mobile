@@ -1,25 +1,25 @@
 import { useEffect } from "react";
-import { View, Text, Pressable, Alert, Share } from "react-native";
+import { View, Text, Pressable, Share, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { ArrowLeft, QrCode, Copy, Share2 } from "lucide-react-native";
+import { QrCode, Copy, Share2 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
+import * as Clipboard from "expo-clipboard";
 
 import { Button } from "@/components/ui/button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { getReceiveInfo } from "@/services/transfer";
-import { onboardingService } from "@/services/onboarding";
+import { useAccountQuery } from "@/hooks/use-account-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-import { hexToRgba } from "@/store/theme-store";
+import { hexToRgba } from "@/lib/utils";
+import { COLORS } from "@/constants/theme";
 
 export default function ReceiveScreen() {
   const router = useRouter();
   const { primary } = useThemeColors();
 
-  const { data: account } = useQuery({
-    queryKey: ["account"],
-    queryFn: () => onboardingService.getAccountStatus(),
-  });
+  const { data: account, isLoading: isAccountLoading } = useAccountQuery();
 
   const address = account?.data?.addresses?.[0];
 
@@ -30,13 +30,13 @@ export default function ReceiveScreen() {
     }
   }, [account, address]);
 
-  const { data: info } = useQuery({
+  const { data: info, isLoading: isInfoLoading } = useQuery({
     queryKey: ["receiveInfo"],
     queryFn: getReceiveInfo,
   });
 
-  function handleCopy(value: string) {
-    Alert.alert("Copied!", `${value} copied to clipboard`);
+  async function handleCopy(value: string) {
+    await Clipboard.setStringAsync(value);
   }
 
   async function handleShare() {
@@ -52,23 +52,17 @@ export default function ReceiveScreen() {
     { label: "Phone", value: info?.phone ?? "---" },
   ];
 
+  if (isAccountLoading || isInfoLoading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
+        <ActivityIndicator size="large" color={primary} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
-      {/* Header */}
-      <Animated.View
-        entering={FadeInDown.duration(400)}
-        className="flex-row items-center px-6 pt-4 pb-2"
-      >
-        <Pressable
-          onPress={() => router.back()}
-          className="mr-4 h-10 w-10 items-center justify-center rounded-full bg-light-surface dark:bg-dark-surface"
-        >
-          <ArrowLeft size={20} color="#6B7280" />
-        </Pressable>
-        <Text className="text-xl font-bold text-light-text dark:text-dark-text">
-          Receive Money
-        </Text>
-      </Animated.View>
+      <ScreenHeader title="Receive Money" />
 
       <View className="flex-1 px-6 pt-6">
         {/* QR Code Placeholder */}
@@ -113,6 +107,8 @@ export default function ReceiveScreen() {
                 onPress={() => handleCopy(item.value)}
                 className="h-9 w-9 items-center justify-center rounded-lg"
                 style={{ backgroundColor: hexToRgba(primary, 0.1) }}
+                accessibilityRole="button"
+                accessibilityLabel={`Copy ${item.label}`}
               >
                 <Copy size={16} color={primary} />
               </Pressable>
@@ -131,10 +127,11 @@ export default function ReceiveScreen() {
             title="Share Details"
             onPress={handleShare}
             size="lg"
-            icon={<Share2 size={20} color="#fff" />}
+            icon={<Share2 size={20} color={COLORS.white} />}
           />
         </Animated.View>
       </View>
     </SafeAreaView>
   );
 }
+

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { TextInput, View, Text, Pressable } from "react-native";
+import { TextInput, View, Pressable } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,6 +8,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { FieldLabel } from "@/components/ui/field-label";
+import { FieldError } from "@/components/ui/field-error";
 import { COLORS } from "@/constants/theme";
 
 interface InputProps {
@@ -60,9 +62,7 @@ export function Input({
 
   const content = (
     <View className={className}>
-      <Text className={`mb-1.5 text-sm font-medium ${labelClassName || "text-light-text dark:text-dark-text"}`}>
-        {label}
-      </Text>
+      <FieldLabel label={label} className={labelClassName} />
       <AnimatedView
         style={borderStyle}
         className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 dark:bg-dark-surface"
@@ -86,11 +86,14 @@ export function Input({
             focusProgress.value = withTiming(0, { duration: 200 });
           }}
           className={`flex-1 py-3.5 text-base ${inputClassName || "text-light-text dark:text-dark-text"}`}
+          accessibilityLabel={label}
         />
         {secureTextEntry && (
           <Pressable
             onPress={() => setShowPassword(!showPassword)}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
               <EyeOff size={20} color={COLORS.placeholder} />
@@ -100,9 +103,7 @@ export function Input({
           </Pressable>
         )}
       </AnimatedView>
-      {error && (
-        <Text className="mt-1 text-xs text-red-500">{error}</Text>
-      )}
+      <FieldError error={error} />
     </View>
   );
 

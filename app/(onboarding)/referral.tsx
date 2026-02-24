@@ -9,10 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { useOnboardingStore } from "@/store/onboarding-store";
-import { api } from "@/services/api";
+import { onboardingService } from "@/services/onboarding";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { COLORS } from "@/constants/theme";
-
-const REFERRAL_STORAGE_KEY = "referral_code";
 
 export default function ReferralScreen() {
   const router = useRouter();
@@ -33,12 +32,10 @@ export default function ReferralScreen() {
     setError(null);
 
     try {
-      const response = await api.post("/referral/validate", {
-        code: trimmed,
-      });
+      const result = await onboardingService.validateReferralCode(trimmed);
 
-      if (response.data?.data?.valid) {
-        await AsyncStorage.setItem(REFERRAL_STORAGE_KEY, trimmed);
+      if (result?.valid) {
+        await AsyncStorage.setItem(STORAGE_KEYS.REFERRAL_CODE, trimmed);
         await setStep("profile");
         router.replace("/(onboarding)/profile");
       } else {

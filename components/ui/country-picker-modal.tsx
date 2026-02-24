@@ -10,7 +10,8 @@ import {
 import { X, Search } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { COLORS } from "@/constants/theme";
-import { buildThemeVars, hexToRgba } from "@/store/theme-store";
+import { buildThemeVars } from "@/store/theme-store";
+import { hexToRgba } from "@/lib/utils";
 import { type Country, COUNTRIES, getFlagEmoji } from "@/lib/countries";
 
 interface CountryPickerModalProps {
@@ -58,6 +59,7 @@ export function CountryPickerModal({
       presentationStyle="pageSheet"
       animationType="slide"
       onRequestClose={handleClose}
+      accessibilityViewIsModal={true}
     >
       <View style={[{ flex: 1, backgroundColor: surface }, themeVars]}>
         {/* Header */}
@@ -67,7 +69,7 @@ export function CountryPickerModal({
           <Text className="text-lg font-bold text-light-text dark:text-dark-text">
             Select Country
           </Text>
-          <Pressable onPress={handleClose} hitSlop={8}>
+          <Pressable onPress={handleClose} hitSlop={8} accessibilityRole="button" accessibilityLabel="Close">
             <X size={24} className="text-light-text-muted dark:text-dark-text-muted" />
           </Pressable>
         </View>
@@ -84,6 +86,7 @@ export function CountryPickerModal({
               placeholder="Search country..."
               placeholderTextColor={COLORS.placeholder}
               autoCorrect={false}
+              accessibilityLabel="Search countries"
               className="ml-2.5 flex-1 py-3 text-base text-light-text dark:text-dark-text"
             />
           </View>
@@ -110,6 +113,9 @@ export function CountryPickerModal({
                     ? { backgroundColor: hexToRgba(primary, 0.1) }
                     : undefined
                 }
+                accessibilityRole="button"
+                accessibilityLabel={`${item.name} ${item.dial}`}
+                accessibilityState={{ selected: isSelected }}
               >
                 <Text style={{ fontSize: 24, width: 36 }}>
                   {getFlagEmoji(item.code)}

@@ -15,7 +15,7 @@ import "react-native-reanimated";
 import { useEffect } from "react";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeStore, buildThemeVars } from "@/store/theme-store";
-import { setAuthToken } from "@/services/api";
+import { setAuthToken } from "@/lib/api-client";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -37,14 +37,9 @@ function ClerkTokenSync() {
 }
 
 export default function RootLayout() {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const { colors } = useThemeStore();
 
-  useEffect(() => {
-    if (colorScheme !== "dark") {
-      setColorScheme("dark");
-    }
-  }, []);
   const themeVars = buildThemeVars(colors);
 
   return (

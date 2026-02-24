@@ -17,17 +17,19 @@ import {
   Palette,
   Gift,
 } from "lucide-react-native";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
 import { useOnboardingStore } from "@/store/onboarding-store";
-import { onboardingService } from "@/services/onboarding";
 import { CustomModal } from "@/components/ui/custom-modal";
 import { SettingItem } from "@/components/ui/setting-item";
 import { ThemePicker } from "@/components/account/theme-picker";
 import { LogoutModal } from "@/components/account/logout-modal";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-import { useThemeStore, THEME_META, hexToRgba } from "@/store/theme-store";
+import { useAccountQuery } from "@/hooks/use-account-query";
+import { useThemeStore, THEME_META } from "@/store/theme-store";
+import { hexToRgba } from "@/lib/utils";
+import { getKycLabel, getKycBadge } from "@/lib/kyc-utils";
 import { COLORS } from "@/constants/theme";
 import { useState } from "react";
 
@@ -44,30 +46,13 @@ export default function AccountTab() {
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  const { data: account, isLoading } = useQuery({
-    queryKey: ["account"],
-    queryFn: () => onboardingService.getAccountStatus(),
-  });
+  const { data: account, isLoading } = useAccountQuery();
 
   const user = account?.data?.user;
   const address = account?.data?.addresses?.[0];
   const accountStatus = account?.data?.accountStatus;
 
-  const kycStatusMap: Record<string, string> = {
-    ACTIVE: "Verified",
-    PENDING: "Pending",
-    INITIAL: "Not Started",
-    REJECTED: "Rejected",
-  };
-
-  const badgeColorMap: Record<string, { bg: string; text: string }> = {
-    ACTIVE: { bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-700 dark:text-green-400" },
-    PENDING: { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-700 dark:text-yellow-400" },
-    INITIAL: { bg: "bg-gray-100 dark:bg-gray-900/30", text: "text-gray-700 dark:text-gray-400" },
-    REJECTED: { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400" },
-  };
-
-  const badge = badgeColorMap[accountStatus ?? ""] ?? badgeColorMap.INITIAL;
+  const badge = getKycBadge(accountStatus);
 
   const handleLogout = async () => {
     await signOut();
@@ -104,12 +89,12 @@ export default function AccountTab() {
               {isLoading ? "..." : `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "User"}
             </Text>
             <Text className="mt-0.5 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              {isLoading ? "..." : user?.email ?? "—"}
+              {isLoading ? "..." : user?.email ?? "\u2014"}
             </Text>
           </View>
           <View className={`rounded-full px-2.5 py-0.5 ${badge.bg}`}>
             <Text className={`text-xs font-medium ${badge.text}`}>
-              {isLoading ? "..." : kycStatusMap[accountStatus ?? ""] ?? "Unknown"}
+              {isLoading ? "..." : getKycLabel(accountStatus)}
             </Text>
           </View>
         </Animated.View>
@@ -126,13 +111,13 @@ export default function AccountTab() {
             <SettingItem
               icon={<Mail size={18} color={primary} />}
               label="Email"
-              value={isLoading ? "..." : user?.email ?? "—"}
+              value={isLoading ? "..." : user?.email ?? "\u2014"}
             />
             <View className="h-px bg-light-border dark:bg-dark-border" />
             <SettingItem
               icon={<Phone size={18} color={primary} />}
               label="Phone"
-              value={isLoading ? "..." : user?.phoneNumberPrefix && user?.phoneNumber ? `${user.phoneNumberPrefix} ${user.phoneNumber}` : "—"}
+              value={isLoading ? "..." : user?.phoneNumberPrefix && user?.phoneNumber ? `${user.phoneNumberPrefix} ${user.phoneNumber}` : "\u2014"}
             />
             <View className="h-px bg-light-border dark:bg-dark-border" />
             <SettingItem
@@ -144,7 +129,7 @@ export default function AccountTab() {
             <SettingItem
               icon={<Shield size={18} color={primary} />}
               label="KYC Status"
-              value={isLoading ? "..." : kycStatusMap[accountStatus ?? ""] ?? "Unknown"}
+              value={isLoading ? "..." : getKycLabel(accountStatus)}
             />
           </View>
         </Animated.View>
@@ -180,7 +165,8 @@ export default function AccountTab() {
                   value={isDarkMode}
                   onValueChange={(val) => setColorScheme(val ? "dark" : "light")}
                   trackColor={{ false: "#E5E7EB", true: primary }}
-                  thumbColor="#fff"
+                  thumbColor={COLORS.white}
+                  accessibilityLabel="Toggle dark mode"
                 />
               }
             />
@@ -200,7 +186,8 @@ export default function AccountTab() {
                   value={notificationsEnabled}
                   onValueChange={setNotificationsEnabled}
                   trackColor={{ false: "#E5E7EB", true: primary }}
-                  thumbColor="#fff"
+                  thumbColor={COLORS.white}
+                  accessibilityLabel="Toggle notifications"
                 />
               }
             />

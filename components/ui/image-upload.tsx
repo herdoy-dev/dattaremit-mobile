@@ -8,6 +8,8 @@ import Animated, {
 import { Camera, Upload, X } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { FieldLabel } from "@/components/ui/field-label";
+import { FieldError } from "@/components/ui/field-error";
 
 interface ImageUploadProps {
   label: string;
@@ -28,11 +30,16 @@ export function ImageUpload({
   variant = "document",
   className = "",
 }: ImageUploadProps) {
-  const scale = useSharedValue(1);
+  const scaleUpload = useSharedValue(1);
+  const scaleCamera = useSharedValue(1);
   const { primary } = useThemeColors();
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+  const uploadAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleUpload.value }],
+  }));
+
+  const cameraAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleCamera.value }],
   }));
 
   const pickImage = async () => {
@@ -68,9 +75,7 @@ export function ImageUpload({
 
   return (
     <View className={className}>
-      <Text className="mb-1.5 text-sm font-medium text-light-text dark:text-dark-text">
-        {label}
-      </Text>
+      <FieldLabel label={label} />
 
       {value ? (
         <Animated.View entering={FadeIn.duration(300)} className="relative">
@@ -82,6 +87,8 @@ export function ImageUpload({
           <Pressable
             onPress={() => onChange("")}
             className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5"
+            accessibilityRole="button"
+            accessibilityLabel="Remove image"
           >
             <X size={16} color="#fff" />
           </Pressable>
@@ -91,13 +98,15 @@ export function ImageUpload({
           <AnimatedPressable
             onPress={pickImage}
             onPressIn={() => {
-              scale.value = withSpring(0.95);
+              scaleUpload.value = withSpring(0.95);
             }}
             onPressOut={() => {
-              scale.value = withSpring(1);
+              scaleUpload.value = withSpring(1);
             }}
-            style={animatedStyle}
+            style={uploadAnimatedStyle}
             className="flex-1 items-center justify-center rounded-xl border-2 border-dashed border-light-border py-8 dark:border-dark-border"
+            accessibilityRole="button"
+            accessibilityLabel="Upload image from gallery"
           >
             <Upload size={28} color={primary} />
             <Text className="mt-2 text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
@@ -108,13 +117,15 @@ export function ImageUpload({
           <AnimatedPressable
             onPress={takePhoto}
             onPressIn={() => {
-              scale.value = withSpring(0.95);
+              scaleCamera.value = withSpring(0.95);
             }}
             onPressOut={() => {
-              scale.value = withSpring(1);
+              scaleCamera.value = withSpring(1);
             }}
-            style={animatedStyle}
+            style={cameraAnimatedStyle}
             className="flex-1 items-center justify-center rounded-xl border-2 border-dashed border-light-border py-8 dark:border-dark-border"
+            accessibilityRole="button"
+            accessibilityLabel="Take photo with camera"
           >
             <Camera size={28} color={primary} />
             <Text className="mt-2 text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
@@ -124,9 +135,7 @@ export function ImageUpload({
         </View>
       )}
 
-      {error && (
-        <Text className="mt-1 text-xs text-red-500">{error}</Text>
-      )}
+      <FieldError error={error} />
     </View>
   );
 }

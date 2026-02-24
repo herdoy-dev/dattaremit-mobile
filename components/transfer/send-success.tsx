@@ -9,12 +9,14 @@ interface SendSuccessProps {
   amount: string;
   recipientName: string;
   transactionId: string;
+  currency?: string;
 }
 
 export function SendSuccess({
   amount,
   recipientName,
   transactionId,
+  currency = "$",
 }: SendSuccessProps) {
   const router = useRouter();
 
@@ -31,7 +33,7 @@ export function SendSuccess({
           Transfer Successful
         </Text>
         <Text className="mt-2 text-center text-base text-light-text-secondary dark:text-dark-text-secondary">
-          ${parseFloat(amount).toFixed(2)} sent to {recipientName}
+          {currency}{parseFloat(amount).toFixed(2)} sent to {recipientName}
         </Text>
         <Text className="mt-1 text-sm text-light-text-muted dark:text-dark-text-muted">
           Transaction ID: {transactionId}

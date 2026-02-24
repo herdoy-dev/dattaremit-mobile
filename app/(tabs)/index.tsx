@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
 import {
@@ -11,29 +11,18 @@ import {
 } from "lucide-react-native";
 import { useState, useMemo } from "react";
 import { useRouter } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { useAccountQuery } from "@/hooks/use-account-query";
 import { TransactionItem } from "@/components/ui/transaction-item";
-import { onboardingService } from "@/services/onboarding";
 import { COLORS } from "@/constants/theme";
-import type { Transaction } from "@/types/transaction";
-
-const RECENT_TRANSACTIONS: Transaction[] = [
-  { id: "1", name: "John Doe", type: "sent", amount: "-$250.00", date: "Today, 2:30 PM" },
-  { id: "2", name: "Salary Deposit", type: "received", amount: "+$3,500.00", date: "Yesterday" },
-  { id: "3", name: "Netflix", type: "sent", amount: "-$15.99", date: "Feb 18" },
-  { id: "4", name: "Jane Smith", type: "received", amount: "+$120.00", date: "Feb 17" },
-];
+import { RECENT_TRANSACTIONS } from "@/__mocks__/transactions";
 
 export default function HomeTab() {
   const [balanceVisible, setBalanceVisible] = useState(true);
   const router = useRouter();
   const { primary } = useThemeColors();
 
-  const { data: account } = useQuery({
-    queryKey: ["account"],
-    queryFn: () => onboardingService.getAccountStatus(),
-  });
+  const { data: account, isLoading, isError } = useAccountQuery();
 
   const user = account?.data?.user;
   const address = account?.data?.addresses?.[0];
@@ -59,6 +48,24 @@ export default function HomeTab() {
     else if (label === "Add Bank") router.push("/(transfer)/add-bank");
   }
 
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
+        <ActivityIndicator size="large" color={primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
+        <Text className="text-base text-light-text-muted dark:text-dark-text-muted">
+          Failed to load account data.
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
       <ScrollView
@@ -79,7 +86,11 @@ export default function HomeTab() {
               {user?.firstName ?? "User"}
             </Text>
           </View>
-          <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-light-surface dark:bg-dark-surface">
+          <Pressable
+            className="h-10 w-10 items-center justify-center rounded-full bg-light-surface dark:bg-dark-surface"
+            accessibilityRole="button"
+            accessibilityLabel="Notifications"
+          >
             <Bell size={20} color={primary} />
           </Pressable>
         </Animated.View>
@@ -91,14 +102,18 @@ export default function HomeTab() {
           style={{ backgroundColor: primary }}
         >
           <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
+            <Text className="text-sm font-medium" style={{ color: COLORS.whiteOverlay70 }}>
               Total Balance
             </Text>
-            <Pressable onPress={() => setBalanceVisible(!balanceVisible)}>
+            <Pressable
+              onPress={() => setBalanceVisible(!balanceVisible)}
+              accessibilityRole="button"
+              accessibilityLabel={balanceVisible ? "Hide balance" : "Show balance"}
+            >
               {balanceVisible ? (
-                <Eye size={20} color="rgba(255,255,255,0.7)" />
+                <Eye size={20} color={COLORS.whiteOverlay70} />
               ) : (
-                <EyeOff size={20} color="rgba(255,255,255,0.7)" />
+                <EyeOff size={20} color={COLORS.whiteOverlay70} />
               )}
             </Pressable>
           </View>
@@ -106,7 +121,7 @@ export default function HomeTab() {
             {balanceVisible ? "$12,580.50" : "********"}
           </Text>
           <View className="mt-4 flex-row items-center">
-            <View className="mr-2 rounded-full px-2.5 py-1" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+            <View className="mr-2 rounded-full px-2.5 py-1" style={{ backgroundColor: COLORS.whiteOverlay20 }}>
               <Text className="text-xs font-semibold text-white">
                 +12.5% this month
               </Text>
@@ -128,7 +143,12 @@ export default function HomeTab() {
                 key={action.label}
                 entering={FadeInRight.delay(500 + index * 100).duration(500)}
               >
-                <Pressable className="items-center" onPress={() => handleQuickAction(action.label)}>
+                <Pressable
+                  className="items-center"
+                  onPress={() => handleQuickAction(action.label)}
+                  accessibilityRole="button"
+                  accessibilityLabel={action.label}
+                >
                   <View
                     className="mb-2 h-14 w-14 items-center justify-center rounded-2xl"
                     style={{ backgroundColor: `${action.color}15` }}
@@ -153,7 +173,7 @@ export default function HomeTab() {
             <Text className="text-base font-semibold text-light-text dark:text-dark-text">
               Recent Transactions
             </Text>
-            <Pressable>
+            <Pressable onPress={() => router.push("/(tabs)/activity")}>
               <Text className="text-sm font-medium text-primary">See All</Text>
             </Pressable>
           </View>

@@ -1,25 +1,24 @@
 import { useState, useEffect } from "react";
-import { KeyboardAvoidingView, Platform } from "react-native";
+import { KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
 import { ContactSelect } from "@/components/transfer/contact-select";
 import { AmountEntry } from "@/components/transfer/amount-entry";
 import { SendSuccess } from "@/components/transfer/send-success";
 import { sendMoney, type Contact } from "@/services/transfer";
-import { onboardingService } from "@/services/onboarding";
+import { useAccountQuery } from "@/hooks/use-account-query";
+import { useThemeColors } from "@/hooks/use-theme-colors";
 import { validateAmount } from "@/lib/validation";
 
 type Step = "select" | "amount" | "success";
 
 export default function SendScreen() {
   const router = useRouter();
+  const { primary } = useThemeColors();
 
-  const { data: account } = useQuery({
-    queryKey: ["account"],
-    queryFn: () => onboardingService.getAccountStatus(),
-  });
+  const { data: account, isLoading } = useAccountQuery();
 
   const address = account?.data?.addresses?.[0];
 
@@ -29,6 +28,7 @@ export default function SendScreen() {
       router.back();
     }
   }, [account, address]);
+
   const [step, setStep] = useState<Step>("select");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -63,6 +63,14 @@ export default function SendScreen() {
       amount: parseFloat(amount),
       note: note || undefined,
     });
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
+        <ActivityIndicator size="large" color={primary} />
+      </SafeAreaView>
+    );
   }
 
   if (step === "success") {

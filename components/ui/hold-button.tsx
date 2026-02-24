@@ -17,6 +17,7 @@ interface HoldButtonProps {
   duration?: number;
   loading?: boolean;
   disabled?: boolean;
+  label?: string;
 }
 
 export function HoldButton({
@@ -24,6 +25,7 @@ export function HoldButton({
   duration = 3000,
   loading = false,
   disabled = false,
+  label = "Hold to Send",
 }: HoldButtonProps) {
   const { primary } = useThemeColors();
   const progress = useSharedValue(0);
@@ -76,6 +78,10 @@ export function HoldButton({
       onLayout={(e) => setButtonWidth(e.nativeEvent.layout.width)}
       style={{ borderColor: primary, borderWidth: 2 }}
       className={`h-16 w-full items-center justify-center overflow-hidden rounded-full ${disabled ? "opacity-50" : ""}`}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint="Press and hold to confirm"
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
     >
       {/* Progress fill */}
       <Animated.View
@@ -109,13 +115,13 @@ export function HoldButton({
         <SendHorizontal size={18} color="#fff" />
       </Animated.View>
 
-      {/* Content — above the fill */}
+      {/* Content */}
       <View style={{ zIndex: 3 }}>
         {loading ? (
           <ActivityIndicator color={primary} size="small" />
         ) : (
           <Text className="text-lg font-semibold" style={{ color: primary }}>
-            Hold to Send
+            {label}
           </Text>
         )}
       </View>

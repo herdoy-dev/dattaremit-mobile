@@ -1,14 +1,16 @@
 import { View, Text, Pressable, Share, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Gift, Copy, Share2, Check } from "lucide-react-native";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Gift, Copy, Share2, Check } from "lucide-react-native";
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
 import { onboardingService } from "@/services/onboarding";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-import { hexToRgba } from "@/store/theme-store";
+import { useAccountQuery } from "@/hooks/use-account-query";
+import { hexToRgba } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 
 export default function ReferralScreen() {
   const router = useRouter();
@@ -16,10 +18,7 @@ export default function ReferralScreen() {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
 
-  const { data: account, isLoading } = useQuery({
-    queryKey: ["account"],
-    queryFn: () => onboardingService.getAccountStatus(),
-  });
+  const { data: account, isLoading } = useAccountQuery();
 
   const referCode = account?.data?.user?.referCode;
 
@@ -46,15 +45,7 @@ export default function ReferralScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
-      {/* Header */}
-      <View className="flex-row items-center px-6 pt-4 pb-4">
-        <Pressable onPress={() => router.back()} className="mr-3">
-          <ArrowLeft size={24} color={primary} />
-        </Pressable>
-        <Text className="text-xl font-bold text-light-text dark:text-dark-text">
-          Refer & Earn
-        </Text>
-      </View>
+      <ScreenHeader title="Refer & Earn" onBack={() => router.back()} />
 
       <View className="flex-1 px-6">
         {isLoading ? (
@@ -86,6 +77,8 @@ export default function ReferralScreen() {
                   onPress={handleCopy}
                   className="flex-row items-center justify-between rounded-xl border border-dashed px-4 py-4"
                   style={{ borderColor: hexToRgba(primary, 0.4) }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Referral code ${referCode}. Tap to copy.`}
                 >
                   <Text
                     className="text-lg font-bold tracking-widest"

@@ -16,7 +16,8 @@ import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-import { hexToRgba, buildThemeVars } from "@/store/theme-store";
+import { hexToRgba } from "@/lib/utils";
+import { buildThemeVars } from "@/store/theme-store";
 
 export default function KycScreen() {
   const router = useRouter();
@@ -26,7 +27,6 @@ export default function KycScreen() {
 
   const [showModal, setShowModal] = useState(false);
 
-  // Modal animation values
   const backdropOpacity = useSharedValue(0);
   const cardScale = useSharedValue(0.85);
   const cardOpacity = useSharedValue(0);
@@ -41,22 +41,16 @@ export default function KycScreen() {
     },
   });
 
-  // Trigger animations when modal becomes visible
   useEffect(() => {
     if (showModal) {
-      // Backdrop fade in
       backdropOpacity.value = withTiming(1, { duration: 300 });
-      // Card scales up with spring
       cardScale.value = withSpring(1, { damping: 15, stiffness: 150 });
       cardOpacity.value = withTiming(1, { duration: 300 });
-      // Icon bounces in after 200ms
       iconScale.value = withDelay(
         200,
         withSpring(1, { damping: 12, stiffness: 150 }),
       );
-      // Text fades in after 400ms
       textOpacity.value = withDelay(400, withTiming(1, { duration: 300 }));
-      // Button fades in after 500ms
       buttonOpacity.value = withDelay(500, withTiming(1, { duration: 300 }));
     }
   }, [showModal]);
@@ -94,7 +88,6 @@ export default function KycScreen() {
           entering={FadeInDown.delay(200).duration(600).springify()}
           className="items-center gap-6"
         >
-          {/* Shield Icon */}
           <View
             className="h-24 w-24 items-center justify-center rounded-full"
             style={{ backgroundColor: hexToRgba(primary, 0.1) }}
@@ -102,7 +95,6 @@ export default function KycScreen() {
             <ShieldCheck size={48} color={primary} />
           </View>
 
-          {/* Explanation */}
           <View className="items-center gap-2">
             <Text className="text-center text-lg font-semibold text-light-text dark:text-dark-text">
               Complete Your KYC
@@ -114,7 +106,6 @@ export default function KycScreen() {
             </Text>
           </View>
 
-          {/* Error */}
           {kycMutation.isError && (
             <View className="w-full rounded-xl bg-red-50 p-3 dark:bg-red-900/20">
               <Text className="text-sm text-red-600 dark:text-red-400">
@@ -123,7 +114,6 @@ export default function KycScreen() {
             </View>
           )}
 
-          {/* Start KYC Button */}
           <Button
             title="Start KYC"
             onPress={() => kycMutation.mutate()}
@@ -140,24 +130,22 @@ export default function KycScreen() {
         transparent
         animationType="none"
         statusBarTranslucent
+        accessibilityViewIsModal={true}
       >
         <View
           style={[{ flex: 1 }, themeVars]}
           className="items-center justify-center"
         >
-          {/* Backdrop */}
           <Animated.View
             style={backdropStyle}
             className="absolute inset-0 bg-black/50"
           />
 
-          {/* Card */}
           <Animated.View
             style={[cardStyle, { backgroundColor: surface }]}
             className="mx-8 rounded-3xl p-8"
           >
             <View className="items-center">
-              {/* Icon Circle */}
               <Animated.View
                 style={[
                   iconStyle,
@@ -168,7 +156,6 @@ export default function KycScreen() {
                 <Mail size={36} color={primary} />
               </Animated.View>
 
-              {/* Text */}
               <Animated.View style={textStyle} className="items-center">
                 <Text className="text-xl font-bold text-light-text dark:text-dark-text">
                   KYC Link Sent!
@@ -179,12 +166,13 @@ export default function KycScreen() {
                 </Text>
               </Animated.View>
 
-              {/* Got it Button */}
               <Animated.View style={buttonStyle} className="mt-8 w-full">
                 <Pressable
                   onPress={handleGotIt}
                   className="h-14 items-center justify-center rounded-full"
                   style={{ backgroundColor: primary }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Got it, continue to app"
                 >
                   <Text className="text-lg font-semibold text-white">
                     Got it

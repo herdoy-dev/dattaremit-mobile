@@ -1,6 +1,7 @@
-import { getClerkInstance } from "@clerk/clerk-expo";
-import { api } from "./api";
+import apiClient from "@/lib/api-client";
 import { COUNTRIES } from "@/lib/countries";
+import type { AccountStatusResponse } from "@/types/api";
+import { splitPhoneNumber } from "@/lib/phone-utils";
 
 export interface ProfilePayload {
   firstName: string;
@@ -9,6 +10,8 @@ export interface ProfilePayload {
   phoneNumber: string;
   nationality: string;
   referredByCode?: string;
+  clerkUserId: string;
+  email: string;
 }
 
 export interface DepositAccountPayload {
@@ -27,48 +30,14 @@ export interface AddressPayload {
   state: string;
 }
 
-// Sort dial codes longest-first so "+880" matches before "+8"
-const dialCodesSorted = [...COUNTRIES].sort(
-  (a, b) => b.dial.length - a.dial.length
-);
-
-function splitPhoneNumber(fullPhone: string): {
-  prefix: string;
-  number: string;
-} {
-  const trimmed = fullPhone.trim();
-  for (const country of dialCodesSorted) {
-    if (trimmed.startsWith(country.dial)) {
-      return {
-        prefix: country.dial,
-        number: trimmed.slice(country.dial.length).replace(/\D/g, ""),
-      };
-    }
-  }
-  // Fallback: try to extract prefix manually
-  const match = trimmed.match(/^(\+\d{1,4})(\d+)$/);
-  if (match) return { prefix: match[1], number: match[2] };
-  return { prefix: "+1", number: trimmed.replace(/\D/g, "") };
-}
-
 export const onboardingService = {
   async submitProfile(payload: ProfilePayload) {
-    const clerk = getClerkInstance();
-    const clerkUserId = clerk.user?.id;
-    const email = clerk.user?.primaryEmailAddress?.emailAddress;
-
-    if (!clerkUserId || !email) {
-      throw new Error("User session not available. Please sign in again.");
-    }
-
     const { prefix, number } = splitPhoneNumber(payload.phoneNumber);
-
-    // Convert date to ISO format for server
     const dateOfBirth = new Date(payload.dateOfBirth).toISOString();
 
-    const response = await api.post("/users", {
-      clerkUserId,
-      email,
+    const response = await apiClient.post("/users", {
+      clerkUserId: payload.clerkUserId,
+      email: payload.email,
       firstName: payload.firstName,
       lastName: payload.lastName,
       dateOfBirth,
@@ -82,7 +51,7 @@ export const onboardingService = {
   },
 
   async submitAddress(payload: AddressPayload) {
-    const response = await api.post("/onboarding/address", {
+    const response = await apiClient.post("/onboarding/address", {
       type: "PRESENT",
       addressLine1: payload.street,
       city: payload.city,
@@ -95,22 +64,27 @@ export const onboardingService = {
   },
 
   async requestKycLink() {
-    const response = await api.post("/onboarding/kyc");
+    const response = await apiClient.post("/onboarding/kyc");
     return response.data;
   },
 
-  async getAccountStatus() {
-    const response = await api.get("/account");
+  async getAccountStatus(): Promise<AccountStatusResponse> {
+    const response = await apiClient.get("/account");
     return response.data;
   },
 
   async addDepositAccount(payload: DepositAccountPayload) {
-    const response = await api.post("/zynk/deposit-account", payload);
+    const response = await apiClient.post("/zynk/deposit-account", payload);
     return response.data;
   },
 
   async requestReferCode() {
-    const response = await api.post("/referral/request-code");
+    const response = await apiClient.post("/referral/request-code");
     return response.data;
+  },
+
+  async validateReferralCode(code: string): Promise<{ valid: boolean }> {
+    const response = await apiClient.post("/referral/validate", { code });
+    return response.data?.data;
   },
 };

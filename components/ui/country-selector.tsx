@@ -3,6 +3,8 @@ import { View, Text, Pressable } from "react-native";
 import { ChevronDown } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { COLORS } from "@/constants/theme";
+import { FieldLabel } from "@/components/ui/field-label";
+import { FieldError } from "@/components/ui/field-error";
 import { CountryPickerModal } from "@/components/ui/country-picker-modal";
 import { COUNTRIES, getFlagEmoji } from "@/lib/countries";
 
@@ -30,14 +32,15 @@ export function CountrySelector({
 
   return (
     <View className={className}>
-      <Text className="mb-1.5 text-sm font-medium text-light-text dark:text-dark-text">
-        {label}
-      </Text>
+      <FieldLabel label={label} />
 
       <Pressable
         onPress={() => setModalVisible(true)}
         className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
         style={{ borderColor: error ? COLORS.error : value ? primary : border }}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, ${selectedCountry?.name || "not selected"}`}
+        accessibilityHint="Opens country picker"
       >
         {selectedCountry ? (
           <>
@@ -56,7 +59,7 @@ export function CountrySelector({
         <ChevronDown size={20} color={COLORS.placeholder} />
       </Pressable>
 
-      {error && <Text className="mt-1 text-xs text-red-500">{error}</Text>}
+      <FieldError error={error} />
 
       <CountryPickerModal
         visible={modalVisible}

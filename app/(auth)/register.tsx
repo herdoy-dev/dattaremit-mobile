@@ -7,23 +7,22 @@ import { Mail, Lock, ShieldCheck } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
-import { GoogleIcon, AppleIcon } from "@/components/icons/social-icons";
-import { useOnboardingStore } from "@/store/onboarding-store";
+import { SocialAuthSection } from "@/components/auth/social-auth-section";
 import { useForm } from "@/hooks/use-form";
 import { useSocialAuth } from "@/hooks/use-social-auth";
+import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
 import {
   validateEmail,
   validatePassword,
   validateConfirmPassword,
 } from "@/lib/validation";
-import { resolveOnboardingStep } from "@/lib/utils";
-import { onboardingService } from "@/services/onboarding";
+import { getClerkErrorMessage } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { setStep } = useOnboardingStore();
   const { signUp, setActive, isLoaded } = useSignUp();
+  const { routeAfterAuth } = usePostAuthRouting();
 
   const { values, errors, setValue, validate } = useForm(
     { email: "", password: "", confirmPassword: "" },
@@ -55,33 +54,16 @@ export default function RegisterScreen() {
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
-
-        try {
-          const accountData = await onboardingService.getAccountStatus();
-          const step = resolveOnboardingStep(accountData);
-          await setStep(step);
-          const routes: Record<string, string> = {
-            referral: "/(onboarding)/referral",
-            profile: "/(onboarding)/profile",
-            address: "/(onboarding)/address",
-            kyc: "/(onboarding)/kyc",
-            completed: "/(tabs)",
-          };
-          router.replace((routes[step] || "/(onboarding)/profile") as never);
-        } catch {
-          await setStep("profile");
-          router.replace("/(onboarding)/profile");
-        }
+        await routeAfterAuth();
       } else {
         await signUp.prepareEmailAddressVerification({
           strategy: "email_code",
         });
         router.push("/(auth)/verify-email?flow=signup");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setAuthError(
-        err?.errors?.[0]?.longMessage ||
-          "Registration failed. Please try again."
+        getClerkErrorMessage(err, "Registration failed. Please try again.")
       );
     } finally {
       setLoadingAction(null);
@@ -106,6 +88,7 @@ export default function RegisterScreen() {
             source={require("@/assets/images/logo.png")}
             className="mb-6 mt-8 h-28 w-28 self-center"
             resizeMode="contain"
+            accessibilityLabel="DattaRemit logo"
           />
 
           <Animated.View
@@ -159,42 +142,11 @@ export default function RegisterScreen() {
             />
           </Animated.View>
 
-          {/* Divider */}
-          <Animated.View
-            entering={FadeInDown.delay(400).duration(600).springify()}
-            className="my-8 flex-row items-center"
-          >
-            <View className="h-px flex-1 bg-white/20" />
-            <Text className="mx-4 text-sm text-white/50">
-              Or continue with
-            </Text>
-            <View className="h-px flex-1 bg-white/20" />
-          </Animated.View>
-
-          {/* Social Auth */}
-          <Animated.View
-            entering={FadeInDown.delay(600).duration(600).springify()}
-            className="gap-3"
-          >
-            <Button
-              title="Continue with Google"
-              onPress={() => handleSocialAuth("oauth_google")}
-              variant="outline"
-              size="lg"
-              icon={<GoogleIcon />}
-              loading={loadingAction === "oauth_google"}
-              disabled={!!loadingAction}
-            />
-            <Button
-              title="Continue with Apple"
-              onPress={() => handleSocialAuth("oauth_apple")}
-              variant="outline"
-              size="lg"
-              icon={<AppleIcon color="#FFFFFF" />}
-              loading={loadingAction === "oauth_apple"}
-              disabled={!!loadingAction}
-            />
-          </Animated.View>
+          <SocialAuthSection
+            onGoogle={() => handleSocialAuth("oauth_google")}
+            onApple={() => handleSocialAuth("oauth_apple")}
+            loadingAction={loadingAction}
+          />
 
           {/* Login Link */}
           <Animated.View

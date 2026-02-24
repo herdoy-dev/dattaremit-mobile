@@ -11,7 +11,11 @@ export function TransactionItem({ transaction: tx }: TransactionItemProps) {
   const isReceived = tx.type === "received";
 
   return (
-    <Pressable className="flex-row items-center rounded-2xl bg-light-surface p-4 dark:bg-dark-surface">
+    <Pressable
+      className="flex-row items-center rounded-2xl bg-light-surface p-4 dark:bg-dark-surface"
+      accessibilityRole="button"
+      accessibilityLabel={`${tx.name}, ${isReceived ? "received" : "sent"} ${tx.amount}${tx.category ? `, ${tx.category}` : ""}, ${tx.date}`}
+    >
       <View
         className={`mr-3 h-11 w-11 items-center justify-center rounded-xl ${
           isReceived

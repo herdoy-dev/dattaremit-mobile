@@ -1,10 +1,7 @@
 import { Pressable, Text, ActivityIndicator, type ViewStyle, type TextStyle } from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { usePressAnimation } from "@/hooks/use-press-animation";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -76,25 +73,20 @@ export function Button({
   icon,
   className = "",
 }: ButtonProps) {
-  const scale = useSharedValue(1);
   const { primary } = useThemeColors();
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const { animatedStyle, onPressIn, onPressOut } = usePressAnimation();
 
   return (
     <AnimatedPressable
       onPress={onPress}
-      onPressIn={() => {
-        scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, { damping: 15, stiffness: 300 });
-      }}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
       disabled={disabled || loading}
       style={[animatedStyle, getVariantInlineStyle(variant, primary)]}
       className={`flex-row items-center justify-center rounded-full ${variantStyles[variant]} ${sizeStyles[size]} ${disabled ? "opacity-50" : ""} ${className}`}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
     >
       {loading ? (
         <ActivityIndicator

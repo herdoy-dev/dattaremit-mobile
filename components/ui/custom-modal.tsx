@@ -87,6 +87,7 @@ export function CustomModal({
       statusBarTranslucent
       animationType="none"
       onRequestClose={onClose}
+      accessibilityViewIsModal={true}
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={[{ flex: 1 }, themeVars]}>

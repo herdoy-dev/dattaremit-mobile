@@ -4,13 +4,11 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import {
-  ArrowLeft,
   Landmark,
   User,
   Hash,
@@ -18,16 +16,18 @@ import {
   Link2,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
+import { useMutation } from "@tanstack/react-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { useAccountQuery } from "@/hooks/use-account-query";
 import { useForm } from "@/hooks/use-form";
 import { usePlaidLink } from "@/hooks/use-plaid-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { CustomDropdown } from "@/components/ui/custom-dropdown";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { onboardingService } from "@/services/onboarding";
+import { getApiErrorMessage } from "@/lib/utils";
 import {
   validateRequired,
   validateAccountNumber,
@@ -44,10 +44,7 @@ export default function AddBankScreen() {
   const router = useRouter();
   const { primary } = useThemeColors();
 
-  const { data: account, isLoading: isAccountLoading } = useQuery({
-    queryKey: ["account"],
-    queryFn: () => onboardingService.getAccountStatus(),
-  });
+  const { data: account, isLoading: isAccountLoading } = useAccountQuery();
 
   const address = account?.data?.addresses?.[0];
   const isUSUser = address?.country === "US";
@@ -97,21 +94,7 @@ export default function AddBankScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        {/* Header */}
-        <Animated.View
-          entering={FadeInDown.duration(400)}
-          className="flex-row items-center px-6 pt-4 pb-2"
-        >
-          <Pressable
-            onPress={() => router.back()}
-            className="mr-4 h-10 w-10 items-center justify-center rounded-full bg-light-surface dark:bg-dark-surface"
-          >
-            <ArrowLeft size={20} color="#6B7280" />
-          </Pressable>
-          <Text className="text-xl font-bold text-light-text dark:text-dark-text">
-            Add Bank
-          </Text>
-        </Animated.View>
+        <ScreenHeader title="Add Bank" />
 
         <ScrollView
           className="flex-1"
@@ -123,7 +106,7 @@ export default function AddBankScreen() {
               <ActivityIndicator size="large" color={primary} />
             </View>
           ) : isUSUser ? (
-            /* ── Plaid flow for US users ── */
+            /* Plaid flow for US users */
             <Animated.View
               entering={FadeInDown.delay(200).duration(600).springify()}
               className="items-center gap-5 pt-8"
@@ -151,12 +134,12 @@ export default function AddBankScreen() {
                 onPress={plaid.initiate}
                 loading={plaid.isLoading}
                 size="lg"
-                icon={<Link2 size={20} color="#fff" className="mr-1" />}
+                icon={<Link2 size={20} color={COLORS.white} className="mr-1" />}
                 className="mt-4 w-full"
               />
             </Animated.View>
           ) : (
-            /* ── Manual form for non-US users ── */
+            /* Manual form for non-US users */
             <Animated.View
               entering={FadeInDown.delay(200).duration(600).springify()}
               className="gap-5"
@@ -212,13 +195,10 @@ export default function AddBankScreen() {
 
               {mutation.isError && (
                 <ErrorBanner
-                  message={
-                    isAxiosError(mutation.error)
-                      ? mutation.error.response?.data?.message ||
-                        "Failed to add bank account. Please try again."
-                      : mutation.error?.message ||
-                        "Failed to add bank account. Please try again."
-                  }
+                  message={getApiErrorMessage(
+                    mutation.error,
+                    "Failed to add bank account. Please try again."
+                  )}
                 />
               )}
 

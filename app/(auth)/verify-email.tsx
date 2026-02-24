@@ -6,23 +6,21 @@ import {
   ImageBackground,
   Pressable,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSignUp, useSignIn } from "@clerk/clerk-expo";
 import { Button } from "@/components/ui/button";
-import { useOnboardingStore } from "@/store/onboarding-store";
-import { resolveOnboardingStep } from "@/lib/utils";
-import { onboardingService } from "@/services/onboarding";
+import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
+import { getClerkErrorMessage } from "@/lib/utils";
 
 const CODE_LENGTH = 6;
 
 export default function VerifyEmailScreen() {
-  const router = useRouter();
   const { flow } = useLocalSearchParams<{ flow?: string }>();
   const isSignIn = flow === "signin";
 
-  const { setStep } = useOnboardingStore();
+  const { routeAfterAuth } = usePostAuthRouting();
   const { signUp, setActive: setActiveSignUp, isLoaded: isSignUpLoaded } = useSignUp();
   const { signIn, setActive: setActiveSignIn, isLoaded: isSignInLoaded } = useSignIn();
 
@@ -39,19 +37,16 @@ export default function VerifyEmailScreen() {
     : signUp?.emailAddress;
 
   const handleChange = (text: string, index: number) => {
-    // Only allow digits
     const digit = text.replace(/[^0-9]/g, "").slice(-1);
     const newCode = [...code];
     newCode[index] = digit;
     setCode(newCode);
     setError(null);
 
-    // Auto-advance to next input
     if (digit && index < CODE_LENGTH - 1) {
       inputs.current[index + 1]?.focus();
     }
 
-    // Auto-submit when all digits filled
     if (digit && index === CODE_LENGTH - 1 && newCode.every((d) => d)) {
       handleVerify(newCode.join(""));
     }
@@ -63,25 +58,6 @@ export default function VerifyEmailScreen() {
       const newCode = [...code];
       newCode[index - 1] = "";
       setCode(newCode);
-    }
-  };
-
-  const routeAfterVerification = async () => {
-    try {
-      const accountData = await onboardingService.getAccountStatus();
-      const step = resolveOnboardingStep(accountData);
-      await setStep(step);
-      const routes: Record<string, string> = {
-        referral: "/(onboarding)/referral",
-        profile: "/(onboarding)/profile",
-        address: "/(onboarding)/address",
-        kyc: "/(onboarding)/kyc",
-        completed: "/(tabs)",
-      };
-      router.replace((routes[step] || "/(onboarding)/profile") as never);
-    } catch {
-      await setStep("profile");
-      router.replace("/(onboarding)/profile");
     }
   };
 
@@ -101,7 +77,7 @@ export default function VerifyEmailScreen() {
 
         if (result.status === "complete" && result.createdSessionId) {
           await setActiveSignIn!({ session: result.createdSessionId });
-          await routeAfterVerification();
+          await routeAfterAuth();
         }
       } else {
         const result = await signUp!.attemptEmailAddressVerification({
@@ -110,13 +86,12 @@ export default function VerifyEmailScreen() {
 
         if (result.status === "complete" && result.createdSessionId) {
           await setActiveSignUp!({ session: result.createdSessionId });
-          await routeAfterVerification();
+          await routeAfterAuth();
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(
-        err?.errors?.[0]?.longMessage ||
-          "Invalid verification code. Please try again.",
+        getClerkErrorMessage(err, "Invalid verification code. Please try again.")
       );
     } finally {
       setLoading(false);
@@ -132,21 +107,20 @@ export default function VerifyEmailScreen() {
     try {
       if (isSignIn) {
         const emailFactor = signIn!.supportedFirstFactors?.find(
-          (f: any) => f.strategy === "email_code"
+          (f: { strategy: string }) => f.strategy === "email_code"
         );
         if (emailFactor) {
           await signIn!.prepareFirstFactor({
             strategy: "email_code",
-            emailAddressId: (emailFactor as any).emailAddressId,
+            emailAddressId: (emailFactor as { emailAddressId: string }).emailAddressId,
           });
         }
       } else {
         await signUp!.prepareEmailAddressVerification({ strategy: "email_code" });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(
-        err?.errors?.[0]?.longMessage ||
-          "Failed to resend code. Please try again.",
+        getClerkErrorMessage(err, "Failed to resend code. Please try again.")
       );
     } finally {
       setResending(false);
@@ -166,6 +140,7 @@ export default function VerifyEmailScreen() {
           source={require("@/assets/images/logo.png")}
           className="mb-6 h-28 w-28 self-center"
           resizeMode="contain"
+          accessibilityLabel="DattaRemit logo"
         />
 
         <Animated.View
@@ -203,6 +178,7 @@ export default function VerifyEmailScreen() {
               maxLength={1}
               selectTextOnFocus
               className="h-14 w-12 rounded-xl border-2 border-white/30 bg-white/10 text-center text-xl font-bold text-white"
+              accessibilityLabel={`Verification code digit ${index + 1}`}
             />
           ))}
         </Animated.View>

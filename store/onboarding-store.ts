@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
 
 export type OnboardingStep =
   | "welcome"
@@ -20,7 +21,7 @@ const STEP_ORDER: OnboardingStep[] = [
   "completed",
 ];
 
-const STORAGE_KEY = "onboarding_step";
+const STORAGE_KEY = STORAGE_KEYS.ONBOARDING_STEP;
 
 type Listener = () => void;
 

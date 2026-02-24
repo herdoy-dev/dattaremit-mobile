@@ -9,6 +9,8 @@ import Animated, {
 import { ChevronDown } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { COLORS } from "@/constants/theme";
+import { FieldLabel } from "@/components/ui/field-label";
+import { FieldError } from "@/components/ui/field-error";
 import { CountryPickerModal } from "@/components/ui/country-picker-modal";
 import { type Country, COUNTRIES, getFlagEmoji } from "@/lib/countries";
 
@@ -77,9 +79,7 @@ export function PhoneInput({
 
   return (
     <View className={className}>
-      <Text className="mb-1.5 text-sm font-medium text-light-text dark:text-dark-text">
-        {label}
-      </Text>
+      <FieldLabel label={label} />
 
       <AnimatedView
         style={borderStyle}
@@ -89,6 +89,8 @@ export function PhoneInput({
         <Pressable
           onPress={() => setPickerVisible(true)}
           className="flex-row items-center px-4 py-3.5"
+          accessibilityRole="button"
+          accessibilityLabel={`Select country code, currently ${selectedCountry.dial}`}
         >
           <Text style={{ fontSize: 20 }}>
             {getFlagEmoji(selectedCountry.code)}
@@ -110,6 +112,7 @@ export function PhoneInput({
           placeholder={placeholder}
           placeholderTextColor={COLORS.placeholder}
           keyboardType="phone-pad"
+          accessibilityLabel={label}
           onFocus={() => {
             focusProgress.value = withTiming(1, { duration: 200 });
           }}
@@ -119,7 +122,7 @@ export function PhoneInput({
         />
       </AnimatedView>
 
-      {error && <Text className="mt-1 text-xs text-red-500">{error}</Text>}
+      <FieldError error={error} />
 
       <CountryPickerModal
         visible={pickerVisible}

@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { vars } from "nativewind";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
 
 export type ThemePreset = "ocean" | "forest" | "sunset" | "rose" | "indigo" | "teal" | "crimson" | "amber";
 
@@ -154,7 +155,7 @@ export const THEME_META: { key: ThemePreset; label: string; color: string }[] = 
   { key: "amber", label: "Amber", color: "#D97706" },
 ];
 
-const STORAGE_KEY = "theme_preset";
+const STORAGE_KEY = STORAGE_KEYS.THEME_PRESET;
 const VALID_PRESETS: ThemePreset[] = ["ocean", "forest", "sunset", "rose", "indigo", "teal", "crimson", "amber"];
 
 type Listener = () => void;
@@ -224,9 +225,5 @@ export function buildThemeVars(colors: ThemeColors) {
   });
 }
 
-export function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+// hexToRgba has been moved to lib/utils.ts — import from there instead
+export { hexToRgba } from "@/lib/utils";
