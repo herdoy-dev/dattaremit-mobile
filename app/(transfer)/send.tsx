@@ -10,6 +10,7 @@ import { SendSuccess } from "@/components/transfer/send-success";
 import { sendMoney, type Contact } from "@/services/transfer";
 import { useAccountQuery } from "@/hooks/use-account-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { useBiometricGate } from "@/hooks/use-biometric-gate";
 import { validateAmount } from "@/lib/validation";
 
 type Step = "select" | "amount" | "success";
@@ -28,6 +29,10 @@ export default function SendScreen() {
       router.back();
     }
   }, [account, address]);
+
+  const { gate, isBlocked } = useBiometricGate({
+    promptMessage: "Verify your identity to send money",
+  });
 
   const [step, setStep] = useState<Step>("select");
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,7 +55,7 @@ export default function SendScreen() {
     setStep("amount");
   }
 
-  function handleSend() {
+  async function handleSend() {
     const error = validateAmount(amount);
     if (error) {
       setAmountError(error);
@@ -58,10 +63,13 @@ export default function SendScreen() {
     }
     setAmountError(null);
     if (!selectedContact) return;
-    mutation.mutate({
-      contactId: selectedContact.id,
-      amount: parseFloat(amount),
-      note: note || undefined,
+
+    await gate(() => {
+      mutation.mutate({
+        contactId: selectedContact.id,
+        amount: parseFloat(amount),
+        note: note || undefined,
+      });
     });
   }
 

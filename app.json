@@ -41,7 +41,13 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "DattaRemit uses Face ID to verify your identity for login and transactions."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

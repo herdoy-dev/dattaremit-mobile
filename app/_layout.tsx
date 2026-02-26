@@ -16,6 +16,7 @@ import { useEffect } from "react";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeStore, buildThemeVars } from "@/store/theme-store";
 import { setAuthToken } from "@/lib/api-client";
+import { BiometricLockOverlay } from "@/components/biometric/biometric-lock-overlay";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -65,6 +66,7 @@ export default function RootLayout() {
                 <Stack.Screen name="referral" />
               </Stack>
               <StatusBar style="auto" />
+              <BiometricLockOverlay />
             </ThemeProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>

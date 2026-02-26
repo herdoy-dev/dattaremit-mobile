@@ -9,20 +9,38 @@ import {
   EyeOff,
   Bell,
 } from "lucide-react-native";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useAccountQuery } from "@/hooks/use-account-query";
+import { useBiometric } from "@/hooks/use-biometric";
 import { TransactionItem } from "@/components/ui/transaction-item";
+import { BiometricEnrollmentModal } from "@/components/biometric/biometric-enrollment-modal";
 import { COLORS } from "@/constants/theme";
 import { RECENT_TRANSACTIONS } from "@/__mocks__/transactions";
 
 export default function HomeTab() {
   const [balanceVisible, setBalanceVisible] = useState(true);
+  const [showEnrollment, setShowEnrollment] = useState(false);
   const router = useRouter();
   const { primary } = useThemeColors();
 
   const { data: account, isLoading, isError } = useAccountQuery();
+  const {
+    isLoaded: biometricLoaded,
+    isEnabled: biometricEnabled,
+    hardwareStatus,
+    hasBeenPrompted,
+  } = useBiometric();
+
+  useEffect(() => {
+    if (!biometricLoaded || biometricEnabled) return;
+    if (!hardwareStatus.hasHardware || !hardwareStatus.isEnrolled) return;
+
+    hasBeenPrompted().then((prompted) => {
+      if (!prompted) setShowEnrollment(true);
+    });
+  }, [biometricLoaded, biometricEnabled, hardwareStatus]);
 
   const user = account?.data?.user;
   const address = account?.data?.addresses?.[0];
@@ -190,6 +208,11 @@ export default function HomeTab() {
           </View>
         </Animated.View>
       </ScrollView>
+
+      <BiometricEnrollmentModal
+        visible={showEnrollment}
+        onClose={() => setShowEnrollment(false)}
+      />
     </SafeAreaView>
   );
 }

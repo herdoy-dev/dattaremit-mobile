@@ -16,6 +16,7 @@ import {
   LogOut,
   Palette,
   Gift,
+  Fingerprint,
 } from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
@@ -28,6 +29,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useAccountQuery } from "@/hooks/use-account-query";
 import { useThemeStore, THEME_META } from "@/store/theme-store";
+import { useBiometric } from "@/hooks/use-biometric";
 import { hexToRgba } from "@/lib/utils";
 import { getKycLabel, getKycBadge } from "@/lib/kyc-utils";
 import { COLORS } from "@/constants/theme";
@@ -46,6 +48,19 @@ export default function AccountTab() {
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
+  const {
+    isLoaded: biometricLoaded,
+    isEnabled: biometricEnabled,
+    hardwareStatus,
+    label: biometricLabel,
+    enable: enableBiometric,
+    disable: disableBiometric,
+    clearEnrollment,
+  } = useBiometric();
+
+  const showBiometricSetting =
+    biometricLoaded && hardwareStatus.hasHardware && hardwareStatus.isEnrolled;
+
   const { data: account, isLoading } = useAccountQuery();
 
   const user = account?.data?.user;
@@ -55,6 +70,7 @@ export default function AccountTab() {
   const badge = getKycBadge(accountStatus);
 
   const handleLogout = async () => {
+    await clearEnrollment();
     await signOut();
     await resetOnboarding();
     queryClient.clear();
@@ -177,6 +193,30 @@ export default function AccountTab() {
               value={THEME_META.find((t) => t.key === preset)?.label}
               onPress={() => setShowThemePicker(true)}
             />
+            {showBiometricSetting && (
+              <>
+                <View className="h-px bg-light-border dark:bg-dark-border" />
+                <SettingItem
+                  icon={<Fingerprint size={18} color={primary} />}
+                  label={biometricLabel}
+                  rightElement={
+                    <Switch
+                      value={biometricEnabled}
+                      onValueChange={async (val) => {
+                        if (val) {
+                          await enableBiometric();
+                        } else {
+                          await disableBiometric();
+                        }
+                      }}
+                      trackColor={{ false: "#E5E7EB", true: primary }}
+                      thumbColor={COLORS.white}
+                      accessibilityLabel={`Toggle ${biometricLabel}`}
+                    />
+                  }
+                />
+              </>
+            )}
             <View className="h-px bg-light-border dark:bg-dark-border" />
             <SettingItem
               icon={<Bell size={18} color={primary} />}

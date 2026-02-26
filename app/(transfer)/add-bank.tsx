@@ -21,6 +21,7 @@ import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useAccountQuery } from "@/hooks/use-account-query";
 import { useForm } from "@/hooks/use-form";
 import { usePlaidLink } from "@/hooks/use-plaid-link";
+import { useBiometricGate } from "@/hooks/use-biometric-gate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -48,6 +49,10 @@ export default function AddBankScreen() {
 
   const address = account?.data?.addresses?.[0];
   const isUSUser = address?.country === "US";
+
+  const { gate } = useBiometricGate({
+    promptMessage: "Verify your identity to link a bank account",
+  });
 
   const plaid = usePlaidLink({
     onSuccess: () => router.back(),
@@ -77,14 +82,16 @@ export default function AddBankScreen() {
     },
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    mutation.mutate({
-      bankName: values.bankName,
-      accountHolderName: values.accountHolderName,
-      accountNumber: values.accountNumber,
-      routingNumber: values.routingNumber.toUpperCase(),
-      type: values.type,
+    await gate(() => {
+      mutation.mutate({
+        bankName: values.bankName,
+        accountHolderName: values.accountHolderName,
+        accountNumber: values.accountNumber,
+        routingNumber: values.routingNumber.toUpperCase(),
+        type: values.type,
+      });
     });
   };
 
@@ -131,7 +138,7 @@ export default function AddBankScreen() {
 
               <Button
                 title="Connect Bank Account"
-                onPress={plaid.initiate}
+                onPress={() => gate(() => plaid.initiate())}
                 loading={plaid.isLoading}
                 size="lg"
                 icon={<Link2 size={20} color={COLORS.white} className="mr-1" />}

@@ -6,6 +6,8 @@ import { onboardingService } from "@/services/onboarding";
 import { resolveOnboardingStep } from "@/lib/utils";
 import { ONBOARDING_STEP_ROUTES } from "@/constants/onboarding-routes";
 import { typedReplace } from "@/lib/navigation";
+import { getEnrollmentState } from "@/lib/biometric";
+import { lock } from "@/store/biometric-lock-store";
 
 /**
  * Handles app bootstrap logic: waits for Clerk + onboarding store to load,
@@ -13,7 +15,7 @@ import { typedReplace } from "@/lib/navigation";
  */
 export function useAppBootstrap() {
   const router = useRouter();
-  const { isSignedIn, isLoaded: isClerkLoaded } = useAuth();
+  const { isSignedIn, isLoaded: isClerkLoaded, userId } = useAuth();
   const { step, isLoaded: isOnboardingLoaded, setStep } = useOnboardingStore();
   const hasRouted = useRef(false);
 
@@ -27,6 +29,13 @@ export function useAppBootstrap() {
     }
 
     hasRouted.current = true;
+
+    // Lock the app if biometric is enabled for this user
+    if (userId) {
+      getEnrollmentState(userId).then((enabled) => {
+        if (enabled) lock();
+      });
+    }
 
     onboardingService
       .getAccountStatus()
