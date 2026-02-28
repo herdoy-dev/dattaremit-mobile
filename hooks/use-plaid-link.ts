@@ -17,16 +17,14 @@ export function usePlaidLink(options?: { onSuccess?: () => void }) {
   const tokenMutation = useMutation({
     mutationFn: () =>
       plaidService.createLinkToken(
-        Platform.OS === "android" ? "com.dattapay.mobile" : undefined
+        Platform.OS === "android" ? "com.dattapay.mobile" : undefined,
       ),
     onSuccess: (data) => {
       create({ token: data.data.plaid_token });
       setIsReady(true);
     },
     onError: (err: unknown) => {
-      setError(
-        getApiErrorMessage(err, "Failed to initialize bank linking.")
-      );
+      setError(getApiErrorMessage(err, "Failed to initialize bank linking."));
     },
   });
 
@@ -34,9 +32,7 @@ export function usePlaidLink(options?: { onSuccess?: () => void }) {
     mutationFn: plaidService.addExternalAccount,
     onSuccess: () => options?.onSuccess?.(),
     onError: (err: unknown) => {
-      setError(
-        getApiErrorMessage(err, "Failed to link bank account.")
-      );
+      setError(getApiErrorMessage(err, "Failed to link bank account."));
     },
   });
 
@@ -53,7 +49,7 @@ export function usePlaidLink(options?: { onSuccess?: () => void }) {
           accountName: institutionName
             ? `${institutionName} - ${accountName}`
             : accountName,
-          paymentRail: "us_ach",
+          paymentRail: "ach_pull",
           plaidPublicToken: publicToken,
           plaidAccountId: account?.id ?? "",
         });
