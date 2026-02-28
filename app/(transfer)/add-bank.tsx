@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   View,
   Text,
@@ -5,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -14,6 +16,8 @@ import {
   Hash,
   Building2,
   Link2,
+  Zap,
+  CheckCircle2,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
@@ -49,6 +53,9 @@ export default function AddBankScreen() {
 
   const address = account?.data?.addresses?.[0];
   const isUSUser = address?.country === "US";
+  const achPushEnabled = account?.data?.user?.achPushEnabled;
+  const zynkExternalAccountId = account?.data?.user?.zynkExternalAccountId;
+  const [useFastTransfer, setUseFastTransfer] = useState(false);
 
   const { gate } = useBiometricGate({
     promptMessage: "Verify your identity to link a bank account",
@@ -56,6 +63,8 @@ export default function AddBankScreen() {
 
   const plaid = usePlaidLink({
     onSuccess: () => router.back(),
+    paymentRail:
+      achPushEnabled && useFastTransfer ? "ach_push" : "ach_pull",
   });
 
   const { values, errors, setValue, validate } = useForm(
@@ -120,30 +129,61 @@ export default function AddBankScreen() {
             >
               <View
                 className="h-20 w-20 items-center justify-center rounded-full"
-                style={{ backgroundColor: `${primary}15` }}
+                style={{ backgroundColor: zynkExternalAccountId ? "#22c55e15" : `${primary}15` }}
               >
-                <Landmark size={36} color={primary} />
+                {zynkExternalAccountId ? (
+                  <CheckCircle2 size={36} color="#16a34a" />
+                ) : (
+                  <Landmark size={36} color={primary} />
+                )}
               </View>
 
               <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
-                Connect Your Bank
+                {zynkExternalAccountId ? "Bank Account Linked" : "Connect Your Bank"}
               </Text>
 
               <Text className="text-center text-base leading-6 text-light-muted dark:text-dark-muted px-4">
-                Securely link your bank account using Plaid. Your credentials
-                are never shared with us.
+                {zynkExternalAccountId
+                  ? "Your bank account has been successfully linked."
+                  : "Securely link your bank account using Plaid. Your credentials are never shared with us."}
               </Text>
 
-              {plaid.error && <ErrorBanner message={plaid.error} />}
+              {!zynkExternalAccountId && (
+                <>
+                  {achPushEnabled && (
+                    <View className="w-full flex-row items-center justify-between rounded-xl border border-light-border dark:border-dark-border px-4 py-3">
+                      <View className="flex-row items-center gap-3 flex-1">
+                        <Zap size={20} color="#f59e0b" />
+                        <View className="flex-1">
+                          <Text className="text-sm font-semibold text-light-text dark:text-dark-text">
+                            Fast Transfer
+                          </Text>
+                          <Text className="text-xs text-light-muted dark:text-dark-muted">
+                            {useFastTransfer
+                              ? "Instant ACH push"
+                              : "Regular ACH pull (1-3 days)"}
+                          </Text>
+                        </View>
+                      </View>
+                      <Switch
+                        value={useFastTransfer}
+                        onValueChange={setUseFastTransfer}
+                      />
+                    </View>
+                  )}
 
-              <Button
-                title="Connect Bank Account"
-                onPress={() => gate(() => plaid.initiate())}
-                loading={plaid.isLoading}
-                size="lg"
-                icon={<Link2 size={20} color={COLORS.white} className="mr-1" />}
-                className="mt-4 w-full"
-              />
+                  {plaid.error && <ErrorBanner message={plaid.error} />}
+
+                  <Button
+                    title="Connect Bank Account"
+                    onPress={() => gate(() => plaid.initiate())}
+                    loading={plaid.isLoading}
+                    size="lg"
+                    icon={<Link2 size={20} color={COLORS.white} className="mr-1" />}
+                    className="mt-4 w-full"
+                  />
+                </>
+              )}
             </Animated.View>
           ) : (
             /* Manual form for non-US users */

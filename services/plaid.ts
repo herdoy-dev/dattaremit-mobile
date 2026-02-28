@@ -2,7 +2,7 @@ import apiClient from "@/lib/api-client";
 
 export interface ExternalAccountPayload {
   accountName: string;
-  paymentRail: string;
+  paymentRail?: string;
   plaidPublicToken: string;
   plaidAccountId: string;
 }

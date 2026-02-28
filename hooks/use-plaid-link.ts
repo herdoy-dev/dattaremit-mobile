@@ -6,11 +6,12 @@ import {
   LinkSuccess,
   LinkExit,
 } from "react-native-plaid-link-sdk";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { plaidService } from "@/services/plaid";
 import { getApiErrorMessage } from "@/lib/utils";
 
-export function usePlaidLink(options?: { onSuccess?: () => void }) {
+export function usePlaidLink(options?: { onSuccess?: () => void; paymentRail?: string }) {
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -30,7 +31,10 @@ export function usePlaidLink(options?: { onSuccess?: () => void }) {
 
   const exchangeMutation = useMutation({
     mutationFn: plaidService.addExternalAccount,
-    onSuccess: () => options?.onSuccess?.(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account"] });
+      options?.onSuccess?.();
+    },
     onError: (err: unknown) => {
       setError(getApiErrorMessage(err, "Failed to link bank account."));
     },
@@ -49,7 +53,7 @@ export function usePlaidLink(options?: { onSuccess?: () => void }) {
           accountName: institutionName
             ? `${institutionName} - ${accountName}`
             : accountName,
-          paymentRail: "ach_pull",
+          paymentRail: options?.paymentRail || "ach_pull",
           plaidPublicToken: publicToken,
           plaidAccountId: account?.id ?? "",
         });

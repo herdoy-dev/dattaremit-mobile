@@ -9,6 +9,9 @@ export interface AccountUser {
   nationality: string;
   dateOfBirth: string;
   referCode?: string;
+  achPushEnabled?: boolean;
+  zynkExternalAccountId?: string | null;
+  zynkDepositAccountId?: string | null;
 }
 
 export interface AccountAddress {
