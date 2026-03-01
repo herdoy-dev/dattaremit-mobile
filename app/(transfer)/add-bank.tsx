@@ -148,42 +148,38 @@ export default function AddBankScreen() {
                   : "Securely link your bank account using Plaid. Your credentials are never shared with us."}
               </Text>
 
-              {!zynkExternalAccountId && (
-                <>
-                  {achPushEnabled && (
-                    <View className="w-full flex-row items-center justify-between rounded-xl border border-light-border dark:border-dark-border px-4 py-3">
-                      <View className="flex-row items-center gap-3 flex-1">
-                        <Zap size={20} color="#f59e0b" />
-                        <View className="flex-1">
-                          <Text className="text-sm font-semibold text-light-text dark:text-dark-text">
-                            Fast Transfer
-                          </Text>
-                          <Text className="text-xs text-light-muted dark:text-dark-muted">
-                            {useFastTransfer
-                              ? "Instant ACH push"
-                              : "Regular ACH pull (1-3 days)"}
-                          </Text>
-                        </View>
-                      </View>
-                      <Switch
-                        value={useFastTransfer}
-                        onValueChange={setUseFastTransfer}
-                      />
+              {!zynkExternalAccountId && achPushEnabled && (
+                <View className="w-full flex-row items-center justify-between rounded-xl border border-light-border dark:border-dark-border px-4 py-3">
+                  <View className="flex-row items-center gap-3 flex-1">
+                    <Zap size={20} color="#f59e0b" />
+                    <View className="flex-1">
+                      <Text className="text-sm font-semibold text-light-text dark:text-dark-text">
+                        Fast Transfer
+                      </Text>
+                      <Text className="text-xs text-light-muted dark:text-dark-muted">
+                        {useFastTransfer
+                          ? "Instant ACH push"
+                          : "Regular ACH pull (1-3 days)"}
+                      </Text>
                     </View>
-                  )}
-
-                  {plaid.error && <ErrorBanner message={plaid.error} />}
-
-                  <Button
-                    title="Connect Bank Account"
-                    onPress={() => gate(() => plaid.initiate())}
-                    loading={plaid.isLoading}
-                    size="lg"
-                    icon={<Link2 size={20} color={COLORS.white} className="mr-1" />}
-                    className="mt-4 w-full"
+                  </View>
+                  <Switch
+                    value={useFastTransfer}
+                    onValueChange={setUseFastTransfer}
                   />
-                </>
+                </View>
               )}
+
+              {plaid.error && <ErrorBanner message={plaid.error} />}
+
+              <Button
+                title={zynkExternalAccountId ? "Connect Different Bank Account" : "Connect Bank Account"}
+                onPress={() => gate(() => plaid.initiate())}
+                loading={plaid.isLoading}
+                size="lg"
+                icon={<Link2 size={20} color={COLORS.white} className="mr-1" />}
+                className="mt-4 w-full"
+              />
             </Animated.View>
           ) : (
             /* Manual form for non-US users */
