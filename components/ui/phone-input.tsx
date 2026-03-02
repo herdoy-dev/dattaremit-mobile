@@ -37,7 +37,7 @@ export function PhoneInput({
   onChangePhone,
   placeholder = "Enter phone number",
   error,
-  defaultCountryCode = "GB",
+  defaultCountryCode = "US",
   className = "",
 }: PhoneInputProps) {
   const { primary, border, borderFocus } = useThemeColors();
