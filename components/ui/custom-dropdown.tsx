@@ -77,7 +77,7 @@ export function CustomDropdown({
       <Pressable
         onPress={toggle}
         className="flex-row items-center justify-between rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
-        style={{ borderColor: isOpen ? primary : error ? COLORS.error : value ? primary : border }}
+        style={{ borderColor: error ? COLORS.error : isOpen ? primary : value ? primary : border }}
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${selectedOption?.label || "not selected"}`}
         accessibilityState={{ expanded: isOpen }}
@@ -94,7 +94,7 @@ export function CustomDropdown({
           {selectedOption?.label || placeholder}
         </Text>
         <Animated.View style={chevronStyle}>
-          <ChevronDown size={20} color={isOpen ? primary : COLORS.placeholder} />
+          <ChevronDown size={20} color={error ? COLORS.error : isOpen ? primary : COLORS.placeholder} />
         </Animated.View>
       </Pressable>
 

@@ -18,6 +18,7 @@ interface CustomDatePickerProps {
 
 const ITEM_HEIGHT = 44;
 const VISIBLE_COUNT = 5;
+const PADDING_ITEMS = 2;
 
 const MONTHS_FULL = [
   "January", "February", "March", "April", "May", "June",
@@ -32,9 +33,10 @@ const currentYear = new Date().getFullYear();
 const YEARS: number[] = [];
 for (let y = currentYear; y >= currentYear - 100; y--) YEARS.push(y);
 
-// Pad data with 2 empty items top/bottom for scroll overflow
+// Pad data with empty items top/bottom so the first/last real item can scroll to center
 function padData(items: string[]): string[] {
-  return ["", "", ...items, "", ""];
+  const padding = Array(PADDING_ITEMS).fill("");
+  return [...padding, ...items, ...padding];
 }
 
 function getOpacity(index: number, selectedIndex: number): number {
@@ -59,30 +61,38 @@ function PickerColumn({
   const listRef = useRef<FlatList>(null);
   const { primary } = useThemeColors();
   const paddedItems = useMemo(() => padData(items), [items]);
-  // Padded index = real index + 2 (for the 2 empty items at top)
-  const paddedSelectedIndex = selectedIndex + 2;
+  // Padded index = real index + PADDING_ITEMS (for the empty items at top)
+  const paddedSelectedIndex = selectedIndex + PADDING_ITEMS;
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      listRef.current?.scrollToIndex({
-        index: paddedSelectedIndex,
-        animated: false,
-        viewPosition: 0.5,
-      });
+      if (paddedSelectedIndex >= 0 && paddedSelectedIndex < paddedItems.length) {
+        listRef.current?.scrollToIndex({
+          index: paddedSelectedIndex,
+          animated: false,
+          viewPosition: 0.5,
+        });
+      }
     }, 50);
     return () => clearTimeout(timer);
-  }, [paddedSelectedIndex, items.length]);
+  }, [paddedSelectedIndex, paddedItems.length]);
 
   const handleMomentumScrollEnd = useCallback(
     (e: { nativeEvent: { contentOffset: { y: number } } }) => {
       const y = e.nativeEvent.contentOffset.y;
       const rawIndex = Math.round(y / ITEM_HEIGHT);
-      // Subtract 2 for padding items
-      const realIndex = rawIndex;
-      const clamped = Math.max(0, Math.min(realIndex, items.length - 1));
+      const clamped = Math.max(0, Math.min(rawIndex, items.length - 1));
       onSelect(clamped);
     },
     [items.length, onSelect]
+  );
+
+  const handleScrollToIndexFailed = useCallback(
+    (info: { index: number; averageItemLength: number }) => {
+      const offset = info.index * ITEM_HEIGHT;
+      listRef.current?.scrollToOffset({ offset, animated: false });
+    },
+    []
   );
 
   return (
@@ -109,12 +119,13 @@ function PickerColumn({
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
         onMomentumScrollEnd={handleMomentumScrollEnd}
+        onScrollToIndexFailed={handleScrollToIndexFailed}
         getItemLayout={(_, index) => ({
           length: ITEM_HEIGHT,
           offset: ITEM_HEIGHT * index,
           index,
         })}
-        initialScrollIndex={Math.max(0, paddedSelectedIndex - 2)}
+        initialScrollIndex={Math.max(0, paddedSelectedIndex - PADDING_ITEMS)}
         renderItem={({ item, index }) => {
           const opacity = item ? getOpacity(index, paddedSelectedIndex) : 0;
           return (
@@ -236,6 +247,8 @@ export function CustomDatePicker({
         </Text>
       </Pressable>
 
+      <FieldError error={error} />
+
       <CustomModal visible={isOpen} onClose={handleCancel} snapPoint={0.45}>
         {/* Cancel / Title / Done header */}
         <View className="mb-4 flex-row items-center justify-between">
@@ -274,8 +287,6 @@ export function CustomDatePicker({
           />
         </View>
       </CustomModal>
-
-      <FieldError error={error} />
     </View>
   );
 }
