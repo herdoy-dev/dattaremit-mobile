@@ -77,7 +77,7 @@ function PickerColumn({
     return () => clearTimeout(timer);
   }, [paddedSelectedIndex, paddedItems.length]);
 
-  const handleMomentumScrollEnd = useCallback(
+  const handleScrollEnd = useCallback(
     (e: { nativeEvent: { contentOffset: { y: number } } }) => {
       const y = e.nativeEvent.contentOffset.y;
       const rawIndex = Math.round(y / ITEM_HEIGHT);
@@ -118,7 +118,8 @@ function PickerColumn({
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
-        onMomentumScrollEnd={handleMomentumScrollEnd}
+        onMomentumScrollEnd={handleScrollEnd}
+        onScrollEndDrag={handleScrollEnd}
         onScrollToIndexFailed={handleScrollToIndexFailed}
         getItemLayout={(_, index) => ({
           length: ITEM_HEIGHT,

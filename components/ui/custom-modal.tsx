@@ -98,21 +98,21 @@ export function CustomModal({
             />
           </Animated.View>
 
-          <GestureDetector gesture={panGesture}>
-            <Animated.View
-              style={[
-                sheetStyle,
-                {
-                  height: SCREEN_HEIGHT,
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  backgroundColor: surface,
-                  borderTopLeftRadius: 24,
-                  borderTopRightRadius: 24,
-                },
-              ]}
-            >
+          <Animated.View
+            style={[
+              sheetStyle,
+              {
+                height: SCREEN_HEIGHT,
+                position: "absolute",
+                left: 0,
+                right: 0,
+                backgroundColor: surface,
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+              },
+            ]}
+          >
+            <GestureDetector gesture={panGesture}>
               <View style={{ alignItems: "center", paddingTop: 12, paddingBottom: 8 }}>
                 <View
                   style={{
@@ -123,11 +123,11 @@ export function CustomModal({
                   }}
                 />
               </View>
-              <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 }}>
-                {children}
-              </View>
-            </Animated.View>
-          </GestureDetector>
+            </GestureDetector>
+            <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 }}>
+              {children}
+            </View>
+          </Animated.View>
         </View>
       </GestureHandlerRootView>
     </Modal>
