@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { View, Text, AppState, type AppStateStatus } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-import { Fingerprint } from "lucide-react-native";
+import { Fingerprint, ScanFace } from "lucide-react-native";
 import { useAuth } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,8 +17,9 @@ const MAX_ATTEMPTS = 3;
 
 export function BiometricLockOverlay() {
   const { isLocked, unlock } = useBiometricLockStore();
-  const { isEnabled, isLoaded, verify, label, clearEnrollment } =
+  const { isEnabled, isLoaded, verify, label, iconType, clearEnrollment } =
     useBiometric();
+  const BiometricIcon = iconType === "face" ? ScanFace : Fingerprint;
   const { signOut } = useAuth();
   const { resetOnboarding } = useOnboardingStore();
   const router = useRouter();
@@ -94,15 +95,15 @@ export function BiometricLockOverlay() {
           className="mb-8 h-24 w-24 items-center justify-center rounded-full"
           style={{ backgroundColor: `${primary}15` }}
         >
-          <Fingerprint size={48} color={primary} />
+          <BiometricIcon size={48} color={primary} />
         </View>
 
         <Text className="mb-2 text-2xl font-bold text-light-text dark:text-dark-text">
-          App Locked
+          Welcome Back
         </Text>
 
         <Text className="mb-8 text-center text-base text-light-text-secondary dark:text-dark-text-secondary">
-          Unlock with {label} to continue
+          Verify your identity to continue
         </Text>
 
         {!showFallback ? (

@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import { Fingerprint } from "lucide-react-native";
+import { Fingerprint, ScanFace } from "lucide-react-native";
 
 import { CustomModal } from "@/components/ui/custom-modal";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,9 @@ export function BiometricEnrollmentModal({
   visible,
   onClose,
 }: BiometricEnrollmentModalProps) {
-  const { enable, markPrompted, label } = useBiometric();
+  const { enable, markPrompted, label, iconType } = useBiometric();
   const { primary } = useThemeColors();
+  const BiometricIcon = iconType === "face" ? ScanFace : Fingerprint;
 
   const handleEnable = async () => {
     const success = await enable();
@@ -36,7 +37,7 @@ export function BiometricEnrollmentModal({
           className="h-20 w-20 items-center justify-center rounded-full"
           style={{ backgroundColor: `${primary}15` }}
         >
-          <Fingerprint size={40} color={primary} />
+          <BiometricIcon size={40} color={primary} />
         </View>
 
         <Text className="text-xl font-bold text-light-text dark:text-dark-text">

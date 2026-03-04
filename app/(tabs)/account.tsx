@@ -17,6 +17,7 @@ import {
   Palette,
   Gift,
   Fingerprint,
+  ScanFace,
 } from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
@@ -53,10 +54,13 @@ export default function AccountTab() {
     isEnabled: biometricEnabled,
     hardwareStatus,
     label: biometricLabel,
+    iconType: biometricIconType,
     enable: enableBiometric,
     disable: disableBiometric,
     clearEnrollment,
   } = useBiometric();
+
+  const BiometricIcon = biometricIconType === "face" ? ScanFace : Fingerprint;
 
   const showBiometricSetting =
     biometricLoaded && hardwareStatus.hasHardware && hardwareStatus.isEnrolled;
@@ -197,7 +201,7 @@ export default function AccountTab() {
               <>
                 <View className="h-px bg-light-border dark:bg-dark-border" />
                 <SettingItem
-                  icon={<Fingerprint size={18} color={primary} />}
+                  icon={<BiometricIcon size={18} color={primary} />}
                   label={biometricLabel}
                   rightElement={
                     <Switch

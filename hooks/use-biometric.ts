@@ -9,6 +9,7 @@ import {
   markPrompted as savePrompted,
   clearEnrollment,
   getBiometricLabel,
+  getBiometricIconType,
   type HardwareStatus,
 } from "@/lib/biometric";
 
@@ -88,12 +89,14 @@ export function useBiometric() {
   }, [userId]);
 
   const label = getBiometricLabel(hardwareStatus.authenticationType);
+  const iconType = getBiometricIconType(hardwareStatus.authenticationType);
 
   return {
     isLoaded,
     isEnabled,
     hardwareStatus,
     label,
+    iconType,
     enable,
     disable,
     verify,

@@ -1,5 +1,6 @@
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 import { SECURE_KEYS } from "@/constants/storage-keys";
 
 export type HardwareStatus = {
@@ -21,7 +22,7 @@ export async function authenticate(
 ): Promise<{ success: boolean; error?: string }> {
   const result = await LocalAuthentication.authenticateAsync({
     promptMessage,
-    disableDeviceFallback: true,
+    disableDeviceFallback: Platform.OS === "ios",
     cancelLabel: "Cancel",
   });
   return {
@@ -74,11 +75,22 @@ export async function clearEnrollment(): Promise<void> {
 export function getBiometricLabel(
   types: LocalAuthentication.AuthenticationType[]
 ): string {
-  if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
-    return "Face ID";
-  }
-  if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
-    return "Fingerprint";
+  if (Platform.OS === "ios") {
+    if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+      return "Face ID";
+    }
+    if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+      return "Touch ID";
+    }
   }
   return "Biometrics";
+}
+
+export function getBiometricIconType(
+  types: LocalAuthentication.AuthenticationType[]
+): "face" | "fingerprint" {
+  if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+    return "face";
+  }
+  return "fingerprint";
 }

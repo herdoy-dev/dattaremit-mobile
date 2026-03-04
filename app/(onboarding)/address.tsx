@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,6 +12,7 @@ import { CountrySelector } from "@/components/ui/country-selector";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { useForm } from "@/hooks/use-form";
+import { useAccountQuery } from "@/hooks/use-account-query";
 import { getApiErrorMessage } from "@/lib/utils";
 import { validateRequired, validatePostalCode } from "@/lib/validation";
 import { COLORS } from "@/constants/theme";
@@ -18,6 +20,9 @@ import { COLORS } from "@/constants/theme";
 export default function AddressScreen() {
   const router = useRouter();
   const { setStep } = useOnboardingStore();
+
+  const { data: accountData } = useAccountQuery();
+  const existingAddress = accountData?.data?.addresses?.[0];
 
   const { values, errors, setValue, validate } = useForm(
     {
@@ -35,6 +40,16 @@ export default function AddressScreen() {
       state: (v) => validateRequired(v, "State/Province"),
     }
   );
+
+  useEffect(() => {
+    if (existingAddress) {
+      setValue("country", existingAddress.country);
+      setValue("city", existingAddress.city);
+      setValue("street", existingAddress.addressLine1);
+      setValue("postalCode", existingAddress.postalCode);
+      setValue("state", existingAddress.state);
+    }
+  }, [existingAddress]);
 
   const addressMutation = useMutation({
     mutationFn: onboardingService.submitAddress,
