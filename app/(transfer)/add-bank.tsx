@@ -18,6 +18,7 @@ import {
   Link2,
   Zap,
   CheckCircle2,
+  ShieldCheck,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
@@ -51,6 +52,7 @@ export default function AddBankScreen() {
 
   const { data: account, isLoading: isAccountLoading } = useAccountQuery();
 
+  const accountStatus = account?.data?.accountStatus;
   const address = account?.data?.addresses?.[0];
   const isUSUser = address?.country === "US";
   const achPushEnabled = account?.data?.user?.achPushEnabled;
@@ -121,6 +123,37 @@ export default function AddBankScreen() {
             <View className="items-center justify-center py-20">
               <ActivityIndicator size="large" color={primary} />
             </View>
+          ) : accountStatus !== "ACTIVE" ? (
+            <Animated.View
+              entering={FadeInDown.delay(200).duration(600).springify()}
+              className="items-center gap-5 pt-8"
+            >
+              <View
+                className="h-20 w-20 items-center justify-center rounded-full"
+                style={{ backgroundColor: `${primary}15` }}
+              >
+                <ShieldCheck size={36} color={primary} />
+              </View>
+
+              <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
+                Verify Your Identity
+              </Text>
+
+              <Text className="text-center text-base leading-6 text-light-muted dark:text-dark-muted px-4">
+                {accountStatus === "PENDING"
+                  ? "Your KYC verification is being reviewed. You'll be able to connect your bank account once it's approved."
+                  : "Complete your KYC verification to connect your bank account."}
+              </Text>
+
+              {accountStatus !== "PENDING" && (
+                <Button
+                  title="Complete KYC"
+                  onPress={() => router.push("/(onboarding)/kyc")}
+                  size="lg"
+                  className="mt-4 w-full"
+                />
+              )}
+            </Animated.View>
           ) : isUSUser ? (
             /* Plaid flow for US users */
             <Animated.View
