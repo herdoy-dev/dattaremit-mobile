@@ -150,6 +150,7 @@ export default function AccountTab() {
               icon={<Shield size={18} color={primary} />}
               label="KYC Status"
               value={isLoading ? "..." : getKycLabel(accountStatus)}
+              onPress={accountStatus !== "ACTIVE" ? () => router.push("/(onboarding)/kyc") : undefined}
             />
           </View>
         </Animated.View>
