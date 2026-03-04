@@ -161,8 +161,7 @@ export default function KycScreen() {
                   KYC Link Sent!
                 </Text>
                 <Text className="mt-3 text-center text-sm leading-6 text-light-text-secondary dark:text-dark-text-secondary">
-                  We've sent a verification link to your email. Please check
-                  your inbox and complete your KYC verification.
+                  Please check your email and complete the KYC verification to get started.
                 </Text>
               </Animated.View>
 
