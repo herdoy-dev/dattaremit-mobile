@@ -22,7 +22,10 @@ export default function OnboardingLayout() {
     if (!isLoaded) return;
 
     if (step === "completed") {
-      router.replace("/(tabs)" as never);
+      const currentSegment = segments[1];
+      if (currentSegment !== "kyc") {
+        router.replace("/(tabs)" as never);
+      }
       return;
     }
 
