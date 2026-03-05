@@ -155,25 +155,27 @@ export default function HomeTab() {
           <Text className="mb-4 text-base font-semibold text-light-text dark:text-dark-text">
             Quick Actions
           </Text>
-          <View className="flex-row justify-between">
+          <View className="flex-row gap-3">
             {QUICK_ACTIONS.map((action, index) => (
               <Animated.View
                 key={action.label}
                 entering={FadeInRight.delay(500 + index * 100).duration(500)}
+                className="flex-1"
               >
                 <Pressable
-                  className="items-center"
+                  className="flex-row items-center justify-center gap-3 rounded-2xl py-4"
+                  style={{ backgroundColor: `${action.color}15` }}
                   onPress={() => handleQuickAction(action.label)}
                   accessibilityRole="button"
                   accessibilityLabel={action.label}
                 >
                   <View
-                    className="mb-2 h-14 w-14 items-center justify-center rounded-2xl"
-                    style={{ backgroundColor: `${action.color}15` }}
+                    className="h-10 w-10 items-center justify-center rounded-xl"
+                    style={{ backgroundColor: `${action.color}25` }}
                   >
-                    <action.icon size={24} color={action.color} />
+                    <action.icon size={20} color={action.color} />
                   </View>
-                  <Text className="text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary">
+                  <Text className="text-sm font-semibold" style={{ color: action.color }}>
                     {action.label}
                   </Text>
                 </Pressable>

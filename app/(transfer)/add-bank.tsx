@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,18 @@ import {
   Platform,
   ActivityIndicator,
   Switch,
+  Modal,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import {
   Landmark,
   User,
@@ -33,13 +42,14 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { CustomDropdown } from "@/components/ui/custom-dropdown";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { onboardingService } from "@/services/onboarding";
-import { getApiErrorMessage } from "@/lib/utils";
+import { getApiErrorMessage, hexToRgba } from "@/lib/utils";
 import {
   validateRequired,
   validateAccountNumber,
   validateRoutingNumber,
 } from "@/lib/validation";
 import { COLORS } from "@/constants/theme";
+import { buildThemeVars } from "@/store/theme-store";
 
 const ACCOUNT_TYPE_OPTIONS = [
   { label: "Savings", value: "SAVINGS" },
@@ -48,7 +58,8 @@ const ACCOUNT_TYPE_OPTIONS = [
 
 export default function AddBankScreen() {
   const router = useRouter();
-  const { primary } = useThemeColors();
+  const { primary, surface, rawColors } = useThemeColors();
+  const themeVars = buildThemeVars(rawColors);
 
   const { data: account, isLoading: isAccountLoading } = useAccountQuery();
 
@@ -58,13 +69,60 @@ export default function AddBankScreen() {
   const achPushEnabled = account?.data?.user?.achPushEnabled;
   const zynkExternalAccountId = account?.data?.user?.zynkExternalAccountId;
   const [useFastTransfer, setUseFastTransfer] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const backdropOpacity = useSharedValue(0);
+  const cardScale = useSharedValue(0.85);
+  const cardOpacity = useSharedValue(0);
+  const iconScale = useSharedValue(0);
+  const textOpacity = useSharedValue(0);
+  const buttonOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (showSuccessModal) {
+      backdropOpacity.value = withTiming(1, { duration: 300 });
+      cardScale.value = withSpring(1, { damping: 15, stiffness: 150 });
+      cardOpacity.value = withTiming(1, { duration: 300 });
+      iconScale.value = withDelay(
+        200,
+        withSpring(1, { damping: 12, stiffness: 150 }),
+      );
+      textOpacity.value = withDelay(400, withTiming(1, { duration: 300 }));
+      buttonOpacity.value = withDelay(500, withTiming(1, { duration: 300 }));
+    }
+  }, [showSuccessModal]);
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
+
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: cardScale.value }],
+    opacity: cardOpacity.value,
+  }));
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: iconScale.value }],
+  }));
+
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: textOpacity.value,
+  }));
+
+  const buttonStyle = useAnimatedStyle(() => ({
+    opacity: buttonOpacity.value,
+  }));
+
+  const handleSuccessDismiss = () => {
+    router.back();
+  };
 
   const { gate } = useBiometricGate({
     promptMessage: "Verify your identity to link a bank account",
   });
 
   const plaid = usePlaidLink({
-    onSuccess: () => router.back(),
+    onSuccess: () => setShowSuccessModal(true),
     paymentRail:
       achPushEnabled && useFastTransfer ? "ach_push" : "ach_pull",
   });
@@ -89,7 +147,7 @@ export default function AddBankScreen() {
   const mutation = useMutation({
     mutationFn: onboardingService.addDepositAccount,
     onSuccess: () => {
-      router.back();
+      setShowSuccessModal(true);
     },
   });
 
@@ -289,6 +347,66 @@ export default function AddBankScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="none"
+        statusBarTranslucent
+        accessibilityViewIsModal={true}
+      >
+        <View
+          style={[{ flex: 1 }, themeVars]}
+          className="items-center justify-center"
+        >
+          <Animated.View
+            style={backdropStyle}
+            className="absolute inset-0 bg-black/50"
+          />
+
+          <Animated.View
+            style={[cardStyle, { backgroundColor: surface }]}
+            className="mx-8 rounded-3xl p-8"
+          >
+            <View className="items-center">
+              <Animated.View
+                style={[
+                  iconStyle,
+                  { backgroundColor: hexToRgba("#22c55e", 0.1) },
+                ]}
+                className="mb-6 h-20 w-20 items-center justify-center rounded-full"
+              >
+                <CheckCircle2 size={36} color="#16a34a" />
+              </Animated.View>
+
+              <Animated.View style={textStyle} className="items-center">
+                <Text className="text-xl font-bold text-light-text dark:text-dark-text">
+                  Bank Account Linked!
+                </Text>
+                <Text className="mt-3 text-center text-sm leading-6 text-light-text-secondary dark:text-dark-text-secondary">
+                  Your bank account has been successfully connected. You can now
+                  send and receive transfers.
+                </Text>
+              </Animated.View>
+
+              <Animated.View style={buttonStyle} className="mt-8 w-full">
+                <Pressable
+                  onPress={handleSuccessDismiss}
+                  className="h-14 items-center justify-center rounded-full"
+                  style={{ backgroundColor: primary }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Got it, continue to app"
+                >
+                  <Text className="text-lg font-semibold text-white">
+                    Got it
+                  </Text>
+                </Pressable>
+              </Animated.View>
+            </View>
+          </Animated.View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
