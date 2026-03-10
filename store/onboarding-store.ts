@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { STORAGE_KEYS } from "@/constants/storage-keys";
+import * as SecureStore from "expo-secure-store";
+import { SECURE_KEYS } from "@/constants/storage-keys";
 
 export type OnboardingStep =
   | "welcome"
@@ -21,7 +21,7 @@ const STEP_ORDER: OnboardingStep[] = [
   "completed",
 ];
 
-const STORAGE_KEY = STORAGE_KEYS.ONBOARDING_STEP;
+const STORAGE_KEY = SECURE_KEYS.ONBOARDING_STEP;
 
 type Listener = () => void;
 
@@ -43,7 +43,7 @@ function getSnapshot() {
 }
 
 async function loadStep() {
-  const stored = await AsyncStorage.getItem(STORAGE_KEY);
+  const stored = await SecureStore.getItemAsync(STORAGE_KEY);
   if (stored && STEP_ORDER.includes(stored as OnboardingStep)) {
     currentStep = stored as OnboardingStep;
   }
@@ -53,7 +53,7 @@ async function loadStep() {
 
 async function setStep(step: OnboardingStep) {
   currentStep = step;
-  await AsyncStorage.setItem(STORAGE_KEY, step);
+  await SecureStore.setItemAsync(STORAGE_KEY, step);
   emitChange();
 }
 

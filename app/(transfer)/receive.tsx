@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { View, Text, Pressable, Share, ActivityIndicator } from "react-native";
+import { useEffect, useRef } from "react";
+import { View, Text, Pressable, Share, ActivityIndicator, AppState } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { QrCode, Copy, Share2 } from "lucide-react-native";
@@ -24,19 +24,37 @@ export default function ReceiveScreen() {
   const address = account?.data?.addresses?.[0];
 
   // Only non-US users can receive money
-  useEffect(() => {
-    if (account && address?.country === "US") {
-      router.back();
-    }
-  }, [account, address]);
+  const isRestricted = account && address?.country === "US";
 
   const { data: info, isLoading: isInfoLoading } = useQuery({
     queryKey: ["receiveInfo"],
     queryFn: getReceiveInfo,
   });
 
+  const lastCopiedRef = useRef<string | null>(null);
+
+  // Clear clipboard on app backgrounding
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "background" && lastCopiedRef.current) {
+        Clipboard.setStringAsync("");
+        lastCopiedRef.current = null;
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
   async function handleCopy(value: string) {
     await Clipboard.setStringAsync(value);
+    lastCopiedRef.current = value;
+    // Auto-clear after 60 seconds
+    setTimeout(async () => {
+      const current = await Clipboard.getStringAsync();
+      if (current === value) {
+        await Clipboard.setStringAsync("");
+        lastCopiedRef.current = null;
+      }
+    }, 60000);
   }
 
   async function handleShare() {
@@ -56,6 +74,21 @@ export default function ReceiveScreen() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
         <ActivityIndicator size="large" color={primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (isRestricted) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg px-6">
+        <Text className="text-lg font-bold text-light-text dark:text-dark-text text-center">
+          This feature is not available in your region.
+        </Text>
+        <Pressable onPress={() => router.back()} className="mt-4">
+          <Text className="text-base font-semibold" style={{ color: primary }}>
+            Go Back
+          </Text>
+        </Pressable>
       </SafeAreaView>
     );
   }

@@ -46,8 +46,8 @@ export function useAppBootstrap() {
         typedReplace(router, target);
       })
       .catch(() => {
-        const target = ONBOARDING_STEP_ROUTES[step] || "/(onboarding)/profile";
-        typedReplace(router, target);
+        // Don't fall back to potentially tampered local state — show error
+        typedReplace(router, "/(auth)/welcome" as never);
       });
   }, [isClerkLoaded, isOnboardingLoaded, isSignedIn]);
 }

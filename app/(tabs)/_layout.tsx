@@ -4,6 +4,7 @@ import { Home, Activity, UserCircle } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useOnboardingGuard } from "@/hooks/use-onboarding-guard";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { hexToRgba } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
 
@@ -12,7 +13,10 @@ export default function TabLayout() {
   const isDark = colorScheme === "dark";
   const { primary, surface, border } = useThemeColors();
 
+  const { isReady } = useAuthGuard();
   useOnboardingGuard();
+
+  if (!isReady) return null;
 
   return (
     <Tabs

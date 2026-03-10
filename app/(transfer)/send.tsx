@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import { KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
+import { useState, useEffect, useRef } from "react";
+import { KeyboardAvoidingView, Platform, ActivityIndicator, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
+import { randomUUID } from "expo-crypto";
 
 import { ContactSelect } from "@/components/transfer/contact-select";
 import { AmountEntry } from "@/components/transfer/amount-entry";
@@ -12,6 +13,7 @@ import { useAccountQuery } from "@/hooks/use-account-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useBiometricGate } from "@/hooks/use-biometric-gate";
 import { validateAmount } from "@/lib/validation";
+import { Button } from "@/components/ui/button";
 
 type Step = "select" | "amount" | "success";
 
@@ -24,11 +26,7 @@ export default function SendScreen() {
   const address = account?.data?.addresses?.[0];
 
   // Only US users can send money
-  useEffect(() => {
-    if (account && address?.country !== "US") {
-      router.back();
-    }
-  }, [account, address]);
+  const isRestricted = account && address?.country !== "US";
 
   const { gate, isBlocked } = useBiometricGate({
     promptMessage: "Verify your identity to send money",
@@ -55,7 +53,10 @@ export default function SendScreen() {
     setStep("amount");
   }
 
+  const sendingRef = useRef(false);
+
   async function handleSend() {
+    if (sendingRef.current) return;
     const error = validateAmount(amount);
     if (error) {
       setAmountError(error);
@@ -64,19 +65,39 @@ export default function SendScreen() {
     setAmountError(null);
     if (!selectedContact) return;
 
-    await gate(() => {
-      mutation.mutate({
-        contactId: selectedContact.id,
-        amount: parseFloat(amount),
-        note: note || undefined,
+    sendingRef.current = true;
+    const idempotencyKey = randomUUID();
+    try {
+      await gate(() => {
+        mutation.mutate({
+          contactId: selectedContact.id,
+          amountCents: Math.round(parseFloat(amount) * 100),
+          note: note || undefined,
+          _idempotencyKey: idempotencyKey,
+        });
       });
-    });
+    } finally {
+      sendingRef.current = false;
+    }
   }
 
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
         <ActivityIndicator size="large" color={primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (isRestricted) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg px-6">
+        <Text className="text-lg font-bold text-light-text dark:text-dark-text text-center">
+          This feature is not available in your region.
+        </Text>
+        <View className="mt-4">
+          <Button title="Go Back" onPress={() => router.back()} />
+        </View>
       </SafeAreaView>
     );
   }

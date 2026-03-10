@@ -1,10 +1,10 @@
-import { View, Text, Pressable, Share, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, Share, ActivityIndicator, AppState } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Gift, Copy, Share2, Check } from "lucide-react-native";
 import * as Clipboard from "expo-clipboard";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { onboardingService } from "@/services/onboarding";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useAccountQuery } from "@/hooks/use-account-query";
@@ -29,11 +29,33 @@ export default function ReferralScreen() {
     },
   });
 
+  const lastCopiedRef = useRef<string | null>(null);
+
+  // Clear clipboard on app backgrounding
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "background" && lastCopiedRef.current) {
+        Clipboard.setStringAsync("");
+        lastCopiedRef.current = null;
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
   const handleCopy = async () => {
     if (!referCode) return;
     await Clipboard.setStringAsync(referCode);
+    lastCopiedRef.current = referCode;
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    // Auto-clear after 60 seconds
+    setTimeout(async () => {
+      const current = await Clipboard.getStringAsync();
+      if (current === referCode) {
+        await Clipboard.setStringAsync("");
+        lastCopiedRef.current = null;
+      }
+    }, 60000);
   };
 
   const handleShare = async () => {

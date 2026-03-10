@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -28,8 +28,17 @@ export default function VerifyEmailScreen() {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [attempts, setAttempts] = useState(0);
 
   const inputs = useRef<(TextInput | null)[]>([]);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const timer = setTimeout(() => setCooldownSeconds((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldownSeconds]);
 
   const isLoaded = isSignIn ? isSignInLoaded : isSignUpLoaded;
   const displayEmail = isSignIn
@@ -65,6 +74,12 @@ export default function VerifyEmailScreen() {
     const finalCode = verificationCode || code.join("");
     if (finalCode.length !== CODE_LENGTH || !isLoaded) return;
 
+    if (attempts >= 5) {
+      setError("Too many attempts. Please request a new code.");
+      return;
+    }
+    setAttempts((a) => a + 1);
+
     setLoading(true);
     setError(null);
 
@@ -99,8 +114,10 @@ export default function VerifyEmailScreen() {
   };
 
   const handleResend = async () => {
-    if (!isLoaded || resending) return;
+    if (!isLoaded || resending || cooldownSeconds > 0) return;
 
+    setCooldownSeconds(60);
+    setAttempts(0);
     setResending(true);
     setError(null);
 
@@ -208,9 +225,13 @@ export default function VerifyEmailScreen() {
             <Text className="text-sm text-white/70">
               Didn't receive the code?{" "}
             </Text>
-            <Pressable onPress={handleResend} disabled={resending}>
+            <Pressable onPress={handleResend} disabled={resending || cooldownSeconds > 0}>
               <Text className="text-sm font-semibold text-white">
-                {resending ? "Sending..." : "Resend"}
+                {cooldownSeconds > 0
+                  ? `Resend in ${cooldownSeconds}s`
+                  : resending
+                    ? "Sending..."
+                    : "Resend"}
               </Text>
             </Pressable>
           </View>

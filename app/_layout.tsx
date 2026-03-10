@@ -17,6 +17,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeStore, buildThemeVars } from "@/store/theme-store";
 import { setAuthToken } from "@/lib/api-client";
 import { BiometricLockOverlay } from "@/components/biometric/biometric-lock-overlay";
+import { useInactivityTimer } from "@/hooks/use-inactivity-timer";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -40,6 +41,7 @@ function ClerkTokenSync() {
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
   const { colors } = useThemeStore();
+  const { onTouchStart } = useInactivityTimer();
 
   const themeVars = buildThemeVars(colors);
 
@@ -48,7 +50,7 @@ export default function RootLayout() {
       <ClerkLoaded>
         <ClerkTokenSync />
         <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={[{ flex: 1 }, themeVars]}>
+          <GestureHandlerRootView style={[{ flex: 1 }, themeVars]} onTouchStart={onTouchStart}>
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >

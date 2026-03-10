@@ -7,10 +7,13 @@ export function validateEmail(email: string): string | null {
 
 export function validatePassword(password: string): string | null {
   if (!password) return "Password is required";
-  if (password.length < 8) return "Password must be at least 8 characters";
-  if (!/[A-Z]/.test(password))
-    return "Password must contain an uppercase letter";
-  if (!/[0-9]/.test(password)) return "Password must contain a number";
+  if (password.length < 10) return "Password must be at least 10 characters";
+  if (password.length > 128) return "Password must be under 128 characters";
+  if (!/[A-Z]/.test(password)) return "Must contain an uppercase letter";
+  if (!/[a-z]/.test(password)) return "Must contain a lowercase letter";
+  if (!/[0-9]/.test(password)) return "Must contain a number";
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
+    return "Must contain a special character";
   return null;
 }
 
@@ -37,9 +40,13 @@ export function validatePhone(phone: string): string | null {
 
 export function validateAmount(amount: string): string | null {
   if (!amount.trim()) return "Amount is required";
+  if (!/^\d+(\.\d{1,2})?$/.test(amount.trim())) {
+    return "Enter a valid amount (max 2 decimal places)";
+  }
   const num = parseFloat(amount);
-  if (isNaN(num)) return "Enter a valid amount";
-  if (num <= 0) return "Amount must be greater than 0";
+  if (isNaN(num) || num <= 0) return "Amount must be greater than 0";
+  if (num < 1) return "Minimum transfer amount is $1.00";
+  if (num > 10000) return "Maximum transfer amount is $10,000";
   return null;
 }
 

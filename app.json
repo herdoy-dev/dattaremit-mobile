@@ -5,11 +5,15 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "dattaremit",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dattapay.mobile",
+      "infoPlist": {
+        "UIRequiresFullScreen": true
+      }
     },
     "android": {
       "package": "com.dattapay.mobile",

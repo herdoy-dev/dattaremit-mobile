@@ -1,8 +1,12 @@
 import { Stack } from "expo-router";
 import { useOnboardingGuard } from "@/hooks/use-onboarding-guard";
+import { useAuthGuard } from "@/hooks/use-auth-guard";
 
 export default function TransferLayout() {
+  const { isReady } = useAuthGuard();
   useOnboardingGuard();
+
+  if (!isReady) return null;
 
   return (
     <Stack
