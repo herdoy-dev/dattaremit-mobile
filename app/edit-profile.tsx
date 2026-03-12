@@ -1,30 +1,27 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useUser } from "@clerk/clerk-expo";
-import { User } from "lucide-react-native";
+import { ArrowLeft, User } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { CustomDatePicker } from "@/components/ui/custom-date-picker";
 import { CountrySelector } from "@/components/ui/country-selector";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { useForm } from "@/hooks/use-form";
 import { useAccountQuery } from "@/hooks/use-account-query";
 import { getApiErrorMessage } from "@/lib/utils";
-import { STORAGE_KEYS } from "@/constants/storage-keys";
 import {
   validateRequired,
   validatePhone,
@@ -32,21 +29,11 @@ import {
 } from "@/lib/validation";
 import { COLORS } from "@/constants/theme";
 
-export default function ProfileScreen() {
+export default function EditProfileScreen() {
   const router = useRouter();
-  const { setStep } = useOnboardingStore();
-  const { user: clerkUser } = useUser();
-  const referralCodeRef = useRef<string | null>(null);
-
   const queryClient = useQueryClient();
-  const { data: accountData } = useAccountQuery();
-  const existingUser = accountData?.data?.user;
-
-  useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEYS.REFERRAL_CODE).then((code) => {
-      referralCodeRef.current = code;
-    });
-  }, []);
+  const { data: account } = useAccountQuery();
+  const user = account?.data?.user;
 
   const { values, errors, setValue, validate } = useForm(
     {
@@ -66,66 +53,36 @@ export default function ProfileScreen() {
   );
 
   useEffect(() => {
-    if (existingUser) {
-      setValue("firstName", existingUser.firstName ?? "");
-      setValue("lastName", existingUser.lastName ?? "");
-      if (existingUser.dateOfBirth) {
-        setValue("dateOfBirth", new Date(existingUser.dateOfBirth).toISOString().split("T")[0]);
+    if (user) {
+      setValue("firstName", user.firstName ?? "");
+      setValue("lastName", user.lastName ?? "");
+      if (user.dateOfBirth) {
+        setValue("dateOfBirth", new Date(user.dateOfBirth).toISOString().split("T")[0]);
       }
-      if (existingUser.phoneNumberPrefix && existingUser.phoneNumber) {
-        setValue("phoneNumber", `${existingUser.phoneNumberPrefix}${existingUser.phoneNumber}`);
+      if (user.phoneNumberPrefix && user.phoneNumber) {
+        setValue("phoneNumber", `${user.phoneNumberPrefix}${user.phoneNumber}`);
       }
-      setValue("nationality", existingUser.nationality ?? "");
+      setValue("nationality", user.nationality ?? "");
     }
-  }, [existingUser]);
-
-  const profileMutation = useMutation({
-    mutationFn: onboardingService.submitProfile,
-    onSuccess: async () => {
-      await AsyncStorage.removeItem(STORAGE_KEYS.REFERRAL_CODE);
-      await setStep("address");
-      router.push("/(onboarding)/address");
-    },
-  });
+  }, [user]);
 
   const updateMutation = useMutation({
     mutationFn: onboardingService.updateProfile,
-    onSuccess: async () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["account"] });
-      await setStep("address");
-      router.push("/(onboarding)/address");
+      router.back();
     },
   });
 
-  const activeMutation = existingUser ? updateMutation : profileMutation;
-
   const handleSubmit = () => {
     if (!validate()) return;
-
-    if (existingUser) {
-      updateMutation.mutate({
-        firstName: values.firstName,
-        lastName: values.lastName,
-        dateOfBirth: values.dateOfBirth,
-        phoneNumber: values.phoneNumber,
-        nationality: values.nationality,
-      });
-    } else {
-      if (!clerkUser?.id || !clerkUser?.primaryEmailAddress?.emailAddress) return;
-
-      profileMutation.mutate({
-        firstName: values.firstName,
-        lastName: values.lastName,
-        dateOfBirth: values.dateOfBirth,
-        phoneNumber: values.phoneNumber,
-        nationality: values.nationality,
-        clerkUserId: clerkUser.id,
-        email: clerkUser.primaryEmailAddress.emailAddress,
-        ...(referralCodeRef.current
-          ? { referredByCode: referralCodeRef.current }
-          : {}),
-      });
-    }
+    updateMutation.mutate({
+      firstName: values.firstName,
+      lastName: values.lastName,
+      dateOfBirth: values.dateOfBirth,
+      phoneNumber: values.phoneNumber,
+      nationality: values.nationality,
+    });
   };
 
   return (
@@ -135,13 +92,18 @@ export default function ProfileScreen() {
         className="flex-1"
       >
         {/* Header */}
-        <View className="px-6 pt-4 pb-2">
-          <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
-            Personal Information
-          </Text>
-          <Text className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Tell us about yourself to get started
-          </Text>
+        <View className="flex-row items-center px-6 pt-4 pb-2">
+          <Pressable onPress={() => router.back()} className="mr-3">
+            <ArrowLeft size={24} color={COLORS.placeholder} />
+          </Pressable>
+          <View>
+            <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
+              Edit Profile
+            </Text>
+            <Text className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Update your personal information
+            </Text>
+          </View>
         </View>
 
         <ScrollView
@@ -200,19 +162,19 @@ export default function ProfileScreen() {
               error={errors.nationality}
             />
 
-            {activeMutation.isError && (
+            {updateMutation.isError && (
               <ErrorBanner
                 message={getApiErrorMessage(
-                  activeMutation.error,
-                  "Failed to save profile. Please try again."
+                  updateMutation.error,
+                  "Failed to update profile. Please try again."
                 )}
               />
             )}
 
             <Button
-              title={existingUser ? "Update & Continue" : "Continue"}
+              title="Save Changes"
               onPress={handleSubmit}
-              loading={activeMutation.isPending}
+              loading={updateMutation.isPending}
               size="lg"
               className="mt-2"
             />

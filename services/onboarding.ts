@@ -87,4 +87,32 @@ export const onboardingService = {
     const response = await apiClient.post("/referral/validate", { code });
     return response.data?.data;
   },
+
+  async updateProfile(payload: Omit<ProfilePayload, "clerkUserId" | "email" | "referredByCode">) {
+    const { prefix, number } = splitPhoneNumber(payload.phoneNumber);
+    const dateOfBirth = new Date(payload.dateOfBirth).toISOString();
+
+    const response = await apiClient.put("/users/me", {
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      dateOfBirth,
+      phoneNumberPrefix: prefix,
+      phoneNumber: number,
+      nationality: payload.nationality,
+    });
+
+    return response.data;
+  },
+
+  async updateAddress(id: string, payload: AddressPayload) {
+    const response = await apiClient.put(`/addresses/${id}`, {
+      addressLine1: payload.street,
+      city: payload.city,
+      state: payload.state,
+      country: payload.country,
+      postalCode: payload.postalCode,
+    });
+
+    return response.data;
+  },
 };

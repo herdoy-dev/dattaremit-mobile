@@ -1,15 +1,21 @@
 import { useEffect } from "react";
-import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { useMutation } from "@tanstack/react-query";
-import { MapPin, Building2, Hash } from "lucide-react-native";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, MapPin, Building2, Hash } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { CountrySelector } from "@/components/ui/country-selector";
-import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { useForm } from "@/hooks/use-form";
 import { useAccountQuery } from "@/hooks/use-account-query";
@@ -17,12 +23,11 @@ import { getApiErrorMessage } from "@/lib/utils";
 import { validateRequired, validatePostalCode } from "@/lib/validation";
 import { COLORS } from "@/constants/theme";
 
-export default function AddressScreen() {
+export default function EditAddressScreen() {
   const router = useRouter();
-  const { setStep } = useOnboardingStore();
-
-  const { data: accountData } = useAccountQuery();
-  const existingAddress = accountData?.data?.addresses?.[0];
+  const queryClient = useQueryClient();
+  const { data: account } = useAccountQuery();
+  const address = account?.data?.addresses?.[0];
 
   const { values, errors, setValue, validate } = useForm(
     {
@@ -38,53 +43,37 @@ export default function AddressScreen() {
       street: (v) => validateRequired(v, "Street address"),
       postalCode: (v) => validatePostalCode(v),
       state: (v) => validateRequired(v, "State/Province"),
-    }
+    },
   );
 
   useEffect(() => {
-    if (existingAddress) {
-      setValue("country", existingAddress.country);
-      setValue("city", existingAddress.city);
-      setValue("street", existingAddress.addressLine1);
-      setValue("postalCode", existingAddress.postalCode);
-      setValue("state", existingAddress.state);
+    if (address) {
+      setValue("country", address.country ?? "");
+      setValue("city", address.city ?? "");
+      setValue("street", address.addressLine1 ?? "");
+      setValue("postalCode", address.postalCode ?? "");
+      setValue("state", address.state ?? "");
     }
-  }, [existingAddress]);
-
-  const addressMutation = useMutation({
-    mutationFn: onboardingService.submitAddress,
-    onSuccess: async () => {
-      await setStep("kyc");
-      router.push("/(onboarding)/kyc");
-    },
-  });
+  }, [address]);
 
   const updateMutation = useMutation({
     mutationFn: (payload: Parameters<typeof onboardingService.updateAddress>[1]) =>
-      onboardingService.updateAddress(existingAddress!.id, payload),
-    onSuccess: async () => {
-      await setStep("kyc");
-      router.push("/(onboarding)/kyc");
+      onboardingService.updateAddress(address!.id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account"] });
+      router.back();
     },
   });
 
-  const activeMutation = existingAddress ? updateMutation : addressMutation;
-
   const handleSubmit = () => {
     if (!validate()) return;
-    const payload = {
+    updateMutation.mutate({
       country: values.country,
       city: values.city,
       street: values.street,
       postalCode: values.postalCode,
       state: values.state,
-    };
-
-    if (existingAddress) {
-      updateMutation.mutate(payload);
-    } else {
-      addressMutation.mutate(payload);
-    }
+    });
   };
 
   return (
@@ -94,13 +83,18 @@ export default function AddressScreen() {
         className="flex-1"
       >
         {/* Header */}
-        <View className="px-6 pt-4 pb-2">
-          <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
-            Address Information
-          </Text>
-          <Text className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Where are you located?
-          </Text>
+        <View className="flex-row items-center px-6 pt-4 pb-2">
+          <Pressable onPress={() => router.back()} className="mr-3">
+            <ArrowLeft size={24} color={COLORS.placeholder} />
+          </Pressable>
+          <View>
+            <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
+              Edit Address
+            </Text>
+            <Text className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Update your address information
+            </Text>
+          </View>
         </View>
 
         <ScrollView
@@ -160,19 +154,19 @@ export default function AddressScreen() {
               icon={<Hash size={20} color={COLORS.placeholder} />}
             />
 
-            {activeMutation.isError && (
+            {updateMutation.isError && (
               <ErrorBanner
                 message={getApiErrorMessage(
-                  activeMutation.error,
-                  "Failed to save address. Please try again."
+                  updateMutation.error,
+                  "Failed to update address. Please try again."
                 )}
               />
             )}
 
             <Button
-              title={existingAddress ? "Update & Continue" : "Continue"}
+              title="Save Changes"
               onPress={handleSubmit}
-              loading={activeMutation.isPending}
+              loading={updateMutation.isPending}
               size="lg"
               className="mt-2"
             />
