@@ -36,6 +36,7 @@ import { useAccountQuery } from "@/hooks/use-account-query";
 import { useForm } from "@/hooks/use-form";
 import { usePlaidLink } from "@/hooks/use-plaid-link";
 import { useBiometricGate } from "@/hooks/use-biometric-gate";
+import { BiometricVerifyOverlay } from "@/components/biometric/biometric-verify-overlay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -67,7 +68,7 @@ export default function AddBankScreen() {
   const address = account?.data?.addresses?.[0];
   const isUSUser = address?.country === "US";
   const achPushEnabled = account?.data?.user?.achPushEnabled;
-  const zynkExternalAccountId = account?.data?.user?.zynkExternalAccountId;
+  const hasBankAccount = !!account?.data?.hasBankAccount;
   const [useFastTransfer, setUseFastTransfer] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -117,7 +118,7 @@ export default function AddBankScreen() {
     router.back();
   };
 
-  const { gate } = useBiometricGate({
+  const { gate, isVerifying } = useBiometricGate({
     promptMessage: "Verify your identity to link a bank account",
   });
 
@@ -220,9 +221,9 @@ export default function AddBankScreen() {
             >
               <View
                 className="h-20 w-20 items-center justify-center rounded-full"
-                style={{ backgroundColor: zynkExternalAccountId ? "#22c55e15" : `${primary}15` }}
+                style={{ backgroundColor: hasBankAccount ? "#22c55e15" : `${primary}15` }}
               >
-                {zynkExternalAccountId ? (
+                {hasBankAccount ? (
                   <CheckCircle2 size={36} color="#16a34a" />
                 ) : (
                   <Landmark size={36} color={primary} />
@@ -230,16 +231,16 @@ export default function AddBankScreen() {
               </View>
 
               <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
-                {zynkExternalAccountId ? "Bank Account Linked" : "Connect Your Bank"}
+                {hasBankAccount ? "Bank Account Linked" : "Connect Your Bank"}
               </Text>
 
               <Text className="text-center text-base leading-6 text-light-muted dark:text-dark-muted px-4">
-                {zynkExternalAccountId
+                {hasBankAccount
                   ? "Your bank account has been successfully linked."
                   : "Securely link your bank account using Plaid. Your credentials are never shared with us."}
               </Text>
 
-              {!zynkExternalAccountId && achPushEnabled && (
+              {!hasBankAccount && achPushEnabled && (
                 <View className="w-full flex-row items-center justify-between rounded-xl border border-light-border dark:border-dark-border px-4 py-3">
                   <View className="flex-row items-center gap-3 flex-1">
                     <Zap size={20} color="#f59e0b" />
@@ -264,7 +265,7 @@ export default function AddBankScreen() {
               {plaid.error && <ErrorBanner message={plaid.error} />}
 
               <Button
-                title={zynkExternalAccountId ? "Connect Different Bank Account" : "Connect Bank Account"}
+                title={hasBankAccount ? "Connect Different Bank Account" : "Connect Bank Account"}
                 onPress={() => gate(() => plaid.initiate())}
                 loading={plaid.isLoading}
                 size="lg"
@@ -347,6 +348,8 @@ export default function AddBankScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <BiometricVerifyOverlay visible={isVerifying} />
 
       {/* Success Modal */}
       <Modal

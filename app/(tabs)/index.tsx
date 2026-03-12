@@ -8,8 +8,9 @@ import {
   Eye,
   EyeOff,
   Bell,
+  CheckCircle2,
 } from "lucide-react-native";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useAccountQuery } from "@/hooks/use-account-query";
@@ -33,10 +34,14 @@ export default function HomeTab() {
     hasBeenPrompted,
   } = useBiometric();
 
+  const enrollmentChecked = useRef(false);
+
   useEffect(() => {
+    if (enrollmentChecked.current) return;
     if (!biometricLoaded || biometricEnabled) return;
     if (!hardwareStatus.hasHardware || !hardwareStatus.isEnrolled) return;
 
+    enrollmentChecked.current = true;
     hasBeenPrompted().then((prompted) => {
       if (!prompted) setShowEnrollment(true);
     });
@@ -45,25 +50,31 @@ export default function HomeTab() {
   const user = account?.data?.user;
   const address = account?.data?.addresses?.[0];
   const isUSUser = address?.country === "US";
+  const hasBankConnected = !!account?.data?.hasBankAccount;
 
   const QUICK_ACTIONS = useMemo(
     () => {
+      if (!address) return [];
       const actions = [];
       if (isUSUser) {
         actions.push({ icon: Send, label: "Send", color: primary });
       } else {
         actions.push({ icon: Download, label: "Receive", color: COLORS.success });
       }
-      actions.push({ icon: Landmark, label: "Add Bank", color: COLORS.warning });
+      if (hasBankConnected) {
+        actions.push({ icon: CheckCircle2, label: "Bank Connected", color: COLORS.success });
+      } else {
+        actions.push({ icon: Landmark, label: "Add Bank", color: COLORS.warning });
+      }
       return actions;
     },
-    [primary, isUSUser]
+    [address, primary, isUSUser, hasBankConnected]
   );
 
   function handleQuickAction(label: string) {
     if (label === "Send") router.push("/(transfer)/send");
     else if (label === "Receive") router.push("/(transfer)/receive");
-    else if (label === "Add Bank") router.push("/(transfer)/add-bank");
+    else if (label === "Add Bank" || label === "Bank Connected") router.push("/(transfer)/add-bank");
   }
 
   if (isLoading) {

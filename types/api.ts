@@ -31,5 +31,6 @@ export interface AccountStatusResponse {
     user: AccountUser | null;
     addresses: AccountAddress[];
     accountStatus: AccountStatus;
+    hasBankAccount: boolean;
   };
 }

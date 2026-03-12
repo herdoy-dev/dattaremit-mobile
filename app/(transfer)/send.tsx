@@ -12,6 +12,7 @@ import { sendMoney, type Contact } from "@/services/transfer";
 import { useAccountQuery } from "@/hooks/use-account-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useBiometricGate } from "@/hooks/use-biometric-gate";
+import { BiometricVerifyOverlay } from "@/components/biometric/biometric-verify-overlay";
 import { validateAmount } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
 
@@ -28,7 +29,7 @@ export default function SendScreen() {
   // Only US users can send money
   const isRestricted = account && address?.country !== "US";
 
-  const { gate, isBlocked } = useBiometricGate({
+  const { gate, isBlocked, isVerifying } = useBiometricGate({
     promptMessage: "Verify your identity to send money",
   });
 
@@ -136,6 +137,7 @@ export default function SendScreen() {
             isSending={mutation.isPending}
           />
         </KeyboardAvoidingView>
+        <BiometricVerifyOverlay visible={isVerifying} />
       </SafeAreaView>
     );
   }
