@@ -10,7 +10,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, Mail } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/onboarding-store";
@@ -21,6 +21,7 @@ import { buildThemeVars } from "@/store/theme-store";
 
 export default function KycScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { setStep } = useOnboardingStore();
   const { primary, surface, rawColors } = useThemeColors();
   const themeVars = buildThemeVars(rawColors);
@@ -78,6 +79,7 @@ export default function KycScreen() {
 
   const handleGotIt = async () => {
     await setStep("completed");
+    await queryClient.invalidateQueries({ queryKey: ["account"] });
     router.replace("/(tabs)");
   };
 
