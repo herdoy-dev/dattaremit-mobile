@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Switch, Pressable } from "react-native";
+import { View, Text, ScrollView, Switch } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -18,7 +18,6 @@ import {
   Gift,
   Fingerprint,
   ScanFace,
-  Pencil,
 } from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-expo";
@@ -113,19 +112,10 @@ export default function AccountTab() {
               {isLoading ? "..." : user?.email ?? "\u2014"}
             </Text>
           </View>
-          <View className="flex-row items-center gap-2">
-            <View className={`rounded-full px-2.5 py-0.5 ${badge.bg}`}>
-              <Text className={`text-xs font-medium ${badge.text}`}>
-                {isLoading ? "..." : getKycLabel(accountStatus)}
-              </Text>
-            </View>
-            <Pressable
-              onPress={() => router.push("/edit-profile")}
-              className="h-9 w-9 items-center justify-center rounded-xl"
-              style={{ backgroundColor: hexToRgba(primary, 0.1) }}
-            >
-              <Pencil size={16} color={primary} />
-            </Pressable>
+          <View className={`rounded-full px-2.5 py-0.5 ${badge.bg}`}>
+            <Text className={`text-xs font-medium ${badge.text}`}>
+              {isLoading ? "..." : getKycLabel(accountStatus)}
+            </Text>
           </View>
         </Animated.View>
 
@@ -138,6 +128,13 @@ export default function AccountTab() {
             Personal Information
           </Text>
           <View className="rounded-2xl bg-light-surface px-4 dark:bg-dark-surface">
+            <SettingItem
+              icon={<User size={18} color={primary} />}
+              label="Profile"
+              value={isLoading ? "..." : `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() || "Edit profile"}
+              onPress={() => router.push("/edit-profile")}
+            />
+            <View className="h-px bg-light-border dark:bg-dark-border" />
             <SettingItem
               icon={<Mail size={18} color={primary} />}
               label="Email"
