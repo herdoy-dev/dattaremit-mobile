@@ -31,10 +31,36 @@ export function validateRequired(value: string, fieldName: string): string | nul
   return null;
 }
 
+const PHONE_RULES: Record<string, { dial: string; length: number; name: string }> = {
+  "+1": { dial: "+1", length: 10, name: "US" },
+  "+91": { dial: "+91", length: 10, name: "Indian" },
+};
+
+// Sorted longest-first so "+91" matches before "+9"
+const dialPrefixes = Object.keys(PHONE_RULES).sort((a, b) => b.length - a.length);
+
 export function validatePhone(phone: string): string | null {
-  if (!phone.trim()) return "Phone number is required";
-  const phoneRegex = /^\+?[\d\s-]{8,15}$/;
-  if (!phoneRegex.test(phone)) return "Enter a valid phone number";
+  const trimmed = phone.replace(/[\s-]/g, "");
+  if (!trimmed) return "Phone number is required";
+
+  const matched = dialPrefixes.find((prefix) => trimmed.startsWith(prefix));
+  if (!matched) return "Select a supported country code (+1 or +91)";
+
+  const rule = PHONE_RULES[matched];
+  const localNumber = trimmed.slice(matched.length);
+
+  if (!/^\d+$/.test(localNumber)) return "Phone number must contain only digits";
+  if (localNumber.length < rule.length)
+    return `${rule.name} phone number must be ${rule.length} digits`;
+  if (localNumber.length > rule.length)
+    return `${rule.name} phone number must be ${rule.length} digits`;
+
+  if (matched === "+1" && ["0", "1"].includes(localNumber[0]))
+    return "US phone number cannot start with 0 or 1";
+
+  if (matched === "+91" && !["6", "7", "8", "9"].includes(localNumber[0]))
+    return "Indian phone number must start with 6, 7, 8, or 9";
+
   return null;
 }
 

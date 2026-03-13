@@ -14,6 +14,11 @@ import { FieldError } from "@/components/ui/field-error";
 import { CountryPickerModal } from "@/components/ui/country-picker-modal";
 import { type Country, COUNTRIES, getFlagEmoji } from "@/lib/countries";
 
+const PHONE_MAX_LENGTH: Record<string, number> = {
+  "+1": 10,
+  "+91": 10,
+};
+
 interface PhoneInputProps {
   label: string;
   value: string;
@@ -112,6 +117,7 @@ export function PhoneInput({
           placeholder={placeholder}
           placeholderTextColor={COLORS.placeholder}
           keyboardType="phone-pad"
+          maxLength={PHONE_MAX_LENGTH[selectedCountry.dial] ?? 15}
           accessibilityLabel={label}
           onFocus={() => {
             focusProgress.value = withTiming(1, { duration: 200 });
