@@ -31,6 +31,7 @@ import {
   validateDateOfBirth,
 } from "@/lib/validation";
 import { COLORS } from "@/constants/theme";
+import { COUNTRIES } from "@/lib/countries";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -184,20 +185,26 @@ export default function ProfileScreen() {
               error={errors.dateOfBirth}
             />
 
+            <CountrySelector
+              label="Nationality"
+              value={values.nationality}
+              onChange={(v) => {
+                setValue("nationality", v);
+                const country = COUNTRIES.find((c) => c.code === v);
+                if (country) {
+                  setValue("phoneNumber", country.dial);
+                }
+              }}
+              placeholder="Select your nationality"
+              error={errors.nationality}
+            />
+
             <PhoneInput
               label="Phone Number"
               value={values.phoneNumber}
               onChangePhone={(t) => setValue("phoneNumber", t)}
               placeholder="Enter phone number"
               error={errors.phoneNumber}
-            />
-
-            <CountrySelector
-              label="Nationality"
-              value={values.nationality}
-              onChange={(v) => setValue("nationality", v)}
-              placeholder="Select your nationality"
-              error={errors.nationality}
             />
 
             {activeMutation.isError && (

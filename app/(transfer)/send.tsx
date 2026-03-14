@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { randomUUID } from "expo-crypto";
 
+import { Landmark } from "lucide-react-native";
 import { ContactSelect } from "@/components/transfer/contact-select";
 import { AmountEntry } from "@/components/transfer/amount-entry";
 import { SendSuccess } from "@/components/transfer/send-success";
@@ -14,6 +15,7 @@ import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useBiometricGate } from "@/hooks/use-biometric-gate";
 import { validateAmount } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
+import { ScreenHeader } from "@/components/ui/screen-header";
 
 type Step = "select" | "amount" | "success";
 
@@ -27,6 +29,7 @@ export default function SendScreen() {
 
   // Only US users can send money
   const isRestricted = account && address?.country !== "US";
+  const hasBankConnected = !!account?.data?.hasBankAccount;
 
   const { gate, isBlocked } = useBiometricGate({
     promptMessage: "Verify your identity to send money",
@@ -97,6 +100,36 @@ export default function SendScreen() {
         </Text>
         <View className="mt-4">
           <Button title="Go Back" onPress={() => router.back()} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!hasBankConnected) {
+    return (
+      <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
+        <ScreenHeader title="Send Money" />
+        <View className="flex-1 items-center justify-center px-6">
+          <View
+            className="mb-6 h-20 w-20 items-center justify-center rounded-full"
+            style={{ backgroundColor: `${primary}15` }}
+          >
+            <Landmark size={36} color={primary} />
+          </View>
+          <Text className="text-xl font-bold text-light-text dark:text-dark-text text-center">
+            No Bank Account Connected
+          </Text>
+          <Text className="mt-3 text-center text-base leading-6 text-light-text-secondary dark:text-dark-text-secondary px-4">
+            Please connect your bank account to send money.
+          </Text>
+          <View className="mt-6 w-full">
+            <Button
+              title="Connect Bank Account"
+              onPress={() => router.replace("/(transfer)/add-bank")}
+              size="lg"
+              className="w-full"
+            />
+          </View>
         </View>
       </SafeAreaView>
     );
