@@ -16,8 +16,6 @@ import { useEffect } from "react";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeStore, buildThemeVars } from "@/store/theme-store";
 import { setAuthToken } from "@/lib/api-client";
-import { BiometricLockOverlay } from "@/components/biometric/biometric-lock-overlay";
-import { useInactivityTimer } from "@/hooks/use-inactivity-timer";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -41,8 +39,6 @@ function ClerkTokenSync() {
 export default function RootLayout() {
   const { colorScheme } = useColorScheme();
   const { colors } = useThemeStore();
-  const { onTouchStart } = useInactivityTimer();
-
   const themeVars = buildThemeVars(colors);
 
   return (
@@ -50,7 +46,7 @@ export default function RootLayout() {
       <ClerkLoaded>
         <ClerkTokenSync />
         <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={[{ flex: 1 }, themeVars]} onTouchStart={onTouchStart}>
+          <GestureHandlerRootView style={[{ flex: 1 }, themeVars]}>
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
@@ -68,7 +64,6 @@ export default function RootLayout() {
                 <Stack.Screen name="referral" />
               </Stack>
               <StatusBar style="auto" />
-              <BiometricLockOverlay />
             </ThemeProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>

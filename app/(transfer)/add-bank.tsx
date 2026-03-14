@@ -36,7 +36,6 @@ import { useAccountQuery } from "@/hooks/use-account-query";
 import { useForm } from "@/hooks/use-form";
 import { usePlaidLink } from "@/hooks/use-plaid-link";
 import { useBiometricGate } from "@/hooks/use-biometric-gate";
-import { BiometricVerifyOverlay } from "@/components/biometric/biometric-verify-overlay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -118,7 +117,7 @@ export default function AddBankScreen() {
     router.back();
   };
 
-  const { gate, isVerifying } = useBiometricGate({
+  const { gate } = useBiometricGate({
     promptMessage: "Verify your identity to link a bank account",
   });
 
@@ -348,8 +347,6 @@ export default function AddBankScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-
-      <BiometricVerifyOverlay visible={isVerifying} />
 
       {/* Success Modal */}
       <Modal

@@ -13,7 +13,6 @@ export function useBiometricGate({
   const { isEnabled, verify } = useBiometric();
   const attemptsRef = useRef(0);
   const [isBlocked, setIsBlocked] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
 
   const gate = useCallback(
     async (action: () => void | Promise<void>): Promise<boolean> => {
@@ -24,9 +23,7 @@ export function useBiometricGate({
 
       if (isBlocked) return false;
 
-      setIsVerifying(true);
       const success = await verify(promptMessage);
-      setIsVerifying(false);
 
       if (success) {
         attemptsRef.current = 0;
@@ -48,5 +45,5 @@ export function useBiometricGate({
     setIsBlocked(false);
   }, []);
 
-  return { gate, isBlocked, isVerifying, resetGate };
+  return { gate, isBlocked, resetGate };
 }
