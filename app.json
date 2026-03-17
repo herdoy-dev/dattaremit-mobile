@@ -36,6 +36,15 @@
       "bundler": "metro"
     },
     "plugins": [
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "note": "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
+          "project": "dattaremit-mobile-v2",
+          "organization": "complyremit"
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -64,9 +73,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "be31f4dc-044f-4002-b277-472aa19cc79a"
+        "projectId": "a7f966c7-ca47-4d66-b044-c6eaaf151622"
       }
     },
-    "owner": "herdoycode"
+    "owner": "dattaremit"
   }
 }

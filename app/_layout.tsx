@@ -5,6 +5,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
+import * as Sentry from "@sentry/react-native";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -16,6 +17,11 @@ import { useEffect } from "react";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeStore, buildThemeVars } from "@/store/theme-store";
 import { setAuthToken } from "@/lib/api-client";
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  sendDefaultPii: true,
+});
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -36,7 +42,7 @@ function ClerkTokenSync() {
   return null;
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const { colorScheme } = useColorScheme();
   const { colors } = useThemeStore();
   const themeVars = buildThemeVars(colors);
@@ -71,3 +77,5 @@ export default function RootLayout() {
     </ClerkProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);
