@@ -47,6 +47,7 @@ import {
   validateRequired,
   validateAccountNumber,
   validateRoutingNumber,
+  validatePhone,
 } from "@/lib/validation";
 import { COLORS } from "@/constants/theme";
 import { buildThemeVars } from "@/store/theme-store";
@@ -130,17 +131,21 @@ export default function AddBankScreen() {
   const { values, errors, setValue, validate } = useForm(
     {
       bankName: "",
-      accountHolderName: "",
+      accountName: "",
       accountNumber: "",
-      routingNumber: "",
-      type: "",
+      ifsc: "",
+      branchName: "",
+      bankAccountType: "",
+      phoneNumber: "",
     },
     {
       bankName: (v) => validateRequired(v, "Bank name"),
-      accountHolderName: (v) => validateRequired(v, "Account holder name"),
+      accountName: (v) => validateRequired(v, "Account holder name"),
       accountNumber: (v) => validateAccountNumber(v),
-      routingNumber: (v) => validateRoutingNumber(v),
-      type: (v) => validateRequired(v, "Account type"),
+      ifsc: (v) => validateRoutingNumber(v),
+      branchName: (v) => validateRequired(v, "Branch name"),
+      bankAccountType: (v) => validateRequired(v, "Account type"),
+      phoneNumber: (v) => validatePhone(v),
     },
   );
 
@@ -156,10 +161,12 @@ export default function AddBankScreen() {
     await gate(() => {
       mutation.mutate({
         bankName: values.bankName,
-        accountHolderName: values.accountHolderName,
+        accountName: values.accountName,
         accountNumber: values.accountNumber,
-        routingNumber: values.routingNumber.toUpperCase(),
-        type: values.type,
+        ifsc: values.ifsc.toUpperCase(),
+        branchName: values.branchName,
+        bankAccountType: values.bankAccountType,
+        phoneNumber: values.phoneNumber,
       });
     });
   };
@@ -290,11 +297,11 @@ export default function AddBankScreen() {
 
               <Input
                 label="Account Holder Name"
-                value={values.accountHolderName}
-                onChangeText={(t) => setValue("accountHolderName", t)}
+                value={values.accountName}
+                onChangeText={(t) => setValue("accountName", t)}
                 placeholder="Enter account holder name"
                 autoCapitalize="words"
-                error={errors.accountHolderName}
+                error={errors.accountName}
                 icon={<User size={20} color={COLORS.placeholder} />}
               />
 
@@ -309,22 +316,42 @@ export default function AddBankScreen() {
               />
 
               <Input
-                label="IFSC / Routing Number"
-                value={values.routingNumber}
-                onChangeText={(t) => setValue("routingNumber", t)}
+                label="IFSC Code"
+                value={values.ifsc}
+                onChangeText={(t) => setValue("ifsc", t)}
                 placeholder="e.g. SBIN0001234"
                 autoCapitalize="characters"
-                error={errors.routingNumber}
+                error={errors.ifsc}
                 icon={<Landmark size={20} color={COLORS.placeholder} />}
+              />
+
+              <Input
+                label="Branch Name"
+                value={values.branchName}
+                onChangeText={(t) => setValue("branchName", t)}
+                placeholder="Enter branch name"
+                autoCapitalize="words"
+                error={errors.branchName}
+                icon={<Building2 size={20} color={COLORS.placeholder} />}
               />
 
               <CustomDropdown
                 label="Account Type"
                 options={ACCOUNT_TYPE_OPTIONS}
-                value={values.type}
-                onChange={(v) => setValue("type", v)}
+                value={values.bankAccountType}
+                onChange={(v) => setValue("bankAccountType", v)}
                 placeholder="Select account type"
-                error={errors.type}
+                error={errors.bankAccountType}
+              />
+
+              <Input
+                label="Phone Number"
+                value={values.phoneNumber}
+                onChangeText={(t) => setValue("phoneNumber", t)}
+                placeholder="+919838387750"
+                keyboardType="phone-pad"
+                error={errors.phoneNumber}
+                icon={<Hash size={20} color={COLORS.placeholder} />}
               />
 
               {mutation.isError && (

@@ -16,10 +16,12 @@ export interface ProfilePayload {
 
 export interface DepositAccountPayload {
   bankName: string;
-  accountHolderName: string;
+  accountName: string;
   accountNumber: string;
-  routingNumber: string;
-  type: string;
+  ifsc: string;
+  branchName: string;
+  bankAccountType: string;
+  phoneNumber: string;
 }
 
 export interface AddressPayload {
