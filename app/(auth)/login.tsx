@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { SocialAuthSection } from "@/components/auth/social-auth-section";
+import * as Sentry from "@sentry/react-native";
 import { useForm } from "@/hooks/use-form";
 import { useSocialAuth } from "@/hooks/use-social-auth";
 import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
@@ -64,6 +65,7 @@ export default function LoginScreen() {
         }
       }
     } catch (err: unknown) {
+      Sentry.captureException(err);
       setAuthError(
         getClerkErrorMessage(err, "Invalid email or password. Please try again.")
       );
