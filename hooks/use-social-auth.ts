@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useSSO } from "@clerk/clerk-expo";
+import * as Sentry from "@sentry/react-native";
 import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
 import { getClerkErrorMessage } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ export function useSocialAuth() {
           await routeAfterAuth();
         }
       } catch (err: unknown) {
+        Sentry.captureException(err);
         setAuthError(
           getClerkErrorMessage(err, "Social sign-in failed. Please try again.")
         );

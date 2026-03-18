@@ -2,7 +2,7 @@
   "expo": {
     "name": "mobile",
     "slug": "dattaremit",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "dattaremit",
@@ -73,9 +73,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "a7f966c7-ca47-4d66-b044-c6eaaf151622"
+        "projectId": "ae75dc84-a6f6-4191-962c-5faf24b7be56"
       }
     },
-    "owner": "dattaremit"
+    "owner": "dattapay.global"
   }
 }

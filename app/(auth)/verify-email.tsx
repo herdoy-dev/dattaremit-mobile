@@ -10,6 +10,7 @@ import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSignUp, useSignIn } from "@clerk/clerk-expo";
+import * as Sentry from "@sentry/react-native";
 import { Button } from "@/components/ui/button";
 import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
 import { getClerkErrorMessage } from "@/lib/utils";
@@ -105,6 +106,7 @@ export default function VerifyEmailScreen() {
         }
       }
     } catch (err: unknown) {
+      Sentry.captureException(err);
       setError(
         getClerkErrorMessage(err, "Invalid verification code. Please try again.")
       );
@@ -136,6 +138,7 @@ export default function VerifyEmailScreen() {
         await signUp!.prepareEmailAddressVerification({ strategy: "email_code" });
       }
     } catch (err: unknown) {
+      Sentry.captureException(err);
       setError(
         getClerkErrorMessage(err, "Failed to resend code. Please try again.")
       );

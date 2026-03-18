@@ -1,6 +1,7 @@
 import axios from "axios";
 import { randomUUID } from "expo-crypto";
 import { EventEmitter } from "events";
+import * as Sentry from "@sentry/react-native";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -52,6 +53,17 @@ apiClient.interceptors.request.use(async (config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    Sentry.addBreadcrumb({
+      category: "api",
+      message: `${error.config?.method?.toUpperCase()} ${error.config?.url} → ${error.response?.status ?? "network error"}`,
+      level: "error",
+      data: {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+      },
+    });
+
     // Handle auth failures
     if (error.response?.status === 401 || error.response?.status === 403) {
       authEventEmitter.emit("session-expired");
