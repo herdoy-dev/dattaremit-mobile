@@ -1,6 +1,5 @@
 import { Text, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as ExpoRouter from "expo-router";
 
 interface AppErrorFallbackProps {
   onReset: () => void;
@@ -22,15 +21,6 @@ export function AppErrorFallback({ onReset }: AppErrorFallbackProps) {
       >
         <Text className="text-center text-base font-semibold text-white">
           Try Again
-        </Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => ExpoRouter.router.replace("/")}
-        className="w-full rounded-xl border border-gray-300 py-4"
-      >
-        <Text className="text-center text-base font-semibold text-gray-700">
-          Go Home
         </Text>
       </Pressable>
     </SafeAreaView>

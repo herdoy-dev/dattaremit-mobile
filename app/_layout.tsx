@@ -3,6 +3,7 @@ import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
+  useNavigationContainerRef,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import * as Sentry from "@sentry/react-native";
@@ -24,6 +25,10 @@ import { useThemeStore, buildThemeVars } from "@/store/theme-store";
 import { setAuthToken } from "@/lib/api-client";
 import { AppErrorFallback } from "@/components/ui/app-error-fallback";
 
+const navigationIntegration = Sentry.reactNavigationIntegration({
+  enableTimeToInitialDisplay: true,
+});
+
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
 
@@ -37,9 +42,7 @@ Sentry.init({
   replaysSessionSampleRate: __DEV__ ? 0.0 : 0.1,
 
   integrations: [
-    Sentry.reactNavigationIntegration({
-      enableTimeToInitialDisplay: true,
-    }),
+    navigationIntegration,
     Sentry.mobileReplayIntegration({
       maskAllText: true,
       maskAllImages: true,
@@ -108,9 +111,16 @@ function SentryUserSync() {
 }
 
 function RootLayout() {
+  const ref = useNavigationContainerRef();
   const { colorScheme } = useColorScheme();
   const { colors } = useThemeStore();
   const themeVars = buildThemeVars(colors);
+
+  useEffect(() => {
+    if (ref) {
+      navigationIntegration.registerNavigationContainer(ref);
+    }
+  }, [ref]);
 
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
