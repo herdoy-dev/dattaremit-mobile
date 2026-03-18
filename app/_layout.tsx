@@ -1,29 +1,29 @@
-import "./global.css";
+import { ClerkLoaded, ClerkProvider, useAuth, useUser } from "@clerk/clerk-expo";
+import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
   useNavigationContainerRef,
 } from "@react-navigation/native";
-import { Stack } from "expo-router";
 import * as Sentry from "@sentry/react-native";
-import { StatusBar } from "expo-status-bar";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
+  MutationCache,
+  QueryCache,
   QueryClient,
   QueryClientProvider,
-  QueryCache,
-  MutationCache,
 } from "@tanstack/react-query";
-import { ClerkProvider, ClerkLoaded, useAuth, useUser } from "@clerk/clerk-expo";
-import { tokenCache } from "@clerk/clerk-expo/token-cache";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
+import "./global.css";
 
-import { useEffect } from "react";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useThemeStore, buildThemeVars } from "@/store/theme-store";
-import { setAuthToken } from "@/lib/api-client";
 import { AppErrorFallback } from "@/components/ui/app-error-fallback";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { setAuthToken } from "@/lib/api-client";
+import { buildThemeVars, useThemeStore } from "@/store/theme-store";
+import { useEffect } from "react";
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: true,
@@ -31,6 +31,8 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+
+  enableLogs: true,
 
   environment: __DEV__ ? "development" : "production",
   debug: __DEV__,
