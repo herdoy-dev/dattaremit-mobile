@@ -41,6 +41,10 @@ app-example
 
 # lock files (using bun)
 package-lock.json
+# Build and Security
+build-1773355704396.tar.gz
+mobile.app/
+outstanding_security_issues_0310.md
 
 # generated native folders
 /ios

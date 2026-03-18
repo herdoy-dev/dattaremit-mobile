@@ -1,16 +1,16 @@
-import { useState, useRef } from "react";
-import { TextInput, View, Pressable } from "react-native";
+import { FieldError } from "@/components/ui/field-error";
+import { FieldLabel } from "@/components/ui/field-label";
+import { COLORS } from "@/constants/theme";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { Eye, EyeOff } from "lucide-react-native";
+import { useRef, useState } from "react";
+import { Pressable, TextInput, View } from "react-native";
 import Animated, {
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  interpolateColor,
 } from "react-native-reanimated";
-import { Eye, EyeOff } from "lucide-react-native";
-import { useThemeColors } from "@/hooks/use-theme-colors";
-import { FieldLabel } from "@/components/ui/field-label";
-import { FieldError } from "@/components/ui/field-error";
-import { COLORS } from "@/constants/theme";
 
 interface InputProps {
   label: string;
@@ -28,6 +28,8 @@ interface InputProps {
   className?: string;
   labelClassName?: string;
   inputClassName?: string;
+  textColor?: string;
+  textContentType?: TextInput["props"]["textContentType"];
 }
 
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -48,6 +50,8 @@ export function Input({
   className = "",
   labelClassName,
   inputClassName,
+  textColor,
+  textContentType,
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const focusProgress = useSharedValue(0);
@@ -79,13 +83,16 @@ export function Input({
           autoCapitalize={autoCapitalize}
           editable={editable && !onPress}
           multiline={multiline}
+          textContentType={textContentType ?? (secureTextEntry ? "oneTimeCode" : undefined)}
+          autoComplete={secureTextEntry ? "off" : undefined}
           onFocus={() => {
             focusProgress.value = withTiming(1, { duration: 200 });
           }}
           onBlur={() => {
             focusProgress.value = withTiming(0, { duration: 200 });
           }}
-          className={`flex-1 py-3.5 text-base ${inputClassName || "text-light-text dark:text-dark-text"}`}
+          style={textColor ? { color: textColor } : undefined}
+          className={`flex-1 py-3.5 text-base ${textColor ? "" : (inputClassName || "text-light-text dark:text-dark-text")}`}
           accessibilityLabel={label}
         />
         {secureTextEntry && (

@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.dattapay.mobile",
       "infoPlist": {
-        "UIRequiresFullScreen": true
+        "UIRequiresFullScreen": true,
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

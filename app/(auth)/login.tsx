@@ -108,7 +108,6 @@ export default function LoginScreen() {
               error={errors.email}
               icon={<Mail size={20} color={COLORS.placeholder} />}
               labelClassName="text-white"
-              inputClassName="text-white"
             />
 
             <Input
@@ -120,7 +119,6 @@ export default function LoginScreen() {
               error={errors.password}
               icon={<Lock size={20} color={COLORS.placeholder} />}
               labelClassName="text-white"
-              inputClassName="text-white"
             />
 
             {authError && <ErrorBanner message={authError} />}
