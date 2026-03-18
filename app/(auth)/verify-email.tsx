@@ -91,18 +91,46 @@ export default function VerifyEmailScreen() {
           code: finalCode,
         });
 
-        if (result.status === "complete" && result.createdSessionId) {
-          await setActiveSignIn!({ session: result.createdSessionId });
+        const sessionId = result.createdSessionId ?? signIn!.createdSessionId;
+        if (result.status === "complete" && sessionId) {
+          await setActiveSignIn!({ session: sessionId });
           await routeAfterAuth();
+        } else {
+          setError(
+            `Verification incomplete (status: ${result.status}). Please try again.`
+          );
         }
       } else {
         const result = await signUp!.attemptEmailAddressVerification({
           code: finalCode,
         });
 
-        if (result.status === "complete" && result.createdSessionId) {
-          await setActiveSignUp!({ session: result.createdSessionId });
+        const sessionId = result.createdSessionId ?? signUp!.createdSessionId;
+        if (result.status === "complete" && sessionId) {
+          await setActiveSignUp!({ session: sessionId });
           await routeAfterAuth();
+        } else if (result.status === "missing_requirements") {
+          // Email verified but Clerk wants additional required fields.
+          // Attempt to complete by providing placeholder values for missing fields.
+          try {
+            await signUp!.update({
+              firstName: signUp!.firstName || "User",
+              lastName: signUp!.lastName || "User",
+            });
+            // After update, check if sign-up is now complete
+            if (signUp!.status === "complete" && signUp!.createdSessionId) {
+              await setActiveSignUp!({ session: signUp!.createdSessionId });
+              await routeAfterAuth();
+            } else {
+              setError("Sign-up could not be completed. Please try again.");
+            }
+          } catch {
+            setError("Sign-up could not be completed. Please try again.");
+          }
+        } else {
+          setError(
+            `Verification incomplete (status: ${result.status}). Please try again.`
+          );
         }
       }
     } catch (err: unknown) {
