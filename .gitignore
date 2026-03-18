@@ -49,3 +49,5 @@ outstanding_security_issues_0310.md
 # generated native folders
 /ios
 /android
+
+settings.json
