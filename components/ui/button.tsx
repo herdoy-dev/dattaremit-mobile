@@ -1,7 +1,17 @@
-import { Pressable, Text, ActivityIndicator, type ViewStyle, type TextStyle } from "react-native";
-import Animated from "react-native-reanimated";
+import { useEffect } from "react";
+import { Pressable, Text, View, type ViewStyle, type TextStyle } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  Easing,
+  FadeIn,
+  FadeOut,
+} from "react-native-reanimated";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { usePressAnimation } from "@/hooks/use-press-animation";
+import { LoadingDots } from "@/components/ui/loading-dots";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -47,20 +57,36 @@ const sizeTextStyles: Record<ButtonSize, string> = {
   lg: "text-lg",
 };
 
+const dotSizes: Record<ButtonSize, number> = {
+  sm: 5,
+  md: 6,
+  lg: 7,
+};
+
 function getVariantInlineStyle(variant: ButtonVariant, primary: string): ViewStyle {
   switch (variant) {
-    case "primary": return { backgroundColor: primary };
-    case "outline": return { borderColor: primary };
-    default: return {};
+    case "primary":
+      return { backgroundColor: primary };
+    case "outline":
+      return { borderColor: primary };
+    default:
+      return {};
   }
 }
 
 function getTextInlineStyle(variant: ButtonVariant, primary: string): TextStyle | undefined {
   switch (variant) {
     case "outline":
-    case "ghost": return { color: primary };
-    default: return undefined;
+    case "ghost":
+      return { color: primary };
+    default:
+      return undefined;
   }
+}
+
+function getLoadingColor(variant: ButtonVariant, primary: string): string {
+  if (variant === "primary" || variant === "danger") return "#fff";
+  return primary;
 }
 
 export function Button({
@@ -75,6 +101,19 @@ export function Button({
 }: ButtonProps) {
   const { primary } = useThemeColors();
   const { animatedStyle, onPressIn, onPressOut } = usePressAnimation();
+  const shimmerOpacity = useSharedValue(1);
+
+  useEffect(() => {
+    shimmerOpacity.value = loading
+      ? withTiming(0.85, { duration: 200, easing: Easing.out(Easing.ease) })
+      : withSpring(1, { damping: 15, stiffness: 200 });
+  }, [loading, shimmerOpacity]);
+
+  const containerOpacityStyle = useAnimatedStyle(() => ({
+    opacity: shimmerOpacity.value,
+  }));
+
+  const loadingColor = getLoadingColor(variant, primary);
 
   return (
     <AnimatedPressable
@@ -82,20 +121,27 @@ export function Button({
       onPressIn={onPressIn}
       onPressOut={onPressOut}
       disabled={disabled || loading}
-      style={[animatedStyle, getVariantInlineStyle(variant, primary)]}
-      className={`flex-row items-center justify-center rounded-full ${variantStyles[variant]} ${sizeStyles[size]} ${disabled ? "opacity-50" : ""} ${className}`}
+      style={[animatedStyle, containerOpacityStyle, getVariantInlineStyle(variant, primary)]}
+      className={`flex-row items-center justify-center overflow-hidden rounded-full ${variantStyles[variant]} ${sizeStyles[size]} ${disabled && !loading ? "opacity-50" : ""} ${className}`}
       accessibilityRole="button"
       accessibilityLabel={title}
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === "primary" || variant === "danger" ? "#fff" : primary}
-          size="small"
-        />
+        <Animated.View
+          entering={FadeIn.duration(250)}
+          exiting={FadeOut.duration(150)}
+          style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+        >
+          <LoadingDots color={loadingColor} size={dotSizes[size]} />
+        </Animated.View>
       ) : (
-        <>
-          {icon && <>{icon}</>}
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(100)}
+          style={{ flexDirection: "row", alignItems: "center" }}
+        >
+          {icon && <View>{icon}</View>}
           {title && (
             <Text
               className={`font-semibold ${variantTextStyles[variant]} ${sizeTextStyles[size]} ${icon ? "ml-2" : ""}`}
@@ -104,7 +150,7 @@ export function Button({
               {title}
             </Text>
           )}
-        </>
+        </Animated.View>
       )}
     </AnimatedPressable>
   );
