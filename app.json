@@ -65,7 +65,8 @@
         {
           "faceIDPermission": "DattaRemit uses Face ID to verify your identity for login and transactions."
         }
-      ]
+      ],
+      "@sentry/react-native"
     ],
     "experiments": {
       "typedRoutes": true,
