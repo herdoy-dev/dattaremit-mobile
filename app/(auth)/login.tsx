@@ -43,27 +43,40 @@ export default function LoginScreen() {
     setAuthError(null);
 
     try {
-      const result = await signIn.create({
-        identifier: values.email,
-        password: values.password,
-      });
+      await Sentry.startSpan(
+        { name: "auth.login.email", op: "auth" },
+        async (parentSpan) => {
+          const result = await Sentry.startSpan(
+            { name: "auth.login.clerk_signin", op: "auth.clerk" },
+            () =>
+              signIn.create({
+                identifier: values.email,
+                password: values.password,
+              }),
+          );
 
-      if (result.status === "complete" && result.createdSessionId) {
-        await setActive({ session: result.createdSessionId });
-        await routeAfterAuth();
-      } else {
-        const emailFactor = result.supportedFirstFactors?.find(
-          (f): f is Extract<typeof f, { strategy: "email_code" }> =>
-            f.strategy === "email_code"
-        );
-        if (emailFactor) {
-          await signIn.prepareFirstFactor({
-            strategy: "email_code",
-            emailAddressId: emailFactor.emailAddressId,
-          });
-          router.push("/(auth)/verify-email?flow=signin");
-        }
-      }
+          if (result.status === "complete" && result.createdSessionId) {
+            await Sentry.startSpan(
+              { name: "auth.login.set_active", op: "auth.session" },
+              () => setActive({ session: result.createdSessionId! }),
+            );
+            await routeAfterAuth();
+          } else {
+            parentSpan.setAttribute("auth.requires_verification", true);
+            const emailFactor = result.supportedFirstFactors?.find(
+              (f): f is Extract<typeof f, { strategy: "email_code" }> =>
+                f.strategy === "email_code"
+            );
+            if (emailFactor) {
+              await signIn.prepareFirstFactor({
+                strategy: "email_code",
+                emailAddressId: emailFactor.emailAddressId,
+              });
+              router.push("/(auth)/verify-email?flow=signin");
+            }
+          }
+        },
+      );
     } catch (err: unknown) {
       Sentry.captureException(err);
       setAuthError(

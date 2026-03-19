@@ -37,8 +37,8 @@ Sentry.init({
   environment: __DEV__ ? "development" : "production",
   debug: __DEV__,
 
-  tracesSampleRate: __DEV__ ? 1.0 : 1.0,
-  profilesSampleRate: __DEV__ ? 0.5 : 0.5,
+  tracesSampleRate: __DEV__ ? 1.0 : 0.3,
+  profilesSampleRate: __DEV__ ? 0.5 : 0.1,
 
   replaysOnErrorSampleRate: 1.0,
   replaysSessionSampleRate: __DEV__ ? 0.0 : 0.1,
@@ -51,7 +51,6 @@ Sentry.init({
     }),
   ],
 
-  sendDefaultPii: true,
   attachScreenshot: true,
   enableAutoSessionTracking: true,
 

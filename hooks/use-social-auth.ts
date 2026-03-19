@@ -16,13 +16,24 @@ export function useSocialAuth() {
       setAuthError(null);
 
       try {
-        const { createdSessionId, setActive: ssoSetActive } =
-          await startSSOFlow({ strategy });
+        await Sentry.startSpan(
+          { name: `auth.social.${strategy}`, op: "auth" },
+          async () => {
+            const { createdSessionId, setActive: ssoSetActive } =
+              await Sentry.startSpan(
+                { name: "auth.social.sso_flow", op: "auth.sso" },
+                () => startSSOFlow({ strategy }),
+              );
 
-        if (createdSessionId && ssoSetActive) {
-          await ssoSetActive({ session: createdSessionId });
-          await routeAfterAuth();
-        }
+            if (createdSessionId && ssoSetActive) {
+              await Sentry.startSpan(
+                { name: "auth.social.set_active", op: "auth.session" },
+                () => ssoSetActive({ session: createdSessionId }),
+              );
+              await routeAfterAuth();
+            }
+          },
+        );
       } catch (err: unknown) {
         Sentry.captureException(err);
         setAuthError(

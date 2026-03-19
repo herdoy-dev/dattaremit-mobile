@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
+import * as Sentry from "@sentry/react-native";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { resolveOnboardingStep } from "@/lib/utils";
@@ -28,17 +29,22 @@ export function useAppBootstrap() {
 
     hasRouted.current = true;
 
-    onboardingService
-      .getAccountStatus()
-      .then(async (accountData) => {
-        const serverStep = resolveOnboardingStep(accountData);
-        await setStep(serverStep);
-        const target = ONBOARDING_STEP_ROUTES[serverStep] || "/(onboarding)/profile";
-        typedReplace(router, target);
-      })
-      .catch(() => {
-        // Don't fall back to potentially tampered local state — show error
-        typedReplace(router, "/(auth)/welcome" as never);
-      });
+    Sentry.startSpan(
+      { name: "app.bootstrap", op: "app.lifecycle" },
+      async (span) => {
+        try {
+          const accountData = await onboardingService.getAccountStatus();
+          const serverStep = resolveOnboardingStep(accountData);
+          await setStep(serverStep);
+          const target = ONBOARDING_STEP_ROUTES[serverStep] || "/(onboarding)/profile";
+          span.setAttribute("onboarding.step", serverStep);
+          span.setAttribute("onboarding.target", target);
+          typedReplace(router, target);
+        } catch {
+          span.setStatus({ code: 2, message: "error" });
+          typedReplace(router, "/(auth)/welcome" as never);
+        }
+      },
+    );
   }, [isClerkLoaded, isOnboardingLoaded, isSignedIn]);
 }

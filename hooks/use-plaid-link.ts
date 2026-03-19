@@ -7,6 +7,7 @@ import {
   LinkExit,
 } from "react-native-plaid-link-sdk";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as Sentry from "@sentry/react-native";
 import { plaidService } from "@/services/plaid";
 import { getApiErrorMessage } from "@/lib/utils";
 
@@ -17,8 +18,12 @@ export function usePlaidLink(options?: { onSuccess?: () => void; paymentRail?: s
 
   const tokenMutation = useMutation({
     mutationFn: () =>
-      plaidService.createLinkToken(
-        Platform.OS === "android" ? "com.dattapay.mobile" : undefined,
+      Sentry.startSpan(
+        { name: "plaid.create_link_token", op: "http.client" },
+        () =>
+          plaidService.createLinkToken(
+            Platform.OS === "android" ? "com.dattapay.mobile" : undefined,
+          ),
       ),
     onSuccess: (data) => {
       create({ token: data.data.plaid_token });
@@ -30,7 +35,11 @@ export function usePlaidLink(options?: { onSuccess?: () => void; paymentRail?: s
   });
 
   const exchangeMutation = useMutation({
-    mutationFn: plaidService.addExternalAccount,
+    mutationFn: (payload: Parameters<typeof plaidService.addExternalAccount>[0]) =>
+      Sentry.startSpan(
+        { name: "plaid.exchange_token", op: "http.client" },
+        () => plaidService.addExternalAccount(payload),
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["account"] });
       options?.onSuccess?.();
