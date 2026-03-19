@@ -106,6 +106,8 @@ export default function RegisterScreen() {
               error={errors.email}
               icon={<Mail size={20} color={COLORS.placeholder} />}
               labelClassName="text-white"
+              inputClassName="text-white"
+              textColor={COLORS.white}
             />
 
             <Input
@@ -117,6 +119,8 @@ export default function RegisterScreen() {
               error={errors.password}
               icon={<Lock size={20} color={COLORS.placeholder} />}
               labelClassName="text-white"
+              inputClassName="text-white"
+              textColor={COLORS.white}
             />
 
             <Input
@@ -128,6 +132,8 @@ export default function RegisterScreen() {
               error={errors.confirmPassword}
               icon={<ShieldCheck size={20} color={COLORS.placeholder} />}
               labelClassName="text-white"
+              inputClassName="text-white"
+              textColor={COLORS.white}
             />
 
             {authError && <ErrorBanner message={authError} />}
