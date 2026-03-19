@@ -26,10 +26,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT"
-      ]
+      "permissions": ["android.permission.USE_BIOMETRIC", "android.permission.USE_FINGERPRINT"]
     },
     "web": {
       "output": "static",
@@ -75,9 +72,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "ae75dc84-a6f6-4191-962c-5faf24b7be56"
+        "projectId": "be31f4dc-044f-4002-b277-472aa19cc79a"
       }
     },
-    "owner": "dattapay.global"
+    "owner": "herdoycode"
   }
 }
