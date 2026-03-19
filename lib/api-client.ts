@@ -2,6 +2,7 @@ import axios from "axios";
 import { randomUUID } from "expo-crypto";
 import { EventEmitter } from "events";
 import * as Sentry from "@sentry/react-native";
+import { API_TIMEOUT_MS } from "@/constants/api";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -16,7 +17,7 @@ export function setAuthToken(tokenFn: TokenFn) {
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: API_TIMEOUT_MS,
   headers: {
     "Content-Type": "application/json",
   },
@@ -39,9 +40,7 @@ apiClient.interceptors.request.use(async (config) => {
   // Only add idempotency keys for mutating requests
   if (config.method && ["post", "put", "patch", "delete"].includes(config.method)) {
     config.headers["Idempotency-Key"] =
-      config.headers["Idempotency-Key"] ||
-      config.data?._idempotencyKey ||
-      randomUUID();
+      config.headers["Idempotency-Key"] || config.data?._idempotencyKey || randomUUID();
     if (config.data?._idempotencyKey) {
       delete config.data._idempotencyKey;
     }
@@ -80,7 +79,7 @@ apiClient.interceptors.response.use(
       throw new Error("Secure connection could not be established");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

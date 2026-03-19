@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { View, Platform } from "react-native";
 import { Home, Activity, UserCircle } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useColorScheme } from "nativewind";
 import { useOnboardingGuard } from "@/hooks/use-onboarding-guard";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { hexToRgba } from "@/lib/utils";

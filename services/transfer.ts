@@ -1,5 +1,4 @@
-import { delay } from "@/lib/utils";
-import { DUMMY_CONTACTS } from "@/__mocks__/transfer";
+import apiClient from "@/lib/api-client";
 
 export interface Contact {
   id: string;
@@ -11,8 +10,9 @@ export interface Contact {
 
 export interface SendMoneyPayload {
   contactId: string;
-  amount: number;
+  amountCents: number;
   note?: string;
+  _idempotencyKey?: string;
 }
 
 export interface SendMoneyResponse {
@@ -29,32 +29,21 @@ export interface ReceiveInfo {
 }
 
 export async function searchContacts(query: string): Promise<Contact[]> {
-  await delay(300);
-  if (!query.trim()) return DUMMY_CONTACTS;
-  const q = query.toLowerCase();
-  return DUMMY_CONTACTS.filter(
-    (c) =>
-      c.name.toLowerCase().includes(q) ||
-      c.email.toLowerCase().includes(q) ||
-      c.phone.includes(q)
-  );
+  const response = await apiClient.get("/contacts", {
+    params: { q: query },
+  });
+  return response.data?.data ?? [];
 }
 
 export async function sendMoney(payload: SendMoneyPayload): Promise<SendMoneyResponse> {
-  await delay(1000);
-  return {
-    success: true,
-    transactionId: `TXN${Date.now()}`,
-    timestamp: new Date().toISOString(),
-  };
+  const { _idempotencyKey, ...body } = payload;
+  const response = await apiClient.post("/transfers/send", body, {
+    headers: _idempotencyKey ? { "Idempotency-Key": _idempotencyKey } : undefined,
+  });
+  return response.data?.data;
 }
 
 export async function getReceiveInfo(): Promise<ReceiveInfo> {
-  await delay(500);
-  return {
-    accountId: "DATTA-2024-8837",
-    email: "user@dattaremit.com",
-    phone: "+1 555 000 1234",
-    name: "User Account",
-  };
+  const response = await apiClient.get("/transfers/receive-info");
+  return response.data?.data;
 }

@@ -1,5 +1,5 @@
 import { View, Text, Pressable } from "react-native";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useColorScheme } from "nativewind";
 import { useThemeStore, THEME_META } from "@/store/theme-store";
 
 export function ThemePicker() {
@@ -9,9 +9,7 @@ export function ThemePicker() {
 
   return (
     <View className="items-center pt-2">
-      <Text className="text-lg font-bold text-light-text dark:text-dark-text">
-        Choose Theme
-      </Text>
+      <Text className="text-lg font-bold text-light-text dark:text-dark-text">Choose Theme</Text>
       <Text className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
         Select a color theme for the app
       </Text>
@@ -36,9 +34,7 @@ export function ThemePicker() {
               }}
               className="items-center justify-center"
             >
-              {preset === theme.key && (
-                <View className="h-3 w-3 rounded-full bg-white" />
-              )}
+              {preset === theme.key && <View className="h-3 w-3 rounded-full bg-white" />}
             </View>
             <Text className="mt-2 text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary">
               {theme.label}

@@ -15,6 +15,7 @@ import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
 import { validateEmail } from "@/lib/validation";
 import { getClerkErrorMessage } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
+import { OAUTH_GOOGLE, OAUTH_APPLE } from "@/constants/auth";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -26,16 +27,11 @@ export default function LoginScreen() {
     {
       email: (v) => validateEmail(v),
       password: (v) => (v ? null : "Password is required"),
-    }
+    },
   );
 
-  const {
-    handleSocialAuth,
-    loadingAction,
-    setLoadingAction,
-    authError,
-    setAuthError,
-  } = useSocialAuth();
+  const { handleSocialAuth, loadingAction, setLoadingAction, authError, setAuthError } =
+    useSocialAuth();
 
   const handleLogin = async () => {
     if (!validate() || !isLoaded) return;
@@ -43,45 +39,38 @@ export default function LoginScreen() {
     setAuthError(null);
 
     try {
-      await Sentry.startSpan(
-        { name: "auth.login.email", op: "auth" },
-        async (parentSpan) => {
-          const result = await Sentry.startSpan(
-            { name: "auth.login.clerk_signin", op: "auth.clerk" },
-            () =>
-              signIn.create({
-                identifier: values.email,
-                password: values.password,
-              }),
-          );
+      await Sentry.startSpan({ name: "auth.login.email", op: "auth" }, async (parentSpan) => {
+        const result = await Sentry.startSpan(
+          { name: "auth.login.clerk_signin", op: "auth.clerk" },
+          () =>
+            signIn.create({
+              identifier: values.email,
+              password: values.password,
+            }),
+        );
 
-          if (result.status === "complete" && result.createdSessionId) {
-            await Sentry.startSpan(
-              { name: "auth.login.set_active", op: "auth.session" },
-              () => setActive({ session: result.createdSessionId! }),
-            );
-            await routeAfterAuth();
-          } else {
-            parentSpan.setAttribute("auth.requires_verification", true);
-            const emailFactor = result.supportedFirstFactors?.find(
-              (f): f is Extract<typeof f, { strategy: "email_code" }> =>
-                f.strategy === "email_code"
-            );
-            if (emailFactor) {
-              await signIn.prepareFirstFactor({
-                strategy: "email_code",
-                emailAddressId: emailFactor.emailAddressId,
-              });
-              router.push("/(auth)/verify-email?flow=signin");
-            }
+        if (result.status === "complete" && result.createdSessionId) {
+          await Sentry.startSpan({ name: "auth.login.set_active", op: "auth.session" }, () =>
+            setActive({ session: result.createdSessionId! }),
+          );
+          await routeAfterAuth();
+        } else {
+          parentSpan.setAttribute("auth.requires_verification", true);
+          const emailFactor = result.supportedFirstFactors?.find(
+            (f): f is Extract<typeof f, { strategy: "email_code" }> => f.strategy === "email_code",
+          );
+          if (emailFactor) {
+            await signIn.prepareFirstFactor({
+              strategy: "email_code",
+              emailAddressId: emailFactor.emailAddressId,
+            });
+            router.push("/(auth)/verify-email?flow=signin");
           }
-        },
-      );
+        }
+      });
     } catch (err: unknown) {
       Sentry.captureException(err);
-      setAuthError(
-        getClerkErrorMessage(err, "Invalid email or password. Please try again.")
-      );
+      setAuthError(getClerkErrorMessage(err, "Invalid email or password. Please try again."));
     } finally {
       setLoadingAction(null);
     }
@@ -142,10 +131,10 @@ export default function LoginScreen() {
 
             <Button
               title="Forgot Password?"
-              onPress={() => {}}
+              onPress={() => router.push("/(auth)/forgot-password")}
               variant="ghost"
               size="sm"
-              className="self-end h-auto px-0"
+              className="h-auto self-end px-0"
             />
 
             <Button
@@ -158,8 +147,8 @@ export default function LoginScreen() {
           </Animated.View>
 
           <SocialAuthSection
-            onGoogle={() => handleSocialAuth("oauth_google")}
-            onApple={() => handleSocialAuth("oauth_apple")}
+            onGoogle={() => handleSocialAuth(OAUTH_GOOGLE)}
+            onApple={() => handleSocialAuth(OAUTH_APPLE)}
             loadingAction={loadingAction}
           />
 
@@ -168,9 +157,7 @@ export default function LoginScreen() {
             entering={FadeInDown.delay(800).duration(600).springify()}
             className="mt-8 flex-row justify-center"
           >
-            <Text className="text-sm text-white/70">
-              Don't have an account?{" "}
-            </Text>
+            <Text className="text-sm text-white/70">Don&apos;t have an account? </Text>
             <Pressable onPress={() => router.replace("/(auth)/register")}>
               <Text className="text-sm font-semibold text-white">Sign Up</Text>
             </Pressable>

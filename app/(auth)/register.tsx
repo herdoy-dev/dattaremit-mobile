@@ -12,13 +12,10 @@ import * as Sentry from "@sentry/react-native";
 import { useForm } from "@/hooks/use-form";
 import { useSocialAuth } from "@/hooks/use-social-auth";
 import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
-import {
-  validateEmail,
-  validatePassword,
-  validateConfirmPassword,
-} from "@/lib/validation";
+import { validateEmail, validatePassword, validateConfirmPassword } from "@/lib/validation";
 import { getClerkErrorMessage } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
+import { OAUTH_GOOGLE, OAUTH_APPLE } from "@/constants/auth";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -31,16 +28,11 @@ export default function RegisterScreen() {
       email: (v) => validateEmail(v),
       password: (v) => validatePassword(v),
       confirmPassword: (v, all) => validateConfirmPassword(all.password, v),
-    }
+    },
   );
 
-  const {
-    handleSocialAuth,
-    loadingAction,
-    setLoadingAction,
-    authError,
-    setAuthError,
-  } = useSocialAuth();
+  const { handleSocialAuth, loadingAction, setLoadingAction, authError, setAuthError } =
+    useSocialAuth();
 
   const handleRegister = async () => {
     if (!validate() || !isLoaded) return;
@@ -64,9 +56,7 @@ export default function RegisterScreen() {
       }
     } catch (err: unknown) {
       Sentry.captureException(err);
-      setAuthError(
-        getClerkErrorMessage(err, "Registration failed. Please try again.")
-      );
+      setAuthError(getClerkErrorMessage(err, "Registration failed. Please try again."));
     } finally {
       setLoadingAction(null);
     }
@@ -148,8 +138,8 @@ export default function RegisterScreen() {
           </Animated.View>
 
           <SocialAuthSection
-            onGoogle={() => handleSocialAuth("oauth_google")}
-            onApple={() => handleSocialAuth("oauth_apple")}
+            onGoogle={() => handleSocialAuth(OAUTH_GOOGLE)}
+            onApple={() => handleSocialAuth(OAUTH_APPLE)}
             loadingAction={loadingAction}
           />
 
@@ -158,9 +148,7 @@ export default function RegisterScreen() {
             entering={FadeInDown.delay(800).duration(600).springify()}
             className="mt-8 flex-row justify-center"
           >
-            <Text className="text-sm text-white/70">
-              Already have an account?{" "}
-            </Text>
+            <Text className="text-sm text-white/70">Already have an account? </Text>
             <Pressable onPress={() => router.replace("/(auth)/login")}>
               <Text className="text-sm font-semibold text-white">Sign In</Text>
             </Pressable>

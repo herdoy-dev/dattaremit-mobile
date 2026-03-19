@@ -1,15 +1,7 @@
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
-import {
-  Send,
-  Download,
-  Landmark,
-  Eye,
-  EyeOff,
-  Bell,
-  CheckCircle2,
-} from "lucide-react-native";
+import { Send, Download, Landmark, Eye, EyeOff, Bell, CheckCircle2 } from "lucide-react-native";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
 import { useThemeColors } from "@/hooks/use-theme-colors";
@@ -18,7 +10,8 @@ import { useBiometric } from "@/hooks/use-biometric";
 import { TransactionItem } from "@/components/ui/transaction-item";
 import { BiometricEnrollmentModal } from "@/components/biometric/biometric-enrollment-modal";
 import { COLORS } from "@/constants/theme";
-import { RECENT_TRANSACTIONS } from "@/__mocks__/transactions";
+import { useQuery } from "@tanstack/react-query";
+import { getRecentTransactions } from "@/services/transactions";
 
 export default function HomeTab() {
   const [balanceVisible, setBalanceVisible] = useState(true);
@@ -26,7 +19,11 @@ export default function HomeTab() {
   const router = useRouter();
   const { primary } = useThemeColors();
 
-  const { data: account, isLoading, isError } = useAccountQuery();
+  const { data: account, isLoading, isError, refetch: refetchAccount } = useAccountQuery();
+  const { data: recentTransactions = [] } = useQuery({
+    queryKey: ["recentTransactions"],
+    queryFn: () => getRecentTransactions(4),
+  });
   const {
     isLoaded: biometricLoaded,
     isEnabled: biometricEnabled,
@@ -52,29 +49,27 @@ export default function HomeTab() {
   const isUSUser = address?.country === "US";
   const hasBankConnected = !!account?.data?.hasBankAccount;
 
-  const QUICK_ACTIONS = useMemo(
-    () => {
-      if (!address) return [];
-      const actions = [];
-      if (isUSUser) {
-        actions.push({ icon: Send, label: "Send", color: primary });
-      } else {
-        actions.push({ icon: Download, label: "Receive", color: COLORS.success });
-      }
-      if (hasBankConnected) {
-        actions.push({ icon: CheckCircle2, label: "Bank Connected", color: COLORS.success });
-      } else {
-        actions.push({ icon: Landmark, label: "Add Bank", color: COLORS.warning });
-      }
-      return actions;
-    },
-    [address, primary, isUSUser, hasBankConnected]
-  );
+  const QUICK_ACTIONS = useMemo(() => {
+    if (!address) return [];
+    const actions = [];
+    if (isUSUser) {
+      actions.push({ icon: Send, label: "Send", color: primary });
+    } else {
+      actions.push({ icon: Download, label: "Receive", color: COLORS.success });
+    }
+    if (hasBankConnected) {
+      actions.push({ icon: CheckCircle2, label: "Bank Connected", color: COLORS.success });
+    } else {
+      actions.push({ icon: Landmark, label: "Add Bank", color: COLORS.warning });
+    }
+    return actions;
+  }, [address, primary, isUSUser, hasBankConnected]);
 
   function handleQuickAction(label: string) {
     if (label === "Send") router.push("/(transfer)/send");
     else if (label === "Receive") router.push("/(transfer)/receive");
-    else if (label === "Add Bank" || label === "Bank Connected") router.push("/(transfer)/add-bank");
+    else if (label === "Add Bank" || label === "Bank Connected")
+      router.push("/(transfer)/add-bank");
   }
 
   if (isLoading) {
@@ -87,10 +82,19 @@ export default function HomeTab() {
 
   if (isError) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg px-6 dark:bg-dark-bg">
         <Text className="text-base text-light-text-muted dark:text-dark-text-muted">
           Failed to load account data.
         </Text>
+        <Pressable
+          onPress={() => refetchAccount()}
+          className="mt-4 rounded-xl px-6 py-3"
+          style={{ backgroundColor: primary }}
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading account data"
+        >
+          <Text className="text-sm font-semibold text-white">Retry</Text>
+        </Pressable>
       </SafeAreaView>
     );
   }
@@ -105,7 +109,7 @@ export default function HomeTab() {
         {/* Top Bar */}
         <Animated.View
           entering={FadeInDown.delay(100).duration(500)}
-          className="flex-row items-center justify-between px-6 pt-4 pb-2"
+          className="flex-row items-center justify-between px-6 pb-2 pt-4"
         >
           <View>
             <Text className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
@@ -147,15 +151,10 @@ export default function HomeTab() {
             </Pressable>
           </View>
           <Text className="mt-2 text-4xl font-bold text-white">
-            {balanceVisible ? "$12,580.50" : "********"}
+            {balanceVisible
+              ? `$${(account?.data?.balance ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : "********"}
           </Text>
-          <View className="mt-4 flex-row items-center">
-            <View className="mr-2 rounded-full px-2.5 py-1" style={{ backgroundColor: COLORS.whiteOverlay20 }}>
-              <Text className="text-xs font-semibold text-white">
-                +12.5% this month
-              </Text>
-            </View>
-          </View>
         </Animated.View>
 
         {/* Quick Actions */}
@@ -210,7 +209,7 @@ export default function HomeTab() {
           </View>
 
           <View className="gap-3">
-            {RECENT_TRANSACTIONS.map((tx, index) => (
+            {recentTransactions.map((tx, index) => (
               <Animated.View
                 key={tx.id}
                 entering={FadeInDown.delay(700 + index * 80).duration(500)}
@@ -222,10 +221,7 @@ export default function HomeTab() {
         </Animated.View>
       </ScrollView>
 
-      <BiometricEnrollmentModal
-        visible={showEnrollment}
-        onClose={() => setShowEnrollment(false)}
-      />
+      <BiometricEnrollmentModal visible={showEnrollment} onClose={() => setShowEnrollment(false)} />
     </SafeAreaView>
   );
 }

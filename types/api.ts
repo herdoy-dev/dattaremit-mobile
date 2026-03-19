@@ -32,5 +32,6 @@ export interface AccountStatusResponse {
     addresses: AccountAddress[];
     accountStatus: AccountStatus;
     hasBankAccount: boolean;
+    balance?: number;
   };
 }

@@ -1,11 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  ImageBackground,
-  Pressable,
-} from "react-native";
+import { View, Text, TextInput, ImageBackground, Pressable } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -14,8 +8,14 @@ import * as Sentry from "@sentry/react-native";
 import { Button } from "@/components/ui/button";
 import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
 import { getClerkErrorMessage } from "@/lib/utils";
+import {
+  MAX_VERIFY_ATTEMPTS,
+  RESEND_COOLDOWN_SECONDS,
+  VERIFICATION_CODE_LENGTH,
+} from "@/constants/limits";
+import { EMAIL_CODE_STRATEGY } from "@/constants/auth";
 
-const CODE_LENGTH = 6;
+const CODE_LENGTH = VERIFICATION_CODE_LENGTH;
 
 export default function VerifyEmailScreen() {
   const { flow } = useLocalSearchParams<{ flow?: string }>();
@@ -42,9 +42,7 @@ export default function VerifyEmailScreen() {
   }, [cooldownSeconds]);
 
   const isLoaded = isSignIn ? isSignInLoaded : isSignUpLoaded;
-  const displayEmail = isSignIn
-    ? signIn?.identifier
-    : signUp?.emailAddress;
+  const displayEmail = isSignIn ? signIn?.identifier : signUp?.emailAddress;
 
   const handleChange = (text: string, index: number) => {
     const digit = text.replace(/[^0-9]/g, "").slice(-1);
@@ -75,7 +73,7 @@ export default function VerifyEmailScreen() {
     const finalCode = verificationCode || code.join("");
     if (finalCode.length !== CODE_LENGTH || !isLoaded) return;
 
-    if (attempts >= 5) {
+    if (attempts >= MAX_VERIFY_ATTEMPTS) {
       setError("Too many attempts. Please request a new code.");
       return;
     }
@@ -87,7 +85,7 @@ export default function VerifyEmailScreen() {
     try {
       if (isSignIn) {
         const result = await signIn!.attemptFirstFactor({
-          strategy: "email_code",
+          strategy: EMAIL_CODE_STRATEGY,
           code: finalCode,
         });
 
@@ -96,9 +94,7 @@ export default function VerifyEmailScreen() {
           await setActiveSignIn!({ session: sessionId });
           await routeAfterAuth();
         } else {
-          setError(
-            `Verification incomplete (status: ${result.status}). Please try again.`
-          );
+          setError(`Verification incomplete (status: ${result.status}). Please try again.`);
         }
       } else {
         const result = await signUp!.attemptEmailAddressVerification({
@@ -128,16 +124,12 @@ export default function VerifyEmailScreen() {
             setError("Sign-up could not be completed. Please try again.");
           }
         } else {
-          setError(
-            `Verification incomplete (status: ${result.status}). Please try again.`
-          );
+          setError(`Verification incomplete (status: ${result.status}). Please try again.`);
         }
       }
     } catch (err: unknown) {
       Sentry.captureException(err);
-      setError(
-        getClerkErrorMessage(err, "Invalid verification code. Please try again.")
-      );
+      setError(getClerkErrorMessage(err, "Invalid verification code. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -146,7 +138,7 @@ export default function VerifyEmailScreen() {
   const handleResend = async () => {
     if (!isLoaded || resending || cooldownSeconds > 0) return;
 
-    setCooldownSeconds(60);
+    setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
     setAttempts(0);
     setResending(true);
     setError(null);
@@ -154,22 +146,20 @@ export default function VerifyEmailScreen() {
     try {
       if (isSignIn) {
         const emailFactor = signIn!.supportedFirstFactors?.find(
-          (f: { strategy: string }) => f.strategy === "email_code"
+          (f: { strategy: string }) => f.strategy === EMAIL_CODE_STRATEGY,
         );
         if (emailFactor) {
           await signIn!.prepareFirstFactor({
-            strategy: "email_code",
+            strategy: EMAIL_CODE_STRATEGY,
             emailAddressId: (emailFactor as { emailAddressId: string }).emailAddressId,
           });
         }
       } else {
-        await signUp!.prepareEmailAddressVerification({ strategy: "email_code" });
+        await signUp!.prepareEmailAddressVerification({ strategy: EMAIL_CODE_STRATEGY });
       }
     } catch (err: unknown) {
       Sentry.captureException(err);
-      setError(
-        getClerkErrorMessage(err, "Failed to resend code. Please try again.")
-      );
+      setError(getClerkErrorMessage(err, "Failed to resend code. Please try again."));
     } finally {
       setResending(false);
     }
@@ -195,14 +185,10 @@ export default function VerifyEmailScreen() {
           entering={FadeInDown.delay(200).duration(600).springify()}
           className="items-center"
         >
-          <Text className="mb-2 text-center text-2xl font-bold text-white">
-            Verify Your Email
-          </Text>
+          <Text className="mb-2 text-center text-2xl font-bold text-white">Verify Your Email</Text>
           <Text className="mb-8 text-center text-base text-white/70">
-            We've sent a 6-digit code to{"\n"}
-            <Text className="font-semibold text-white">
-              {displayEmail || "your email"}
-            </Text>
+            We&apos;ve sent a 6-digit code to{"\n"}
+            <Text className="font-semibold text-white">{displayEmail || "your email"}</Text>
           </Text>
         </Animated.View>
 
@@ -219,9 +205,7 @@ export default function VerifyEmailScreen() {
               }}
               value={digit}
               onChangeText={(text) => handleChange(text, index)}
-              onKeyPress={({ nativeEvent }) =>
-                handleKeyPress(nativeEvent.key, index)
-              }
+              onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
               keyboardType="number-pad"
               maxLength={1}
               selectTextOnFocus
@@ -240,10 +224,7 @@ export default function VerifyEmailScreen() {
           </Animated.View>
         )}
 
-        <Animated.View
-          entering={FadeInDown.delay(600).duration(600).springify()}
-          className="gap-4"
-        >
+        <Animated.View entering={FadeInDown.delay(600).duration(600).springify()} className="gap-4">
           <Button
             title="Verify"
             onPress={() => handleVerify()}
@@ -253,9 +234,7 @@ export default function VerifyEmailScreen() {
           />
 
           <View className="flex-row items-center justify-center">
-            <Text className="text-sm text-white/70">
-              Didn't receive the code?{" "}
-            </Text>
+            <Text className="text-sm text-white/70">Didn&apos;t receive the code? </Text>
             <Pressable onPress={handleResend} disabled={resending || cooldownSeconds > 0}>
               <Text className="text-sm font-semibold text-white">
                 {cooldownSeconds > 0

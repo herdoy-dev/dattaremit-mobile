@@ -1,86 +1,66 @@
-import { useState, useEffect, useRef } from "react";
 import { KeyboardAvoidingView, Platform, ActivityIndicator, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { randomUUID } from "expo-crypto";
 
 import { Landmark } from "lucide-react-native";
 import { ContactSelect } from "@/components/transfer/contact-select";
 import { AmountEntry } from "@/components/transfer/amount-entry";
 import { SendSuccess } from "@/components/transfer/send-success";
-import { sendMoney, type Contact } from "@/services/transfer";
+import { sendMoney } from "@/services/transfer";
 import { useAccountQuery } from "@/hooks/use-account-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useBiometricGate } from "@/hooks/use-biometric-gate";
+import { useTransferStore } from "@/hooks/use-transfer-store";
 import { validateAmount } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
-
-type Step = "select" | "amount" | "success";
 
 export default function SendScreen() {
   const router = useRouter();
   const { primary } = useThemeColors();
 
   const { data: account, isLoading } = useAccountQuery();
-
   const address = account?.data?.addresses?.[0];
-
-  // Only US users can send money
   const isRestricted = account && address?.country !== "US";
   const hasBankConnected = !!account?.data?.hasBankAccount;
 
-  const { gate, isBlocked } = useBiometricGate({
+  const { gate } = useBiometricGate({
     promptMessage: "Verify your identity to send money",
   });
 
-  const [step, setStep] = useState<Step>("select");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
-  const [amountError, setAmountError] = useState<string | null>(null);
-  const [transactionId, setTransactionId] = useState("");
+  const transfer = useTransferStore();
 
   const mutation = useMutation({
     mutationFn: sendMoney,
     onSuccess: (data) => {
-      setTransactionId(data.transactionId);
-      setStep("success");
+      transfer.markSuccess(data.transactionId);
     },
   });
 
-  function handleSelectContact(contact: Contact) {
-    setSelectedContact(contact);
-    setStep("amount");
-  }
-
-  const sendingRef = useRef(false);
-
   async function handleSend() {
-    if (sendingRef.current) return;
-    const error = validateAmount(amount);
+    if (transfer.sendingRef.current) return;
+    const error = validateAmount(transfer.amount);
     if (error) {
-      setAmountError(error);
+      transfer.setAmountError(error);
       return;
     }
-    setAmountError(null);
-    if (!selectedContact) return;
+    transfer.setAmountError(null);
+    if (!transfer.selectedContact) return;
 
-    sendingRef.current = true;
-    const idempotencyKey = randomUUID();
+    transfer.sendingRef.current = true;
+    const idempotencyKey = transfer.generateIdempotencyKey();
     try {
       await gate(() => {
         mutation.mutate({
-          contactId: selectedContact.id,
-          amountCents: Math.round(parseFloat(amount) * 100),
-          note: note || undefined,
+          contactId: transfer.selectedContact!.id,
+          amountCents: Math.round(parseFloat(transfer.amount) * 100),
+          note: transfer.note || undefined,
           _idempotencyKey: idempotencyKey,
         });
       });
     } finally {
-      sendingRef.current = false;
+      transfer.sendingRef.current = false;
     }
   }
 
@@ -94,8 +74,8 @@ export default function SendScreen() {
 
   if (isRestricted) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg px-6">
-        <Text className="text-lg font-bold text-light-text dark:text-dark-text text-center">
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg px-6 dark:bg-dark-bg">
+        <Text className="text-center text-lg font-bold text-light-text dark:text-dark-text">
           This feature is not available in your region.
         </Text>
         <View className="mt-4">
@@ -116,10 +96,10 @@ export default function SendScreen() {
           >
             <Landmark size={36} color={primary} />
           </View>
-          <Text className="text-xl font-bold text-light-text dark:text-dark-text text-center">
+          <Text className="text-center text-xl font-bold text-light-text dark:text-dark-text">
             No Bank Account Connected
           </Text>
-          <Text className="mt-3 text-center text-base leading-6 text-light-text-secondary dark:text-dark-text-secondary px-4">
+          <Text className="mt-3 px-4 text-center text-base leading-6 text-light-text-secondary dark:text-dark-text-secondary">
             Please connect your bank account to send money.
           </Text>
           <View className="mt-6 w-full">
@@ -135,19 +115,19 @@ export default function SendScreen() {
     );
   }
 
-  if (step === "success") {
+  if (transfer.step === "success") {
     return (
       <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
         <SendSuccess
-          amount={amount}
-          recipientName={selectedContact?.name ?? ""}
-          transactionId={transactionId}
+          amount={transfer.amount}
+          recipientName={transfer.selectedContact?.name ?? ""}
+          transactionId={transfer.transactionId}
         />
       </SafeAreaView>
     );
   }
 
-  if (step === "amount" && selectedContact) {
+  if (transfer.step === "amount" && transfer.selectedContact) {
     return (
       <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
         <KeyboardAvoidingView
@@ -155,17 +135,14 @@ export default function SendScreen() {
           className="flex-1"
         >
           <AmountEntry
-            selectedContact={selectedContact}
-            amount={amount}
-            onAmountChange={(text) => {
-              setAmount(text);
-              if (amountError) setAmountError(null);
-            }}
-            amountError={amountError}
-            note={note}
-            onNoteChange={setNote}
+            selectedContact={transfer.selectedContact}
+            amount={transfer.amount}
+            onAmountChange={transfer.updateAmount}
+            amountError={transfer.amountError}
+            note={transfer.note}
+            onNoteChange={transfer.setNote}
             onSend={handleSend}
-            onBack={() => setStep("select")}
+            onBack={transfer.goBackToSelect}
             isSending={mutation.isPending}
           />
         </KeyboardAvoidingView>
@@ -176,9 +153,9 @@ export default function SendScreen() {
   return (
     <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
       <ContactSelect
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSelectContact={handleSelectContact}
+        searchQuery={transfer.searchQuery}
+        onSearchChange={transfer.setSearchQuery}
+        onSelectContact={transfer.selectContact}
       />
     </SafeAreaView>
   );

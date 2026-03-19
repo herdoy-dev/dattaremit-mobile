@@ -7,12 +7,7 @@ import {
   useNavigationContainerRef,
 } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
-import {
-  MutationCache,
-  QueryCache,
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider , onlineManager } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -20,10 +15,20 @@ import "react-native-reanimated";
 import "./global.css";
 
 import { AppErrorFallback } from "@/components/ui/app-error-fallback";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { NetworkBanner } from "@/components/ui/network-banner";
+import { useColorScheme } from "nativewind";
 import { setAuthToken } from "@/lib/api-client";
 import { buildThemeVars, useThemeStore } from "@/store/theme-store";
 import { useEffect } from "react";
+import NetInfo from "@react-native-community/netinfo";
+import { QUERY_RETRY_COUNT, QUERY_STALE_TIME_MS } from "@/constants/api";
+
+// Sync React Query's online status with device network state
+onlineManager.setEventListener((setOnline) => {
+  return NetInfo.addEventListener((state) => {
+    setOnline(!!state.isConnected);
+  });
+});
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: true,
@@ -67,8 +72,8 @@ const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
-      staleTime: 5 * 60 * 1000,
+      retry: QUERY_RETRY_COUNT,
+      staleTime: QUERY_STALE_TIME_MS,
     },
   },
   queryCache: new QueryCache({
@@ -130,17 +135,14 @@ function RootLayout() {
         <SentryUserSync />
         <QueryClientProvider client={queryClient}>
           <Sentry.ErrorBoundary
-            fallback={({ resetError }) => (
-              <AppErrorFallback onReset={resetError} />
-            )}
+            fallback={({ resetError }) => <AppErrorFallback onReset={resetError} />}
             beforeCapture={(scope) => {
               scope.setTag("boundary", "root");
             }}
           >
             <GestureHandlerRootView style={[{ flex: 1 }, themeVars]}>
-              <ThemeProvider
-                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-              >
+              <NetworkBanner />
+              <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
                 <Stack
                   screenOptions={{
                     headerShown: false,

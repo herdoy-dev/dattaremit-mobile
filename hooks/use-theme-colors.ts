@@ -1,5 +1,5 @@
 import { useThemeStore } from "@/store/theme-store";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useColorScheme } from "nativewind";
 
 export function useThemeColors() {
   const { preset, colors } = useThemeStore();

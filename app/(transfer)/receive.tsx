@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { View, Text, Pressable, Share, ActivityIndicator, AppState } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { QrCode, Copy, Share2 } from "lucide-react-native";
+import { Copy, Share2 } from "lucide-react-native";
+import QRCode from "react-native-qrcode-svg";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
@@ -14,6 +15,7 @@ import { useAccountQuery } from "@/hooks/use-account-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { hexToRgba } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
+import { CLIPBOARD_CLEAR_MS } from "@/constants/limits";
 
 export default function ReceiveScreen() {
   const router = useRouter();
@@ -32,6 +34,7 @@ export default function ReceiveScreen() {
   });
 
   const lastCopiedRef = useRef<string | null>(null);
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Clear clipboard on app backgrounding
   useEffect(() => {
@@ -41,21 +44,32 @@ export default function ReceiveScreen() {
         lastCopiedRef.current = null;
       }
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      if (clearTimerRef.current) {
+        clearTimeout(clearTimerRef.current);
+      }
+    };
   }, []);
 
-  async function handleCopy(value: string) {
+  const handleCopy = useCallback(async (value: string) => {
     await Clipboard.setStringAsync(value);
     lastCopiedRef.current = value;
+
+    if (clearTimerRef.current) {
+      clearTimeout(clearTimerRef.current);
+    }
+
     // Auto-clear after 60 seconds
-    setTimeout(async () => {
+    clearTimerRef.current = setTimeout(async () => {
       const current = await Clipboard.getStringAsync();
       if (current === value) {
         await Clipboard.setStringAsync("");
         lastCopiedRef.current = null;
       }
-    }, 60000);
-  }
+      clearTimerRef.current = null;
+    }, CLIPBOARD_CLEAR_MS);
+  }, []);
 
   async function handleShare() {
     if (!info) return;
@@ -80,8 +94,8 @@ export default function ReceiveScreen() {
 
   if (isRestricted) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg px-6">
-        <Text className="text-lg font-bold text-light-text dark:text-dark-text text-center">
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg px-6 dark:bg-dark-bg">
+        <Text className="text-center text-lg font-bold text-light-text dark:text-dark-text">
           This feature is not available in your region.
         </Text>
         <Pressable onPress={() => router.back()} className="mt-4">
@@ -99,15 +113,25 @@ export default function ReceiveScreen() {
 
       <View className="flex-1 px-6 pt-6">
         {/* QR Code Placeholder */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(500)}
-          className="items-center"
-        >
-          <View className="h-[200px] w-[200px] items-center justify-center rounded-3xl border-2 border-dashed border-gray-300 bg-light-surface dark:border-gray-600 dark:bg-dark-surface">
-            <QrCode size={64} color={primary} />
-            <Text className="mt-2 text-xs text-light-text-muted dark:text-dark-text-muted">
-              QR Code
-            </Text>
+        <Animated.View entering={FadeInDown.delay(100).duration(500)} className="items-center">
+          <View className="h-[220px] w-[220px] items-center justify-center rounded-3xl bg-white p-3">
+            {info ? (
+              <QRCode
+                value={JSON.stringify({
+                  accountId: info.accountId,
+                  email: info.email,
+                  phone: info.phone,
+                  name: info.name,
+                })}
+                size={180}
+                color="#000000"
+                backgroundColor="#FFFFFF"
+              />
+            ) : (
+              <View className="h-[180px] w-[180px] items-center justify-center">
+                <ActivityIndicator size="small" color={primary} />
+              </View>
+            )}
           </View>
         </Animated.View>
 
@@ -123,9 +147,7 @@ export default function ReceiveScreen() {
             <View
               key={item.label}
               className={`flex-row items-center justify-between py-3 ${
-                index < details.length - 1
-                  ? "border-b border-gray-100 dark:border-gray-800"
-                  : ""
+                index < details.length - 1 ? "border-b border-gray-100 dark:border-gray-800" : ""
               }`}
             >
               <View>
@@ -152,10 +174,7 @@ export default function ReceiveScreen() {
         <View className="flex-1" />
 
         {/* Share Button */}
-        <Animated.View
-          entering={FadeInDown.delay(300).duration(500)}
-          className="pb-6"
-        >
+        <Animated.View entering={FadeInDown.delay(300).duration(500)} className="pb-6">
           <Button
             title="Share Details"
             onPress={handleShare}
@@ -167,4 +186,3 @@ export default function ReceiveScreen() {
     </SafeAreaView>
   );
 }
-

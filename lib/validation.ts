@@ -1,3 +1,11 @@
+import {
+  MIN_TRANSFER_AMOUNT,
+  MAX_TRANSFER_AMOUNT,
+  MIN_ACCOUNT_DIGITS,
+  MAX_ACCOUNT_DIGITS,
+  MIN_POSTAL_CODE_LENGTH,
+} from "@/constants/limits";
+
 export function validateEmail(email: string): string | null {
   if (!email.trim()) return "Email is required";
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -12,15 +20,11 @@ export function validatePassword(password: string): string | null {
   if (!/[A-Z]/.test(password)) return "Must contain an uppercase letter";
   if (!/[a-z]/.test(password)) return "Must contain a lowercase letter";
   if (!/[0-9]/.test(password)) return "Must contain a number";
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
-    return "Must contain a special character";
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return "Must contain a special character";
   return null;
 }
 
-export function validateConfirmPassword(
-  password: string,
-  confirmPassword: string
-): string | null {
+export function validateConfirmPassword(password: string, confirmPassword: string): string | null {
   if (!confirmPassword) return "Please confirm your password";
   if (password !== confirmPassword) return "Passwords do not match";
   return null;
@@ -71,21 +75,24 @@ export function validateAmount(amount: string): string | null {
   }
   const num = parseFloat(amount);
   if (isNaN(num) || num <= 0) return "Amount must be greater than 0";
-  if (num < 1) return "Minimum transfer amount is $1.00";
-  if (num > 10000) return "Maximum transfer amount is $10,000";
+  if (num < MIN_TRANSFER_AMOUNT)
+    return `Minimum transfer amount is $${MIN_TRANSFER_AMOUNT.toFixed(2)}`;
+  if (num > MAX_TRANSFER_AMOUNT)
+    return `Maximum transfer amount is $${MAX_TRANSFER_AMOUNT.toLocaleString()}`;
   return null;
 }
 
 export function validatePostalCode(code: string): string | null {
   if (!code.trim()) return "Postal code is required";
-  if (code.length < 3) return "Enter a valid postal code";
+  if (code.length < MIN_POSTAL_CODE_LENGTH) return "Enter a valid postal code";
   return null;
 }
 
 export function validateAccountNumber(value: string): string | null {
   if (!value.trim()) return "Account number is required";
-  if (!/^\d{8,18}$/.test(value.trim()))
-    return "Account number must be 8-18 digits";
+  const pattern = new RegExp(`^\\d{${MIN_ACCOUNT_DIGITS},${MAX_ACCOUNT_DIGITS}}$`);
+  if (!pattern.test(value.trim()))
+    return `Account number must be ${MIN_ACCOUNT_DIGITS}-${MAX_ACCOUNT_DIGITS} digits`;
   return null;
 }
 
