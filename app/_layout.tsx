@@ -7,7 +7,13 @@ import {
   useNavigationContainerRef,
 } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider , onlineManager } from "@tanstack/react-query";
+import {
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+  onlineManager,
+} from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -41,6 +47,13 @@ Sentry.init({
 
   environment: __DEV__ ? "development" : "production",
   debug: __DEV__,
+
+  tracePropagationTargets: [
+    /^https:\/\/api\.dattaremit\.com/,
+    /^http:\/\/localhost/,
+    /^http:\/\/10\.\d+\.\d+\.\d+/,
+    /^http:\/\/192\.168\.\d+\.\d+/,
+  ],
 
   tracesSampleRate: __DEV__ ? 1.0 : 0.3,
   profilesSampleRate: __DEV__ ? 0.5 : 0.1,

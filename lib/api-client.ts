@@ -2,6 +2,7 @@ import axios from "axios";
 import { randomUUID } from "expo-crypto";
 import { EventEmitter } from "events";
 import * as Sentry from "@sentry/react-native";
+import { getTraceData } from "@sentry/core";
 import { API_TIMEOUT_MS } from "@/constants/api";
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -35,6 +36,15 @@ apiClient.interceptors.request.use(async (config) => {
     } catch (error) {
       return Promise.reject(new Error("Authentication failed"));
     }
+  }
+
+  // Inject Sentry distributed tracing headers
+  const traceData = getTraceData();
+  if (traceData["sentry-trace"]) {
+    config.headers["sentry-trace"] = traceData["sentry-trace"];
+  }
+  if (traceData["baggage"]) {
+    config.headers["baggage"] = traceData["baggage"];
   }
 
   // Only add idempotency keys for mutating requests
