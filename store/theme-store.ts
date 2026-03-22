@@ -1,9 +1,16 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { vars } from "nativewind";
 import { STORAGE_KEYS } from "@/constants/storage-keys";
+import { createPersistedStore } from "@/lib/create-persisted-store";
 
-export type ThemePreset = "ocean" | "forest" | "sunset" | "rose" | "indigo" | "teal" | "crimson" | "amber";
+export type ThemePreset =
+  | "ocean"
+  | "forest"
+  | "sunset"
+  | "rose"
+  | "indigo"
+  | "teal"
+  | "crimson"
+  | "amber";
 
 export interface ThemeColors {
   primary: string;
@@ -155,56 +162,28 @@ export const THEME_META: { key: ThemePreset; label: string; color: string }[] = 
   { key: "amber", label: "Amber", color: "#D97706" },
 ];
 
-const STORAGE_KEY = STORAGE_KEYS.THEME_PRESET;
-const VALID_PRESETS: ThemePreset[] = ["ocean", "forest", "sunset", "rose", "indigo", "teal", "crimson", "amber"];
+const VALID_PRESETS: ThemePreset[] = [
+  "ocean",
+  "forest",
+  "sunset",
+  "rose",
+  "indigo",
+  "teal",
+  "crimson",
+  "amber",
+];
 
-type Listener = () => void;
-
-let currentPreset: ThemePreset = "teal";
-let isLoaded = false;
-const listeners = new Set<Listener>();
-
-function emitChange() {
-  listeners.forEach((l) => l());
-}
-
-function subscribe(listener: Listener) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-function getSnapshot() {
-  return currentPreset;
-}
-
-async function loadPreset() {
-  const stored = await AsyncStorage.getItem(STORAGE_KEY);
-  if (stored && VALID_PRESETS.includes(stored as ThemePreset)) {
-    currentPreset = stored as ThemePreset;
-  }
-  isLoaded = true;
-  emitChange();
-}
-
-async function setPreset(preset: ThemePreset) {
-  currentPreset = preset;
-  await AsyncStorage.setItem(STORAGE_KEY, preset);
-  emitChange();
-}
+const themeStore = createPersistedStore<ThemePreset>({
+  storageKey: STORAGE_KEYS.THEME_PRESET,
+  defaultValue: "teal",
+  validValues: VALID_PRESETS,
+});
 
 export function useThemeStore() {
-  const preset = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  const [loaded, setLoaded] = useState(isLoaded);
-
-  useEffect(() => {
-    if (!isLoaded) {
-      loadPreset().then(() => setLoaded(true));
-    }
-  }, []);
-
+  const { current: preset, isLoaded, set } = themeStore.useStore();
   const colors = THEME_PRESETS[preset];
 
-  return { preset, colors, isLoaded: loaded, setPreset };
+  return { preset, colors, isLoaded, setPreset: set };
 }
 
 export function buildThemeVars(colors: ThemeColors) {
