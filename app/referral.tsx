@@ -1,13 +1,13 @@
-import { View, Text, Pressable, Share, ActivityIndicator, AppState } from "react-native";
+import { View, Text, Pressable, Share, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Gift, Copy, Share2, Check } from "lucide-react-native";
-import * as Clipboard from "expo-clipboard";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { onboardingService } from "@/services/onboarding";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useAccountQuery } from "@/hooks/use-account-query";
+import { useClipboardClear } from "@/hooks/use-clipboard-clear";
 import { hexToRgba } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -29,23 +29,11 @@ export default function ReferralScreen() {
     },
   });
 
-  const lastCopiedRef = useRef<string | null>(null);
-
-  // Clear clipboard on app backgrounding
-  useEffect(() => {
-    const sub = AppState.addEventListener("change", (state) => {
-      if (state === "background" && lastCopiedRef.current) {
-        Clipboard.setStringAsync("");
-        lastCopiedRef.current = null;
-      }
-    });
-    return () => sub.remove();
-  }, []);
+  const { copy } = useClipboardClear();
 
   const handleCopy = async () => {
     if (!referCode) return;
-    await Clipboard.setStringAsync(referCode);
-    lastCopiedRef.current = referCode;
+    await copy(referCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     // Auto-clear after 60 seconds
@@ -77,17 +65,17 @@ export default function ReferralScreen() {
         ) : (
           <View className="mt-4">
             {/* Promo header */}
-            <View className="items-center mb-8">
+            <View className="mb-8 items-center">
               <View
                 className="mb-4 h-16 w-16 items-center justify-center rounded-2xl"
                 style={{ backgroundColor: hexToRgba(primary, 0.1) }}
               >
                 <Gift size={32} color={primary} />
               </View>
-              <Text className="text-lg font-bold text-light-text dark:text-dark-text text-center">
+              <Text className="text-center text-lg font-bold text-light-text dark:text-dark-text">
                 Refer & Earn Rewards
               </Text>
-              <Text className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary text-center">
+              <Text className="mt-1 text-center text-sm text-light-text-secondary dark:text-dark-text-secondary">
                 Share your referral code with friends and earn rewards when they sign up
               </Text>
             </View>
@@ -102,10 +90,7 @@ export default function ReferralScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Referral code ${referCode}. Tap to copy.`}
                 >
-                  <Text
-                    className="text-lg font-bold tracking-widest"
-                    style={{ color: primary }}
-                  >
+                  <Text className="text-lg font-bold tracking-widest" style={{ color: primary }}>
                     {referCode}
                   </Text>
                   {copied ? (
