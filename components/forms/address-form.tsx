@@ -6,16 +6,8 @@ import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { CountrySelector } from "@/components/ui/country-selector";
 import { useForm } from "@/hooks/use-form";
-import { validateRequired, validatePostalCode } from "@/lib/validation";
+import { addressSchema, type AddressFormValues } from "@/lib/schemas";
 import { COLORS } from "@/constants/theme";
-
-export interface AddressFormValues {
-  country: string;
-  state: string;
-  city: string;
-  street: string;
-  postalCode: string;
-}
 
 interface AddressFormProps {
   initialValues?: Partial<AddressFormValues>;
@@ -42,13 +34,7 @@ export function AddressForm({
       postalCode: "",
       state: "",
     },
-    {
-      country: (v) => validateRequired(v, "Country"),
-      city: (v) => validateRequired(v, "City"),
-      street: (v) => validateRequired(v, "Street address"),
-      postalCode: (v) => validatePostalCode(v),
-      state: (v) => validateRequired(v, "State/Province"),
-    },
+    addressSchema,
   );
 
   useEffect(() => {

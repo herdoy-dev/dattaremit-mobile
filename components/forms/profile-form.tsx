@@ -9,17 +9,9 @@ import { CustomDatePicker } from "@/components/ui/custom-date-picker";
 import { CountrySelector } from "@/components/ui/country-selector";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { useForm } from "@/hooks/use-form";
-import { validateRequired, validatePhone, validateDateOfBirth } from "@/lib/validation";
+import { profileSchema, type ProfileFormValues } from "@/lib/schemas";
 import { COLORS } from "@/constants/theme";
 import { COUNTRIES } from "@/lib/countries";
-
-export interface ProfileFormValues {
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  phoneNumber: string;
-  nationality: string;
-}
 
 interface ProfileFormProps {
   initialValues?: Partial<ProfileFormValues>;
@@ -46,13 +38,7 @@ export function ProfileForm({
       phoneNumber: "",
       nationality: "",
     },
-    {
-      firstName: (v) => validateRequired(v, "First name"),
-      lastName: (v) => validateRequired(v, "Last name"),
-      dateOfBirth: (v) => validateDateOfBirth(v),
-      phoneNumber: (v) => validatePhone(v),
-      nationality: (v) => validateRequired(v, "Nationality"),
-    },
+    profileSchema,
   );
 
   useEffect(() => {

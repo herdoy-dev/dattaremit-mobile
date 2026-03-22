@@ -12,7 +12,7 @@ import { useAccountQuery } from "@/hooks/use-account-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useBiometricGate } from "@/hooks/use-biometric-gate";
 import { useTransferStore } from "@/hooks/use-transfer-store";
-import { validateAmount } from "@/lib/validation";
+import { amountSchema } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 
@@ -40,9 +40,9 @@ export default function SendScreen() {
 
   async function handleSend() {
     if (transfer.sendingRef.current) return;
-    const error = validateAmount(transfer.amount);
-    if (error) {
-      transfer.setAmountError(error);
+    const result = amountSchema.safeParse(transfer.amount);
+    if (!result.success) {
+      transfer.setAmountError(result.error.issues[0].message);
       return;
     }
     transfer.setAmountError(null);
