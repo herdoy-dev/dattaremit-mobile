@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View, Text, Pressable } from "react-native";
 import { ArrowUpRight, ArrowDownLeft } from "lucide-react-native";
 import { COLORS } from "@/constants/theme";
@@ -7,7 +8,9 @@ interface TransactionItemProps {
   transaction: Transaction;
 }
 
-export function TransactionItem({ transaction: tx }: TransactionItemProps) {
+export const TransactionItem = memo(function TransactionItem({
+  transaction: tx,
+}: TransactionItemProps) {
   const isReceived = tx.type === "received";
 
   return (
@@ -43,4 +46,4 @@ export function TransactionItem({ transaction: tx }: TransactionItemProps) {
       </Text>
     </Pressable>
   );
-}
+});
