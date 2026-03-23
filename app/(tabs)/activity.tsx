@@ -20,7 +20,7 @@ const FILTERS: { label: string; value: FilterType }[] = [
 const PAGE_SIZE = 20;
 
 export default function ActivityTab() {
-  const { primary } = useThemeColors();
+  const { primary, surface } = useThemeColors();
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -96,6 +96,7 @@ export default function ActivityTab() {
           onChangeText={setSearchQuery}
           placeholder="Search transactions..."
           icon={<Search size={18} color={COLORS.placeholder} />}
+          backgroundColor={surface}
         />
       </View>
 

@@ -12,10 +12,12 @@ import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { COLORS } from "@/constants/theme";
+import { useThemeColors } from "@/hooks/use-theme-colors";
 
 export default function ReferralScreen() {
   const router = useRouter();
   const { setStep } = useOnboardingStore();
+  const { surface } = useThemeColors();
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -60,7 +62,7 @@ export default function ReferralScreen() {
         className="flex-1"
       >
         {/* Header */}
-        <View className="px-6 pt-4 pb-2">
+        <View className="px-6 pb-2 pt-4">
           <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
             Got a Referral Code?
           </Text>
@@ -84,6 +86,7 @@ export default function ReferralScreen() {
               placeholder="Enter referral code"
               autoCapitalize="characters"
               icon={<Gift size={20} color={COLORS.placeholder} />}
+              backgroundColor={surface}
             />
 
             {error && <ErrorBanner message={error} />}
