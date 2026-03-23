@@ -1,13 +1,17 @@
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { MapPin, Building2, Hash } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { CountrySelector } from "@/components/ui/country-selector";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
+import { AddressValidationBadge } from "@/components/ui/address-validation-badge";
 import { useForm } from "@/hooks/use-form";
+import { useAddressAutocomplete } from "@/hooks/use-address-autocomplete";
 import { validateRequired, validatePostalCode } from "@/lib/validation";
 import { COLORS } from "@/constants/theme";
+import type { AddressValidationResult } from "@/types/address";
 
 export interface AddressFormValues {
   country: string;
@@ -17,6 +21,18 @@ export interface AddressFormValues {
   postalCode: string;
 }
 
+// Map Google Address Validation componentType to form field names
+const COMPONENT_TYPE_TO_FIELD: Record<string, keyof AddressFormValues> = {
+  route: "street",
+  street_number: "street",
+  locality: "city",
+  sublocality_level_1: "city",
+  administrative_area_level_1: "state",
+  postal_code: "postalCode",
+  country: "country",
+  subpremise: "street",
+};
+
 interface AddressFormProps {
   initialValues?: Partial<AddressFormValues>;
   onSubmit: (values: AddressFormValues) => void;
@@ -24,6 +40,11 @@ interface AddressFormProps {
   submitError?: string | null;
   submitLabel: string;
   headerSlot?: ReactNode;
+  // Validation
+  validationResult?: AddressValidationResult | null;
+  isValidating?: boolean;
+  onAcceptCorrections?: () => void;
+  onFieldsComplete?: (values: AddressFormValues) => void;
 }
 
 export function AddressForm({
@@ -33,6 +54,10 @@ export function AddressForm({
   submitError,
   submitLabel,
   headerSlot,
+  validationResult,
+  isValidating = false,
+  onAcceptCorrections,
+  onFieldsComplete,
 }: AddressFormProps) {
   const { values, errors, setValue, validate } = useForm(
     {
@@ -51,6 +76,33 @@ export function AddressForm({
     },
   );
 
+  // Track whether we've already fired onFieldsComplete for current field values
+  const lastCompletedRef = useRef<string>("");
+
+  // Derive country for autocomplete filtering
+  const country = values.country === "US" || values.country === "IN" ? values.country : undefined;
+
+  // Three independent autocomplete instances
+  const stateAC = useAddressAutocomplete({
+    country,
+    types: "(regions)",
+    mode: "simple",
+  });
+
+  const cityAC = useAddressAutocomplete({
+    country,
+    locationContext: { state: values.state },
+    types: "(cities)",
+    mode: "simple",
+  });
+
+  const streetAC = useAddressAutocomplete({
+    country,
+    locationContext: { state: values.state, city: values.city },
+    types: "address",
+    mode: "full",
+  });
+
   useEffect(() => {
     if (initialValues) {
       if (initialValues.country) setValue("country", initialValues.country);
@@ -61,10 +113,61 @@ export function AddressForm({
     }
   }, [initialValues]);
 
+  // Auto-fill all fields when street place details are fetched
+  useEffect(() => {
+    const sc = streetAC.selectedComponents;
+    if (sc) {
+      if (sc.street) setValue("street", sc.street);
+      if (sc.city) setValue("city", sc.city);
+      if (sc.state) setValue("state", sc.state);
+      if (sc.postalCode) setValue("postalCode", sc.postalCode);
+      if (sc.country) setValue("country", sc.country);
+    }
+  }, [streetAC.selectedComponents]);
+
+  // Fire onFieldsComplete when all fields are filled
+  useEffect(() => {
+    const { country, state, city, street, postalCode } = values;
+    if (country && state && city && street && postalCode) {
+      const key = `${country}|${state}|${city}|${street}|${postalCode}`;
+      if (key !== lastCompletedRef.current) {
+        lastCompletedRef.current = key;
+        onFieldsComplete?.(values);
+      }
+    }
+  }, [values, onFieldsComplete]);
+
   const handleSubmit = () => {
     if (!validate()) return;
     onSubmit(values);
   };
+
+  const handleStreetChange = (text: string) => {
+    setValue("street", text);
+    streetAC.onSearchChange(text);
+  };
+
+  const handleStateChange = (text: string) => {
+    setValue("state", text);
+    stateAC.onSearchChange(text);
+  };
+
+  const handleCityChange = (text: string) => {
+    setValue("city", text);
+    cityAC.onSearchChange(text);
+  };
+
+  const handleAcceptCorrections = useCallback(() => {
+    if (validationResult?.corrections) {
+      for (const correction of validationResult.corrections) {
+        const formField = COMPONENT_TYPE_TO_FIELD[correction.field];
+        if (formField) {
+          setValue(formField, correction.corrected);
+        }
+      }
+    }
+    onAcceptCorrections?.();
+  }, [validationResult, setValue, onAcceptCorrections]);
 
   return (
     <>
@@ -78,34 +181,48 @@ export function AddressForm({
           error={errors.country}
         />
 
-        <Input
+        <AddressAutocomplete
           label="State / Province"
           value={values.state}
-          onChangeText={(t) => setValue("state", t)}
+          onChangeText={handleStateChange}
+          suggestions={stateAC.suggestions}
+          onSelect={(p) => setValue("state", p.mainText)}
+          isLoading={stateAC.isSearching}
           placeholder="Enter state or province"
-          autoCapitalize="words"
+          emptyText="No states found"
           error={errors.state}
           icon={<Building2 size={20} color={COLORS.placeholder} />}
+          className="z-40"
         />
 
-        <Input
+        <AddressAutocomplete
           label="City"
           value={values.city}
-          onChangeText={(t) => setValue("city", t)}
+          onChangeText={handleCityChange}
+          suggestions={cityAC.suggestions}
+          onSelect={(p) => setValue("city", p.mainText)}
+          isLoading={cityAC.isSearching}
           placeholder="Enter your city"
-          autoCapitalize="words"
+          emptyText="No cities found"
           error={errors.city}
           icon={<MapPin size={20} color={COLORS.placeholder} />}
+          className="z-30"
         />
 
-        <Input
+        <AddressAutocomplete
           label="Street Address"
           value={values.street}
-          onChangeText={(t) => setValue("street", t)}
+          onChangeText={handleStreetChange}
+          suggestions={streetAC.suggestions}
+          onSelect={(p) => {
+            setValue("street", p.mainText);
+            streetAC.onSelect(p);
+          }}
+          isLoading={streetAC.isSearching}
           placeholder="Enter your street address"
-          autoCapitalize="words"
           error={errors.street}
           icon={<MapPin size={20} color={COLORS.placeholder} />}
+          className="z-50"
         />
 
         <Input
@@ -117,6 +234,16 @@ export function AddressForm({
           error={errors.postalCode}
           icon={<Hash size={20} color={COLORS.placeholder} />}
         />
+
+        {(validationResult || isValidating) && (
+          <AddressValidationBadge
+            status={validationResult?.validationStatus ?? "UNAVAILABLE"}
+            isValidating={isValidating}
+            corrections={validationResult?.corrections}
+            formattedAddress={validationResult?.formattedAddress}
+            onAcceptCorrections={handleAcceptCorrections}
+          />
+        )}
 
         {submitError && <ErrorBanner message={submitError} />}
 

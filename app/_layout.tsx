@@ -27,6 +27,7 @@ import { setAuthToken } from "@/lib/api-client";
 import { buildThemeVars, useThemeStore } from "@/store/theme-store";
 import { useEffect } from "react";
 import NetInfo from "@react-native-community/netinfo";
+import Constants from "expo-constants";
 import { QUERY_RETRY_COUNT, QUERY_STALE_TIME_MS } from "@/constants/api";
 
 // Sync React Query's online status with device network state
@@ -42,6 +43,9 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  release: Constants.expoConfig?.version
+    ? `dattaremit-mobile@${Constants.expoConfig.version}`
+    : undefined,
 
   enableLogs: true,
 
