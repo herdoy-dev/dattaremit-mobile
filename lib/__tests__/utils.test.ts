@@ -148,6 +148,38 @@ describe("resolveOnboardingStep", () => {
     expect(resolveOnboardingStep(data)).toBe("completed");
   });
 
+  it("returns 'profile' for unknown account status (default case)", () => {
+    const data = {
+      data: {
+        user: {
+          id: "1",
+          clerkUserId: "c1",
+          email: "a@b.com",
+          firstName: "A",
+          lastName: "B",
+          phoneNumberPrefix: "+1",
+          phoneNumber: "1234567890",
+          nationality: "US",
+          dateOfBirth: "1990-01-01",
+        },
+        addresses: [
+          {
+            id: "1",
+            type: "home",
+            addressLine1: "123 St",
+            city: "NY",
+            state: "NY",
+            country: "US",
+            postalCode: "10001",
+          },
+        ],
+        accountStatus: "SOME_UNKNOWN_STATUS",
+        hasBankAccount: false,
+      },
+    } as AccountStatusResponse;
+    expect(resolveOnboardingStep(data)).toBe("profile");
+  });
+
   it("returns 'completed' for PENDING status", () => {
     const data = {
       data: {

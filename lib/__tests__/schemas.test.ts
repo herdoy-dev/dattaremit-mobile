@@ -97,6 +97,15 @@ describe("phoneSchema", () => {
     );
   });
 
+  it("rejects phone with non-digit characters in local number", () => {
+    expect(getError(phoneSchema, "+1234abc7890")).toBe("Phone number must contain only digits");
+  });
+
+  it("rejects phone with wrong length", () => {
+    expect(getError(phoneSchema, "+112345")).toBe("US phone number must be 10 digits");
+    expect(getError(phoneSchema, "+9112345")).toBe("Indian phone number must be 10 digits");
+  });
+
   it("rejects US number starting with 0", () => {
     expect(getError(phoneSchema, "+10234567890")).toBe("US phone number cannot start with 0 or 1");
   });
@@ -203,6 +212,16 @@ describe("dateOfBirthSchema", () => {
     const recent = new Date();
     recent.setFullYear(recent.getFullYear() - 10);
     expect(getError(dateOfBirthSchema, recent.toISOString())).toBe(
+      "You must be at least 18 years old",
+    );
+  });
+
+  it("handles birthday where month hasn't passed yet this year (age-- branch)", () => {
+    // Create a date that is exactly 18 years ago but with a later month/day
+    const now = new Date();
+    const futureMonthDob = new Date(now.getFullYear() - 18, now.getMonth() + 1, now.getDate());
+    // This person is technically still 17
+    expect(getError(dateOfBirthSchema, futureMonthDob.toISOString())).toBe(
       "You must be at least 18 years old",
     );
   });
