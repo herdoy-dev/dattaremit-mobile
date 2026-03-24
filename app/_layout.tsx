@@ -22,12 +22,14 @@ import "./global.css";
 
 import { AppErrorFallback } from "@/components/ui/app-error-fallback";
 import { NetworkBanner } from "@/components/ui/network-banner";
+import { NotificationProvider } from "@/components/notification-provider";
 import { useColorScheme } from "nativewind";
 import { setAuthToken } from "@/lib/api-client";
 import { buildThemeVars, useThemeStore } from "@/store/theme-store";
 import { useEffect } from "react";
 // eslint-disable-next-line import/no-unresolved
 import NetInfo from "@react-native-community/netinfo";
+import Constants from "expo-constants";
 import { QUERY_RETRY_COUNT, QUERY_STALE_TIME_MS } from "@/constants/api";
 
 // Sync React Query's online status with device network state
@@ -43,6 +45,9 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  release: Constants.expoConfig?.version
+    ? `dattaremit-mobile@${Constants.expoConfig.version}`
+    : undefined,
 
   enableLogs: true,
 
@@ -155,6 +160,7 @@ function RootLayout() {
             }}
           >
             <GestureHandlerRootView style={[{ flex: 1 }, themeVars]}>
+              <NotificationProvider />
               <NetworkBanner />
               <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
                 <Stack
@@ -169,6 +175,7 @@ function RootLayout() {
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="(transfer)" />
                   <Stack.Screen name="referral" />
+                  <Stack.Screen name="notifications" />
                 </Stack>
                 <StatusBar style="auto" />
               </ThemeProvider>

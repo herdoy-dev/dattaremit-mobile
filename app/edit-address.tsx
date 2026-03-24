@@ -1,18 +1,22 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react-native";
-import { AddressForm } from "@/components/forms/address-form";
+import { AddressForm, type AddressFormValues } from "@/components/forms/address-form";
 import { onboardingService } from "@/services/onboarding";
 import { useAccountQuery } from "@/hooks/use-account-query";
+import { useAddressValidation } from "@/hooks/use-address-validation";
 import { getApiErrorMessage } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
+
+const VALIDATION_DEBOUNCE_MS = 800;
 
 export default function EditAddressScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { data: account } = useAccountQuery();
   const address = account?.data?.addresses?.[0];
 
@@ -27,6 +31,13 @@ export default function EditAddressScreen() {
     };
   }, [address]);
 
+  const {
+    validate,
+    validationResult,
+    isValidating,
+    reset: resetValidation,
+  } = useAddressValidation();
+
   const updateMutation = useMutation({
     mutationFn: (payload: Parameters<typeof onboardingService.updateAddress>[1]) =>
       onboardingService.updateAddress(address!.id, payload),
@@ -35,6 +46,26 @@ export default function EditAddressScreen() {
       router.back();
     },
   });
+
+  const handleFieldsComplete = useCallback(
+    (values: AddressFormValues) => {
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+      validationTimerRef.current = setTimeout(() => {
+        validate({
+          addressLine1: values.street,
+          city: values.city,
+          state: values.state,
+          country: values.country as "US" | "IN",
+          postalCode: values.postalCode,
+        });
+      }, VALIDATION_DEBOUNCE_MS);
+    },
+    [validate],
+  );
+
+  const handleAcceptCorrections = useCallback(() => {
+    resetValidation();
+  }, [resetValidation]);
 
   return (
     <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
@@ -60,6 +91,10 @@ export default function EditAddressScreen() {
                 : null
             }
             submitLabel="Save Changes"
+            validationResult={validationResult}
+            isValidating={isValidating}
+            onFieldsComplete={handleFieldsComplete}
+            onAcceptCorrections={handleAcceptCorrections}
             headerSlot={
               <View className="flex-row items-center pb-4">
                 <Pressable onPress={() => router.back()} className="mr-3">

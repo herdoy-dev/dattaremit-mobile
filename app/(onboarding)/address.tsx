@@ -1,17 +1,21 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMutation } from "@tanstack/react-query";
-import { AddressForm } from "@/components/forms/address-form";
+import { AddressForm, type AddressFormValues } from "@/components/forms/address-form";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { useAccountQuery } from "@/hooks/use-account-query";
+import { useAddressValidation } from "@/hooks/use-address-validation";
 import { getApiErrorMessage } from "@/lib/utils";
+
+const VALIDATION_DEBOUNCE_MS = 800;
 
 export default function AddressScreen() {
   const router = useRouter();
   const { setStep } = useOnboardingStore();
+  const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: accountData } = useAccountQuery();
   const existingAddress = accountData?.data?.addresses?.[0];
@@ -26,6 +30,13 @@ export default function AddressScreen() {
       state: existingAddress.state,
     };
   }, [existingAddress]);
+
+  const {
+    validate,
+    validationResult,
+    isValidating,
+    reset: resetValidation,
+  } = useAddressValidation();
 
   const addressMutation = useMutation({
     mutationFn: onboardingService.submitAddress,
@@ -46,19 +57,33 @@ export default function AddressScreen() {
 
   const activeMutation = existingAddress ? updateMutation : addressMutation;
 
-  const handleSubmit = (values: {
-    country: string;
-    city: string;
-    street: string;
-    postalCode: string;
-    state: string;
-  }) => {
+  const handleSubmit = (values: AddressFormValues) => {
     if (existingAddress) {
       updateMutation.mutate(values);
     } else {
       addressMutation.mutate(values);
     }
   };
+
+  const handleFieldsComplete = useCallback(
+    (values: AddressFormValues) => {
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+      validationTimerRef.current = setTimeout(() => {
+        validate({
+          addressLine1: values.street,
+          city: values.city,
+          state: values.state,
+          country: values.country as "US" | "IN",
+          postalCode: values.postalCode,
+        });
+      }, VALIDATION_DEBOUNCE_MS);
+    },
+    [validate],
+  );
+
+  const handleAcceptCorrections = useCallback(() => {
+    resetValidation();
+  }, [resetValidation]);
 
   return (
     <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
@@ -84,6 +109,10 @@ export default function AddressScreen() {
                 : null
             }
             submitLabel={existingAddress ? "Update & Continue" : "Continue"}
+            validationResult={validationResult}
+            isValidating={isValidating}
+            onFieldsComplete={handleFieldsComplete}
+            onAcceptCorrections={handleAcceptCorrections}
             headerSlot={
               <View className="pb-4">
                 <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
