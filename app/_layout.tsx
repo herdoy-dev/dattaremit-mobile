@@ -22,6 +22,7 @@ import "./global.css";
 
 import { AppErrorFallback } from "@/components/ui/app-error-fallback";
 import { NetworkBanner } from "@/components/ui/network-banner";
+import { NotificationProvider } from "@/components/notification-provider";
 import { useColorScheme } from "nativewind";
 import { setAuthToken } from "@/lib/api-client";
 import { buildThemeVars, useThemeStore } from "@/store/theme-store";
@@ -158,6 +159,7 @@ function RootLayout() {
             }}
           >
             <GestureHandlerRootView style={[{ flex: 1 }, themeVars]}>
+              <NotificationProvider />
               <NetworkBanner />
               <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
                 <Stack
@@ -172,6 +174,7 @@ function RootLayout() {
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="(transfer)" />
                   <Stack.Screen name="referral" />
+                  <Stack.Screen name="notifications" />
                 </Stack>
                 <StatusBar style="auto" />
               </ThemeProvider>

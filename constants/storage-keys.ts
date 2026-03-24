@@ -1,6 +1,9 @@
 export const STORAGE_KEYS = {
   REFERRAL_CODE: "referral_code",
   THEME_PRESET: "theme_preset",
+  PUSH_TOKEN: "push_token",
+  DEVICE_ID: "device_id",
+  NOTIFICATION_PERMISSION_ASKED: "notification_permission_asked",
 } as const;
 
 export const SECURE_KEYS = {

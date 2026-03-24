@@ -12,6 +12,7 @@ import { BiometricEnrollmentModal } from "@/components/biometric/biometric-enrol
 import { COLORS } from "@/constants/theme";
 import { useQuery } from "@tanstack/react-query";
 import { getRecentTransactions } from "@/services/transactions";
+import { useUnreadNotificationsQuery } from "@/hooks/use-unread-notifications";
 
 export default function HomeTab() {
   const [balanceVisible, setBalanceVisible] = useState(true);
@@ -20,6 +21,9 @@ export default function HomeTab() {
   const { primary } = useThemeColors();
 
   const { data: account, isLoading, isError, refetch: refetchAccount } = useAccountQuery();
+  const { data: unreadData } = useUnreadNotificationsQuery();
+  const unreadCount = unreadData?.count ?? 0;
+
   const { data: recentTransactions = [] } = useQuery({
     queryKey: ["recentTransactions"],
     queryFn: () => getRecentTransactions(4),
@@ -120,11 +124,19 @@ export default function HomeTab() {
             </Text>
           </View>
           <Pressable
-            className="h-10 w-10 items-center justify-center rounded-full bg-light-surface dark:bg-dark-surface"
+            onPress={() => router.push("/notifications" as never)}
+            className="relative h-10 w-10 items-center justify-center rounded-full bg-light-surface dark:bg-dark-surface"
             accessibilityRole="button"
-            accessibilityLabel="Notifications"
+            accessibilityLabel={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
           >
             <Bell size={20} color={primary} />
+            {unreadCount > 0 && (
+              <View className="absolute -right-1 -top-1 min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 py-0.5">
+                <Text className="text-[10px] font-bold text-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </Text>
+              </View>
+            )}
           </Pressable>
         </Animated.View>
 

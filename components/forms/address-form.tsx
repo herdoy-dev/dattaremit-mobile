@@ -137,6 +137,20 @@ export function AddressForm({
     }
   }, [values, onFieldsComplete]);
 
+  // Auto-correct postal code when validation suggests a different one
+  useEffect(() => {
+    if (validationResult?.validationStatus === "NEEDS_REVIEW" && validationResult.corrections) {
+      const postalCorrection = validationResult.corrections.find((c) => c.field === "postal_code");
+      if (postalCorrection) {
+        setValue("postalCode", postalCorrection.corrected);
+        // If postal code was the only correction, reset validation to re-run with corrected value
+        if (validationResult.corrections.length === 1) {
+          onAcceptCorrections?.();
+        }
+      }
+    }
+  }, [validationResult]);
+
   const handleSubmit = () => {
     if (!validate()) return;
     onSubmit(values);

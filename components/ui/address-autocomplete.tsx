@@ -123,23 +123,14 @@ export function AddressAutocomplete({
         <Animated.View
           entering={FadeIn.duration(200)}
           exiting={FadeOut.duration(150)}
-          className="mt-1 max-h-52 rounded-xl border-2 bg-light-surface dark:bg-dark-surface"
-          style={{
-            borderColor: primary,
-            elevation: 8,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 12,
-            overflow: "hidden",
-            borderRadius: 12,
-          }}
+          className="mt-1 max-h-52 overflow-hidden rounded-xl border bg-light-surface dark:bg-dark-surface"
+          style={{ borderColor: primary }}
         >
           <ScrollView
             bounces={false}
             nestedScrollEnabled
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ padding: 6 }}
+            contentContainerStyle={{ paddingVertical: 4 }}
           >
             {isLoading && suggestions.length === 0 ? (
               <View className="flex-row items-center justify-center px-3.5 py-3">
@@ -164,8 +155,7 @@ export function AddressAutocomplete({
                   onPress={() => handleSelect(item)}
                   accessibilityRole="button"
                   accessibilityLabel={item.description}
-                  className="flex-row items-center rounded-lg px-3.5 py-3"
-                  style={index > 0 ? { marginTop: 2 } : undefined}
+                  className="flex-row items-center px-4 py-3"
                 >
                   <MapPin size={16} color={COLORS.placeholder} />
                   <View className="ml-3 flex-1">
