@@ -12,13 +12,12 @@ export type HardwareStatus = {
 export async function getHardwareStatus(): Promise<HardwareStatus> {
   const hasHardware = await LocalAuthentication.hasHardwareAsync();
   const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-  const authenticationType =
-    await LocalAuthentication.supportedAuthenticationTypesAsync();
+  const authenticationType = await LocalAuthentication.supportedAuthenticationTypesAsync();
   return { hasHardware, isEnrolled, authenticationType };
 }
 
 export async function authenticate(
-  promptMessage: string
+  promptMessage: string,
 ): Promise<{ success: boolean; error?: string }> {
   const result = await LocalAuthentication.authenticateAsync({
     promptMessage,
@@ -44,10 +43,7 @@ export async function getEnrollmentState(userId: string): Promise<boolean> {
   return value === "true";
 }
 
-export async function setEnrollmentState(
-  userId: string,
-  enabled: boolean
-): Promise<void> {
+export async function setEnrollmentState(userId: string, enabled: boolean): Promise<void> {
   await SecureStore.setItemAsync(enabledKey(userId), enabled ? "true" : "false");
   if (enabled) {
     await SecureStore.setItemAsync(SECURE_KEYS.BIOMETRIC_USER_ID, userId);
@@ -72,9 +68,7 @@ export async function clearEnrollment(): Promise<void> {
   await SecureStore.deleteItemAsync(SECURE_KEYS.BIOMETRIC_USER_ID);
 }
 
-export function getBiometricLabel(
-  types: LocalAuthentication.AuthenticationType[]
-): string {
+export function getBiometricLabel(types: LocalAuthentication.AuthenticationType[]): string {
   if (Platform.OS === "ios") {
     if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
       return "Face ID";
@@ -87,7 +81,7 @@ export function getBiometricLabel(
 }
 
 export function getBiometricIconType(
-  types: LocalAuthentication.AuthenticationType[]
+  types: LocalAuthentication.AuthenticationType[],
 ): "face" | "fingerprint" {
   if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
     return "face";

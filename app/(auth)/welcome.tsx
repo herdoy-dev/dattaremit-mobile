@@ -54,18 +54,8 @@ export default function WelcomeScreen() {
             entering={FadeInUp.delay(1000).duration(800).springify()}
             className="gap-3"
           >
-            <Button
-              title="Create Account"
-              onPress={handleRegister}
-              variant="primary"
-              size="lg"
-            />
-            <Button
-              title="Sign In"
-              onPress={handleLogin}
-              variant="outline"
-              size="lg"
-            />
+            <Button title="Create Account" onPress={handleRegister} variant="primary" size="lg" />
+            <Button title="Sign In" onPress={handleLogin} variant="outline" size="lg" />
           </Animated.View>
         </View>
       </SafeAreaView>

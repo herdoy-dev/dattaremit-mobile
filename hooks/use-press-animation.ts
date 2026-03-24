@@ -1,8 +1,4 @@
-import {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 interface PressAnimationOptions {
   scaleDown?: number;
@@ -15,11 +11,7 @@ interface PressAnimationOptions {
  * Returns animatedStyle, onPressIn, and onPressOut handlers.
  */
 export function usePressAnimation(options?: PressAnimationOptions) {
-  const {
-    scaleDown = 0.97,
-    damping = 15,
-    stiffness = 300,
-  } = options ?? {};
+  const { scaleDown = 0.97, damping = 15, stiffness = 300 } = options ?? {};
 
   const scale = useSharedValue(1);
 

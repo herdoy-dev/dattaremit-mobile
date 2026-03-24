@@ -15,13 +15,8 @@ export function AppErrorFallback({ onReset }: AppErrorFallbackProps) {
         An unexpected error occurred. Please try again.
       </Text>
 
-      <Pressable
-        onPress={onReset}
-        className="mb-3 w-full rounded-xl bg-blue-600 py-4"
-      >
-        <Text className="text-center text-base font-semibold text-white">
-          Try Again
-        </Text>
+      <Pressable onPress={onReset} className="mb-3 w-full rounded-xl bg-blue-600 py-4">
+        <Text className="text-center text-base font-semibold text-white">Try Again</Text>
       </Pressable>
     </SafeAreaView>
   );

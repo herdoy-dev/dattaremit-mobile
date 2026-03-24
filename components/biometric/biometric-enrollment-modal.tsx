@@ -11,10 +11,7 @@ interface BiometricEnrollmentModalProps {
   onClose: () => void;
 }
 
-export function BiometricEnrollmentModal({
-  visible,
-  onClose,
-}: BiometricEnrollmentModalProps) {
+export function BiometricEnrollmentModal({ visible, onClose }: BiometricEnrollmentModalProps) {
   const { enable, markPrompted, label, iconType } = useBiometric();
   const { primary } = useThemeColors();
   const BiometricIcon = iconType === "face" ? ScanFace : Fingerprint;
@@ -44,19 +41,14 @@ export function BiometricEnrollmentModal({
           Enable {label}?
         </Text>
 
-        <Text className="text-center text-sm leading-5 text-light-text-secondary dark:text-dark-text-secondary px-2">
-          Use {label} to quickly unlock the app and verify transactions. You can
-          change this anytime in Settings.
+        <Text className="px-2 text-center text-sm leading-5 text-light-text-secondary dark:text-dark-text-secondary">
+          Use {label} to quickly unlock the app and verify transactions. You can change this anytime
+          in Settings.
         </Text>
 
         <View className="mt-2 w-full gap-3">
           <Button title={`Enable ${label}`} onPress={handleEnable} size="lg" />
-          <Button
-            title="Not Now"
-            onPress={handleSkip}
-            variant="ghost"
-            size="lg"
-          />
+          <Button title="Not Now" onPress={handleSkip} variant="ghost" size="lg" />
         </View>
       </View>
     </CustomModal>

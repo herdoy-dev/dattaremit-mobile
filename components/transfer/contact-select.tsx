@@ -29,10 +29,7 @@ export function ContactSelect({
       <ScreenHeader title="Send Money" />
 
       {/* Search */}
-      <Animated.View
-        entering={FadeInDown.delay(100).duration(500)}
-        className="px-6 pt-4"
-      >
+      <Animated.View entering={FadeInDown.delay(100).duration(500)} className="px-6 pt-4">
         <Input
           label="Search Contacts"
           value={searchQuery}
@@ -53,10 +50,7 @@ export function ContactSelect({
             entering={FadeInDown.delay(200 + index * 60).duration(400)}
             className="mb-3"
           >
-            <ContactCard
-              contact={item}
-              onPress={() => onSelectContact(item)}
-            />
+            <ContactCard contact={item} onPress={() => onSelectContact(item)} />
           </Animated.View>
         )}
         ListEmptyComponent={

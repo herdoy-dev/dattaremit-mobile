@@ -21,12 +21,7 @@ interface CustomModalProps {
   snapPoint?: number;
 }
 
-export function CustomModal({
-  visible,
-  onClose,
-  children,
-  snapPoint = 0.5,
-}: CustomModalProps) {
+export function CustomModal({ visible, onClose, children, snapPoint = 0.5 }: CustomModalProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const backdropOpacity = useSharedValue(0);
@@ -91,11 +86,10 @@ export function CustomModal({
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={[{ flex: 1 }, themeVars]}>
-          <Animated.View style={[{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }, backdropStyle]}>
-            <Pressable
-              onPress={onClose}
-              style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}
-            />
+          <Animated.View
+            style={[{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }, backdropStyle]}
+          >
+            <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }} />
           </Animated.View>
 
           <Animated.View

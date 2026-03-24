@@ -84,7 +84,9 @@ declare namespace jest {
       ? JestMockFn<(...args: A) => R>
       : T[K];
   };
-  function fn<T extends (...args: never[]) => unknown = (...args: unknown[]) => unknown>(implementation?: T): JestMockFn<T>;
+  function fn<T extends (...args: never[]) => unknown = (...args: unknown[]) => unknown>(
+    implementation?: T,
+  ): JestMockFn<T>;
   function mock(moduleName: string, factory?: () => unknown, options?: object): void;
   function unmock(moduleName: string): void;
   function spyOn<T extends object, M extends keyof T>(object: T, method: M): JestMockFn;
@@ -150,7 +152,10 @@ declare module "zod" {
     safeParse(data: unknown): ZodSafeParseResult<T>;
     optional(): ZodType<T | undefined>;
     nullable(): ZodType<T | null>;
-    refine(check: (val: T) => boolean, messageOrOpts?: string | { message: string; path?: string[] }): ZodType<T>;
+    refine(
+      check: (val: T) => boolean,
+      messageOrOpts?: string | { message: string; path?: string[] },
+    ): ZodType<T>;
     superRefine(refinement: (val: T, ctx: RefinementCtx) => void): ZodType<T>;
     transform<U>(fn: (val: T) => U): ZodType<U>;
     pipe<U>(schema: ZodType<U>): ZodType<U>;
@@ -165,7 +170,10 @@ declare module "zod" {
     toLowerCase(): ZodString;
     toUpperCase(): ZodString;
     optional(): ZodType<string | undefined>;
-    refine(check: (val: string) => boolean, messageOrOpts?: string | { message: string; path?: string[] }): ZodString;
+    refine(
+      check: (val: string) => boolean,
+      messageOrOpts?: string | { message: string; path?: string[] },
+    ): ZodString;
     superRefine(refinement: (val: string, ctx: RefinementCtx) => void): ZodString;
     transform<U>(fn: (val: string) => U): ZodType<U>;
     pipe<U>(schema: ZodType<U>): ZodType<U>;
@@ -181,9 +189,14 @@ declare module "zod" {
 
   export interface ZodBoolean extends ZodType<boolean> {}
 
-  export interface ZodObject<T extends Record<string, ZodType> = Record<string, ZodType>> extends ZodType<{ [K in keyof T]: T[K] extends ZodType<infer U> ? U : never }> {
+  export interface ZodObject<
+    T extends Record<string, ZodType> = Record<string, ZodType>,
+  > extends ZodType<{ [K in keyof T]: T[K] extends ZodType<infer U> ? U : never }> {
     shape: T;
-    refine(check: (val: { [K in keyof T]: T[K] extends ZodType<infer U> ? U : never }) => boolean, messageOrOpts?: string | { message: string; path?: string[] }): ZodType<{ [K in keyof T]: T[K] extends ZodType<infer U> ? U : never }>;
+    refine(
+      check: (val: { [K in keyof T]: T[K] extends ZodType<infer U> ? U : never }) => boolean,
+      messageOrOpts?: string | { message: string; path?: string[] },
+    ): ZodType<{ [K in keyof T]: T[K] extends ZodType<infer U> ? U : never }>;
   }
 
   export interface ZodEnum<T extends [string, ...string[]]> extends ZodType<T[number]> {}

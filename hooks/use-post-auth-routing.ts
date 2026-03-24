@@ -18,24 +18,21 @@ export function usePostAuthRouting() {
   const { setStep } = useOnboardingStore();
 
   const routeAfterAuth = useCallback(async () => {
-    return Sentry.startSpan(
-      { name: "auth.post_auth_routing", op: "navigation" },
-      async (span) => {
-        try {
-          const accountData = await onboardingService.getAccountStatus();
-          const step = resolveOnboardingStep(accountData);
-          await setStep(step);
-          const route = ONBOARDING_STEP_ROUTES[step] || "/(onboarding)/profile";
-          span.setAttribute("resolved.step", step);
-          span.setAttribute("resolved.route", route);
-          typedReplace(router, route);
-        } catch {
-          span.setStatus({ code: 2, message: "error" });
-          await setStep("profile");
-          router.replace("/(onboarding)/profile");
-        }
-      },
-    );
+    return Sentry.startSpan({ name: "auth.post_auth_routing", op: "navigation" }, async (span) => {
+      try {
+        const accountData = await onboardingService.getAccountStatus();
+        const step = resolveOnboardingStep(accountData);
+        await setStep(step);
+        const route = ONBOARDING_STEP_ROUTES[step] || "/(onboarding)/profile";
+        span.setAttribute("resolved.step", step);
+        span.setAttribute("resolved.route", route);
+        typedReplace(router, route);
+      } catch {
+        span.setStatus({ code: 2, message: "error" });
+        await setStep("profile");
+        router.replace("/(onboarding)/profile");
+      }
+    });
   }, [router, setStep]);
 
   return { routeAfterAuth };

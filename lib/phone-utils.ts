@@ -1,9 +1,7 @@
 import { COUNTRIES } from "@/lib/countries";
 
 // Sort dial codes longest-first so "+880" matches before "+8"
-const dialCodesSorted = [...COUNTRIES].sort(
-  (a, b) => b.dial.length - a.dial.length
-);
+const dialCodesSorted = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
 
 export function splitPhoneNumber(fullPhone: string): {
   prefix: string;
