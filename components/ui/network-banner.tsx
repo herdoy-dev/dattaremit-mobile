@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { Text } from "react-native";
 import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated";
 import { WifiOff } from "lucide-react-native";
+// eslint-disable-next-line import/no-unresolved
 import NetInfo from "@react-native-community/netinfo";
 import { COLORS } from "@/constants/theme";
 

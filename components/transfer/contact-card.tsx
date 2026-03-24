@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View, Text, Pressable } from "react-native";
 import { User, ChevronRight } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
@@ -10,7 +11,7 @@ interface ContactCardProps {
   onPress?: () => void;
 }
 
-export function ContactCard({ contact, onPress }: ContactCardProps) {
+export const ContactCard = memo(function ContactCard({ contact, onPress }: ContactCardProps) {
   const { primary } = useThemeColors();
 
   return (
@@ -37,4 +38,4 @@ export function ContactCard({ contact, onPress }: ContactCardProps) {
       <ChevronRight size={18} color={COLORS.placeholder} />
     </Pressable>
   );
-}
+});

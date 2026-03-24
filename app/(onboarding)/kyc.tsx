@@ -47,10 +47,7 @@ export default function KycScreen() {
       backdropOpacity.value = withTiming(1, { duration: 300 });
       cardScale.value = withSpring(1, { damping: 15, stiffness: 150 });
       cardOpacity.value = withTiming(1, { duration: 300 });
-      iconScale.value = withDelay(
-        200,
-        withSpring(1, { damping: 12, stiffness: 150 }),
-      );
+      iconScale.value = withDelay(200, withSpring(1, { damping: 12, stiffness: 150 }));
       textOpacity.value = withDelay(400, withTiming(1, { duration: 300 }));
       buttonOpacity.value = withDelay(500, withTiming(1, { duration: 300 }));
     }
@@ -102,9 +99,9 @@ export default function KycScreen() {
               Complete Your KYC
             </Text>
             <Text className="text-center text-sm leading-6 text-light-text-secondary dark:text-dark-text-secondary">
-              To comply with financial regulations and keep your account secure,
-              we need to verify your identity. Tap the button below and we'll
-              send a verification link to your registered email.
+              To comply with financial regulations and keep your account secure, we need to verify
+              your identity. Tap the button below and we&apos;ll send a verification link to your
+              registered email.
             </Text>
           </View>
 
@@ -134,14 +131,8 @@ export default function KycScreen() {
         statusBarTranslucent
         accessibilityViewIsModal={true}
       >
-        <View
-          style={[{ flex: 1 }, themeVars]}
-          className="items-center justify-center"
-        >
-          <Animated.View
-            style={backdropStyle}
-            className="absolute inset-0 bg-black/50"
-          />
+        <View style={[{ flex: 1 }, themeVars]} className="items-center justify-center">
+          <Animated.View style={backdropStyle} className="absolute inset-0 bg-black/50" />
 
           <Animated.View
             style={[cardStyle, { backgroundColor: surface }]}
@@ -149,10 +140,7 @@ export default function KycScreen() {
           >
             <View className="items-center">
               <Animated.View
-                style={[
-                  iconStyle,
-                  { backgroundColor: hexToRgba(primary, 0.1) },
-                ]}
+                style={[iconStyle, { backgroundColor: hexToRgba(primary, 0.1) }]}
                 className="mb-6 h-20 w-20 items-center justify-center rounded-full"
               >
                 <Mail size={36} color={primary} />
@@ -175,9 +163,7 @@ export default function KycScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Got it, continue to app"
                 >
-                  <Text className="text-lg font-semibold text-white">
-                    Got it
-                  </Text>
+                  <Text className="text-lg font-semibold text-white">Got it</Text>
                 </Pressable>
               </Animated.View>
             </View>

@@ -21,8 +21,18 @@ const VISIBLE_COUNT = 5;
 const PADDING_ITEMS = 2;
 
 const MONTHS_FULL = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function getDaysInMonth(month: number, year: number): number {
@@ -84,7 +94,7 @@ function PickerColumn({
       const clamped = Math.max(0, Math.min(rawIndex, items.length - 1));
       onSelect(clamped);
     },
-    [items.length, onSelect]
+    [items.length, onSelect],
   );
 
   const handleScrollToIndexFailed = useCallback(
@@ -92,7 +102,7 @@ function PickerColumn({
       const offset = info.index * ITEM_HEIGHT;
       listRef.current?.scrollToOffset({ offset, animated: false });
     },
-    []
+    [],
   );
 
   return (
@@ -163,7 +173,7 @@ export function CustomDatePicker({
   className = "",
 }: CustomDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { primary, border } = useThemeColors();
+  const { primary, border, surface } = useThemeColors();
 
   const today = new Date();
   const parsed = value ? new Date(value) : null;
@@ -230,8 +240,11 @@ export function CustomDatePicker({
 
       <Pressable
         onPress={handleOpen}
-        className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
-        style={{ borderColor: error ? COLORS.error : value ? primary : border }}
+        className="flex-row items-center rounded-xl border-2 px-4 py-3.5"
+        style={{
+          borderColor: error ? COLORS.error : value ? primary : border,
+          backgroundColor: surface,
+        }}
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${formatDisplay() || "not set"}`}
         accessibilityHint="Opens date picker"
@@ -253,7 +266,12 @@ export function CustomDatePicker({
       <CustomModal visible={isOpen} onClose={handleCancel} snapPoint={0.45}>
         {/* Cancel / Title / Done header */}
         <View className="mb-4 flex-row items-center justify-between">
-          <Pressable onPress={handleCancel} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel">
+          <Pressable
+            onPress={handleCancel}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel"
+          >
             <Text className="text-base text-light-text-muted dark:text-dark-text-muted">
               Cancel
             </Text>
@@ -261,7 +279,12 @@ export function CustomDatePicker({
           <Text className="text-base font-semibold text-light-text dark:text-dark-text">
             {label}
           </Text>
-          <Pressable onPress={handleDone} hitSlop={8} accessibilityRole="button" accessibilityLabel="Done">
+          <Pressable
+            onPress={handleDone}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Done"
+          >
             <Text className="text-base font-semibold text-primary">Done</Text>
           </Pressable>
         </View>

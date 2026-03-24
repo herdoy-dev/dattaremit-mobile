@@ -1,21 +1,20 @@
-import { useEffect, useRef, useCallback } from "react";
-import { View, Text, Pressable, Share, ActivityIndicator, AppState } from "react-native";
+import { View, Text, Pressable, Share, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Copy, Share2 } from "lucide-react-native";
+// eslint-disable-next-line import/no-unresolved
 import QRCode from "react-native-qrcode-svg";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
-import * as Clipboard from "expo-clipboard";
 
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { getReceiveInfo } from "@/services/transfer";
 import { useAccountQuery } from "@/hooks/use-account-query";
 import { useThemeColors } from "@/hooks/use-theme-colors";
+import { useClipboardClear } from "@/hooks/use-clipboard-clear";
 import { hexToRgba } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
-import { CLIPBOARD_CLEAR_MS } from "@/constants/limits";
 
 export default function ReceiveScreen() {
   const router = useRouter();
@@ -33,43 +32,7 @@ export default function ReceiveScreen() {
     queryFn: getReceiveInfo,
   });
 
-  const lastCopiedRef = useRef<string | null>(null);
-  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Clear clipboard on app backgrounding
-  useEffect(() => {
-    const sub = AppState.addEventListener("change", (state) => {
-      if (state === "background" && lastCopiedRef.current) {
-        Clipboard.setStringAsync("");
-        lastCopiedRef.current = null;
-      }
-    });
-    return () => {
-      sub.remove();
-      if (clearTimerRef.current) {
-        clearTimeout(clearTimerRef.current);
-      }
-    };
-  }, []);
-
-  const handleCopy = useCallback(async (value: string) => {
-    await Clipboard.setStringAsync(value);
-    lastCopiedRef.current = value;
-
-    if (clearTimerRef.current) {
-      clearTimeout(clearTimerRef.current);
-    }
-
-    // Auto-clear after 60 seconds
-    clearTimerRef.current = setTimeout(async () => {
-      const current = await Clipboard.getStringAsync();
-      if (current === value) {
-        await Clipboard.setStringAsync("");
-        lastCopiedRef.current = null;
-      }
-      clearTimerRef.current = null;
-    }, CLIPBOARD_CLEAR_MS);
-  }, []);
+  const { copy: handleCopy } = useClipboardClear();
 
   async function handleShare() {
     if (!info) return;

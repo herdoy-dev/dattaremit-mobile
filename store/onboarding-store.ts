@@ -85,7 +85,7 @@ export function useOnboardingStore() {
       const targetIndex = STEP_ORDER.indexOf(targetStep);
       return stepIndex >= targetIndex;
     },
-    [stepIndex]
+    [stepIndex],
   );
 
   return {

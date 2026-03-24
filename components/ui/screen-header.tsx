@@ -15,7 +15,7 @@ export function ScreenHeader({ title, onBack }: ScreenHeaderProps) {
   return (
     <Animated.View
       entering={FadeInDown.duration(400)}
-      className="flex-row items-center px-6 pt-4 pb-2"
+      className="flex-row items-center px-6 pb-2 pt-4"
     >
       <Pressable
         onPress={onBack ?? (() => router.back())}
@@ -25,9 +25,7 @@ export function ScreenHeader({ title, onBack }: ScreenHeaderProps) {
       >
         <ArrowLeft size={20} color={COLORS.muted} />
       </Pressable>
-      <Text className="text-xl font-bold text-light-text dark:text-dark-text">
-        {title}
-      </Text>
+      <Text className="text-xl font-bold text-light-text dark:text-dark-text">{title}</Text>
     </Animated.View>
   );
 }

@@ -43,7 +43,7 @@ export function CustomDropdown({
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rotation = useSharedValue(0);
-  const { primary, border } = useThemeColors();
+  const { primary, border, surface } = useThemeColors();
 
   const selectedOption = options.find((o) => o.value === value);
 
@@ -63,7 +63,7 @@ export function CustomDropdown({
       setIsOpen(false);
       rotation.value = withTiming(0, { duration: 200 });
     },
-    [onChange, rotation]
+    [onChange, rotation],
   );
 
   const chevronStyle = useAnimatedStyle(() => ({
@@ -76,8 +76,11 @@ export function CustomDropdown({
 
       <Pressable
         onPress={toggle}
-        className="flex-row items-center justify-between rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
-        style={{ borderColor: error ? COLORS.error : isOpen ? primary : value ? primary : border }}
+        className="flex-row items-center justify-between rounded-xl border-2 px-4 py-3.5"
+        style={{
+          borderColor: error ? COLORS.error : isOpen ? primary : value ? primary : border,
+          backgroundColor: surface,
+        }}
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${selectedOption?.label || "not selected"}`}
         accessibilityState={{ expanded: isOpen }}
@@ -94,7 +97,10 @@ export function CustomDropdown({
           {selectedOption?.label || placeholder}
         </Text>
         <Animated.View style={chevronStyle}>
-          <ChevronDown size={20} color={error ? COLORS.error : isOpen ? primary : COLORS.placeholder} />
+          <ChevronDown
+            size={20}
+            color={error ? COLORS.error : isOpen ? primary : COLORS.placeholder}
+          />
         </Animated.View>
       </Pressable>
 
@@ -102,8 +108,18 @@ export function CustomDropdown({
         <Animated.View
           entering={FadeIn.duration(200)}
           exiting={FadeOut.duration(150)}
-          className="mt-1 max-h-52 rounded-xl border-2 bg-light-surface dark:bg-dark-surface"
-          style={{ borderColor: primary, elevation: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12, overflow: "hidden", borderRadius: 12 }}
+          className="mt-1 max-h-52 rounded-xl border-2"
+          style={{
+            borderColor: primary,
+            elevation: 8,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 12,
+            overflow: "hidden",
+            borderRadius: 12,
+            backgroundColor: surface,
+          }}
         >
           <ScrollView bounces={false} nestedScrollEnabled contentContainerStyle={{ padding: 6 }}>
             {options.map((item, index) => (
@@ -128,9 +144,7 @@ export function CustomDropdown({
                 >
                   {item.label}
                 </Text>
-                {item.value === value && (
-                  <Check size={18} color={primary} />
-                )}
+                {item.value === value && <Check size={18} color={primary} />}
               </Pressable>
             ))}
           </ScrollView>

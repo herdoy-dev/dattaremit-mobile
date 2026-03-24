@@ -8,8 +8,10 @@ import { Mail, ArrowLeft } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
+// eslint-disable-next-line import/no-unresolved
+import { z } from "zod";
 import { useForm } from "@/hooks/use-form";
-import { validateEmail } from "@/lib/validation";
+import { emailSchema } from "@/lib/schemas";
 import { getClerkErrorMessage } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
 import * as Sentry from "@sentry/react-native";
@@ -23,7 +25,7 @@ export default function ForgotPasswordScreen() {
 
   const { values, errors, setValue, validate } = useForm(
     { email: "" },
-    { email: (v) => validateEmail(v) },
+    z.object({ email: emailSchema }),
   );
 
   const handleSubmit = async () => {

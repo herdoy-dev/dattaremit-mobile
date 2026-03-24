@@ -30,6 +30,7 @@ interface InputProps {
   inputClassName?: string;
   textColor?: string;
   textContentType?: TextInput["props"]["textContentType"];
+  backgroundColor?: string;
 }
 
 const AnimatedView = Animated.createAnimatedComponent(View);
@@ -52,6 +53,7 @@ export function Input({
   inputClassName,
   textColor,
   textContentType,
+  backgroundColor,
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const focusProgress = useSharedValue(0);
@@ -68,8 +70,8 @@ export function Input({
     <View className={className}>
       <FieldLabel label={label} className={labelClassName} />
       <AnimatedView
-        style={borderStyle}
-        className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 dark:bg-dark-surface"
+        style={[borderStyle, { backgroundColor: backgroundColor ?? "transparent" }]}
+        className="flex-row items-center rounded-xl border-2 px-4"
       >
         {icon && <View className="mr-3">{icon}</View>}
         <TextInput
@@ -92,7 +94,7 @@ export function Input({
             focusProgress.value = withTiming(0, { duration: 200 });
           }}
           style={textColor ? { color: textColor } : undefined}
-          className={`flex-1 py-3.5 text-base ${textColor ? "" : (inputClassName || "text-light-text dark:text-dark-text")}`}
+          className={`flex-1 py-3.5 text-base ${textColor ? "" : inputClassName || "text-light-text dark:text-dark-text"}`}
           accessibilityLabel={label}
         />
         {secureTextEntry && (

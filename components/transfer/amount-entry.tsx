@@ -45,10 +45,7 @@ export function AmountEntry({
         </Animated.View>
 
         {/* Amount Input */}
-        <Animated.View
-          entering={FadeInDown.delay(100).duration(500)}
-          className="mb-4"
-        >
+        <Animated.View entering={FadeInDown.delay(100).duration(500)} className="mb-4">
           <FieldLabel label="Amount" />
           <View className="flex-row items-center rounded-xl border-2 border-gray-200 bg-light-surface px-4 dark:border-gray-700 dark:bg-dark-surface">
             <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
@@ -81,10 +78,7 @@ export function AmountEntry({
         <View className="flex-1" />
 
         {/* Send Button */}
-        <Animated.View
-          entering={FadeInDown.delay(300).duration(500)}
-          className="pb-10"
-        >
+        <Animated.View entering={FadeInDown.delay(300).duration(500)} className="pb-10">
           <HoldButton onComplete={onSend} loading={isSending} />
         </Animated.View>
       </View>

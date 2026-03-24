@@ -1,10 +1,8 @@
 import { useEffect } from "react";
 import { Stack, useSegments, useRouter } from "expo-router";
-import {
-  useOnboardingStore,
-  type OnboardingStep,
-} from "@/store/onboarding-store";
+import { useOnboardingStore, type OnboardingStep } from "@/store/onboarding-store";
 import { ONBOARDING_STEP_ROUTES } from "@/constants/onboarding-routes";
+import { typedReplace } from "@/lib/navigation";
 
 const SEGMENT_TO_STEP: Record<string, OnboardingStep> = {
   referral: "referral",
@@ -24,7 +22,7 @@ export default function OnboardingLayout() {
     if (step === "completed") {
       const currentSegment = segments[1];
       if (currentSegment !== "kyc") {
-        router.replace("/(tabs)" as never);
+        typedReplace(router, "/(tabs)");
       }
       return;
     }
@@ -34,7 +32,7 @@ export default function OnboardingLayout() {
 
     if (requiredStep && !canAccess(requiredStep)) {
       const correctRoute = ONBOARDING_STEP_ROUTES[step] || "/(onboarding)/profile";
-      router.replace(correctRoute as never);
+      typedReplace(router, correctRoute);
     }
   }, [isLoaded, step, segments, canAccess]);
 

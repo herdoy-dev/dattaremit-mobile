@@ -67,13 +67,7 @@ export function AddressForm({
       postalCode: "",
       state: "",
     },
-    {
-      country: (v) => validateRequired(v, "Country"),
-      city: (v) => validateRequired(v, "City"),
-      street: (v) => validateRequired(v, "Street address"),
-      postalCode: (v) => validatePostalCode(v),
-      state: (v) => validateRequired(v, "State/Province"),
-    },
+    addressSchema,
   );
 
   // Track whether we've already fired onFieldsComplete for current field values

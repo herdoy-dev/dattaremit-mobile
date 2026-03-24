@@ -1,12 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  Modal,
-  Pressable,
-  TextInput,
-  FlatList,
-} from "react-native";
+import { View, Text, Modal, Pressable, TextInput, FlatList } from "react-native";
 import { X, Search } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { COLORS } from "@/constants/theme";
@@ -36,9 +29,7 @@ export function CountryPickerModal({
     const q = search.toLowerCase();
     return COUNTRIES.filter(
       (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.code.toLowerCase().includes(q) ||
-        c.dial.includes(q)
+        c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q) || c.dial.includes(q),
     );
   }, [search]);
 
@@ -63,22 +54,23 @@ export function CountryPickerModal({
     >
       <View style={[{ flex: 1, backgroundColor: surface }, themeVars]}>
         {/* Header */}
-        <View
-          className="flex-row items-center justify-between border-b border-light-border px-5 pb-4 pt-5 dark:border-dark-border"
-        >
+        <View className="flex-row items-center justify-between border-b border-light-border px-5 pb-4 pt-5 dark:border-dark-border">
           <Text className="text-lg font-bold text-light-text dark:text-dark-text">
             Select Country
           </Text>
-          <Pressable onPress={handleClose} hitSlop={8} accessibilityRole="button" accessibilityLabel="Close">
+          <Pressable
+            onPress={handleClose}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          >
             <X size={24} className="text-light-text-muted dark:text-dark-text-muted" />
           </Pressable>
         </View>
 
         {/* Search bar */}
         <View className="px-5 py-3">
-          <View
-            className="flex-row items-center rounded-xl border-2 border-light-border bg-light-surface px-3.5 dark:border-dark-border dark:bg-dark-surface"
-          >
+          <View className="flex-row items-center rounded-xl border-2 border-light-border bg-light-surface px-3.5 dark:border-dark-border dark:bg-dark-surface">
             <Search size={18} color={COLORS.placeholder} />
             <TextInput
               value={search}
@@ -98,9 +90,7 @@ export function CountryPickerModal({
           keyExtractor={(item) => item.code}
           keyboardShouldPersistTaps="handled"
           ItemSeparatorComponent={() => (
-            <View
-              style={{ height: 1, backgroundColor: border, marginLeft: 56 }}
-            />
+            <View style={{ height: 1, backgroundColor: border, marginLeft: 56 }} />
           )}
           renderItem={({ item }) => {
             const isSelected = item.code === selectedCode;
@@ -108,18 +98,12 @@ export function CountryPickerModal({
               <Pressable
                 onPress={() => handleSelect(item)}
                 className="flex-row items-center px-5 py-3.5"
-                style={
-                  isSelected
-                    ? { backgroundColor: hexToRgba(primary, 0.1) }
-                    : undefined
-                }
+                style={isSelected ? { backgroundColor: hexToRgba(primary, 0.1) } : undefined}
                 accessibilityRole="button"
                 accessibilityLabel={`${item.name} ${item.dial}`}
                 accessibilityState={{ selected: isSelected }}
               >
-                <Text style={{ fontSize: 24, width: 36 }}>
-                  {getFlagEmoji(item.code)}
-                </Text>
+                <Text style={{ fontSize: 24, width: 36 }}>{getFlagEmoji(item.code)}</Text>
                 <Text
                   className={`flex-1 text-base ${
                     isSelected

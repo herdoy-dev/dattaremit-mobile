@@ -5,12 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { CustomDropdown } from "@/components/ui/custom-dropdown";
 import { useForm } from "@/hooks/use-form";
-import {
-  validateRequired,
-  validateAccountNumber,
-  validateRoutingNumber,
-  validatePhone,
-} from "@/lib/validation";
+import { bankAccountSchema } from "@/lib/schemas";
 import { COLORS } from "@/constants/theme";
 
 const ACCOUNT_TYPE_OPTIONS = [
@@ -35,20 +30,12 @@ export function ManualBankForm({ onSubmit, isSubmitting, submitError }: ManualBa
       bankAccountType: "",
       phoneNumber: "",
     },
-    {
-      bankName: (v) => validateRequired(v, "Bank name"),
-      accountName: (v) => validateRequired(v, "Account holder name"),
-      accountNumber: (v) => validateAccountNumber(v),
-      ifsc: (v) => validateRoutingNumber(v),
-      branchName: (v) => validateRequired(v, "Branch name"),
-      bankAccountType: (v) => validateRequired(v, "Account type"),
-      phoneNumber: (v) => validatePhone(v),
-    },
+    bankAccountSchema,
   );
 
   const handleSubmit = () => {
     if (!validate()) return;
-    onSubmit({ ...values, ifsc: values.ifsc.toUpperCase() });
+    onSubmit(values);
   };
 
   return (

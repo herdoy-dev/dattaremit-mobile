@@ -32,9 +32,7 @@ interface PhoneInputProps {
 const AnimatedView = Animated.createAnimatedComponent(View);
 
 // Sort dial codes longest-first so "+880" matches before "+8"
-const dialCodesSorted = [...COUNTRIES].sort(
-  (a, b) => b.dial.length - a.dial.length
-);
+const dialCodesSorted = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
 
 export function PhoneInput({
   label,
@@ -45,7 +43,7 @@ export function PhoneInput({
   defaultCountryCode = "US",
   className = "",
 }: PhoneInputProps) {
-  const { primary, border, borderFocus } = useThemeColors();
+  const { border, borderFocus, surface } = useThemeColors();
   const [pickerVisible, setPickerVisible] = useState(false);
   const focusProgress = useSharedValue(0);
 
@@ -59,21 +57,16 @@ export function PhoneInput({
       }
     }
 
-    const fallback =
-      COUNTRIES.find((c) => c.code === defaultCountryCode) || COUNTRIES[0];
+    const fallback = COUNTRIES.find((c) => c.code === defaultCountryCode) || COUNTRIES[0];
     return { selectedCountry: fallback, localNumber: trimmed };
   }, [value, defaultCountryCode]);
 
   const handleCountrySelect = (country: Country) => {
-    onChangePhone(
-      localNumber ? `${country.dial}${localNumber}` : country.dial
-    );
+    onChangePhone(localNumber ? `${country.dial}${localNumber}` : country.dial);
   };
 
   const handleTextChange = (text: string) => {
-    onChangePhone(
-      text ? `${selectedCountry.dial}${text}` : selectedCountry.dial
-    );
+    onChangePhone(text ? `${selectedCountry.dial}${text}` : selectedCountry.dial);
   };
 
   const borderStyle = useAnimatedStyle(() => ({
@@ -87,8 +80,8 @@ export function PhoneInput({
       <FieldLabel label={label} />
 
       <AnimatedView
-        style={borderStyle}
-        className="flex-row items-center rounded-xl border-2 bg-light-surface dark:bg-dark-surface"
+        style={[borderStyle, { backgroundColor: surface }]}
+        className="flex-row items-center rounded-xl border-2"
       >
         {/* Country selector */}
         <Pressable
@@ -97,9 +90,7 @@ export function PhoneInput({
           accessibilityRole="button"
           accessibilityLabel={`Select country code, currently ${selectedCountry.dial}`}
         >
-          <Text style={{ fontSize: 20 }}>
-            {getFlagEmoji(selectedCountry.code)}
-          </Text>
+          <Text style={{ fontSize: 20 }}>{getFlagEmoji(selectedCountry.code)}</Text>
           <Text className="ml-1.5 text-base text-light-text dark:text-dark-text">
             {selectedCountry.dial}
           </Text>

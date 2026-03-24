@@ -54,7 +54,7 @@ export function useBiometric() {
   const enable = useCallback(async (): Promise<boolean> => {
     if (!userId) return false;
     const result = await authenticate(
-      `Enable ${getBiometricLabel(hardwareStatus.authenticationType)}`
+      `Enable ${getBiometricLabel(hardwareStatus.authenticationType)}`,
     );
     if (result.success) {
       await setEnrollmentState(userId, true);
@@ -70,13 +70,10 @@ export function useBiometric() {
     setIsEnabled(false);
   }, [userId]);
 
-  const verify = useCallback(
-    async (promptMessage: string): Promise<boolean> => {
-      const result = await authenticate(promptMessage);
-      return result.success;
-    },
-    []
-  );
+  const verify = useCallback(async (promptMessage: string): Promise<boolean> => {
+    const result = await authenticate(promptMessage);
+    return result.success;
+  }, []);
 
   const hasBeenPrompted = useCallback(async (): Promise<boolean> => {
     if (!userId) return true;

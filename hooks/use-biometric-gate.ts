@@ -6,10 +6,7 @@ interface UseBiometricGateOptions {
   maxAttempts?: number;
 }
 
-export function useBiometricGate({
-  promptMessage,
-  maxAttempts = 3,
-}: UseBiometricGateOptions) {
+export function useBiometricGate({ promptMessage, maxAttempts = 3 }: UseBiometricGateOptions) {
   const { isEnabled, verify } = useBiometric();
   const attemptsRef = useRef(0);
   const [isBlocked, setIsBlocked] = useState(false);
@@ -37,7 +34,7 @@ export function useBiometricGate({
       }
       return false;
     },
-    [isEnabled, isBlocked, verify, promptMessage, maxAttempts]
+    [isEnabled, isBlocked, verify, promptMessage, maxAttempts],
   );
 
   const resetGate = useCallback(() => {

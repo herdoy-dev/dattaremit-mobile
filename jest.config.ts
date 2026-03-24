@@ -22,6 +22,12 @@ const config: Config = {
     "!**/node_modules/**",
   ],
   coverageThreshold: {
+    global: {
+      branches: 0,
+      functions: 0,
+      lines: 0,
+      statements: 0,
+    },
     "./lib/": {
       branches: 80,
       functions: 80,

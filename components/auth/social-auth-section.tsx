@@ -9,11 +9,7 @@ interface SocialAuthSectionProps {
   loadingAction: string | null;
 }
 
-export function SocialAuthSection({
-  onGoogle,
-  onApple,
-  loadingAction,
-}: SocialAuthSectionProps) {
+export function SocialAuthSection({ onGoogle, onApple, loadingAction }: SocialAuthSectionProps) {
   return (
     <>
       {/* Divider */}
@@ -27,10 +23,7 @@ export function SocialAuthSection({
       </Animated.View>
 
       {/* Social Auth Buttons */}
-      <Animated.View
-        entering={FadeInDown.delay(600).duration(600).springify()}
-        className="gap-3"
-      >
+      <Animated.View entering={FadeInDown.delay(600).duration(600).springify()} className="gap-3">
         <Button
           title="Continue with Google"
           onPress={onGoogle}

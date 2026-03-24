@@ -2,16 +2,13 @@ import { isAxiosError } from "axios";
 import type { OnboardingStep } from "@/store/onboarding-store";
 import type { AccountStatusResponse } from "@/types/api";
 
-export const delay = (ms: number) =>
-  new Promise<void>((resolve) => setTimeout(resolve, ms));
+export const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
  * Determines the correct onboarding step based on server account data.
  * Used after login/register to sync local state with server state.
  */
-export function resolveOnboardingStep(
-  accountData: AccountStatusResponse
-): OnboardingStep {
+export function resolveOnboardingStep(accountData: AccountStatusResponse): OnboardingStep {
   const data = accountData?.data;
   if (!data?.user) return "referral";
   if (!data.addresses || data.addresses.length === 0) return "address";

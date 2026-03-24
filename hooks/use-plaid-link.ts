@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Platform } from "react-native";
-import {
-  create,
-  open,
-  LinkSuccess,
-  LinkExit,
-} from "react-native-plaid-link-sdk";
+import { create, open, LinkSuccess, LinkExit } from "react-native-plaid-link-sdk";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as Sentry from "@sentry/react-native";
 import { plaidService } from "@/services/plaid";
@@ -18,12 +13,8 @@ export function usePlaidLink(options?: { onSuccess?: () => void; paymentRail?: s
 
   const tokenMutation = useMutation({
     mutationFn: () =>
-      Sentry.startSpan(
-        { name: "plaid.create_link_token", op: "http.client" },
-        () =>
-          plaidService.createLinkToken(
-            Platform.OS === "android" ? "com.dattapay.mobile" : undefined,
-          ),
+      Sentry.startSpan({ name: "plaid.create_link_token", op: "http.client" }, () =>
+        plaidService.createLinkToken(Platform.OS === "android" ? "com.dattapay.mobile" : undefined),
       ),
     onSuccess: (data) => {
       create({ token: data.data.plaid_token });
@@ -36,9 +27,8 @@ export function usePlaidLink(options?: { onSuccess?: () => void; paymentRail?: s
 
   const exchangeMutation = useMutation({
     mutationFn: (payload: Parameters<typeof plaidService.addExternalAccount>[0]) =>
-      Sentry.startSpan(
-        { name: "plaid.exchange_token", op: "http.client" },
-        () => plaidService.addExternalAccount(payload),
+      Sentry.startSpan({ name: "plaid.exchange_token", op: "http.client" }, () =>
+        plaidService.addExternalAccount(payload),
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["account"] });
@@ -59,9 +49,7 @@ export function usePlaidLink(options?: { onSuccess?: () => void; paymentRail?: s
         const accountName = account?.name || "Bank Account";
 
         exchangeMutation.mutate({
-          accountName: institutionName
-            ? `${institutionName} - ${accountName}`
-            : accountName,
+          accountName: institutionName ? `${institutionName} - ${accountName}` : accountName,
           paymentRail: options?.paymentRail || "ach_pull",
           plaidPublicToken: publicToken,
           plaidAccountId: account?.id ?? "",

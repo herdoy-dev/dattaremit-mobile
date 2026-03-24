@@ -26,7 +26,7 @@ export function CountrySelector({
   className = "",
 }: CountrySelectorProps) {
   const [modalVisible, setModalVisible] = useState(false);
-  const { primary, border } = useThemeColors();
+  const { primary, border, surface } = useThemeColors();
 
   const selectedCountry = COUNTRIES.find((c) => c.code === value);
 
@@ -36,8 +36,11 @@ export function CountrySelector({
 
       <Pressable
         onPress={() => setModalVisible(true)}
-        className="flex-row items-center rounded-xl border-2 bg-light-surface px-4 py-3.5 dark:bg-dark-surface"
-        style={{ borderColor: error ? COLORS.error : value ? primary : border }}
+        className="flex-row items-center rounded-xl border-2 px-4 py-3.5"
+        style={{
+          borderColor: error ? COLORS.error : value ? primary : border,
+          backgroundColor: surface,
+        }}
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${selectedCountry?.name || "not selected"}`}
         accessibilityHint="Opens country picker"

@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, ImageBackground } from "react-native";
+import { Text, Pressable, ScrollView, ImageBackground } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -12,7 +12,7 @@ import * as Sentry from "@sentry/react-native";
 import { useForm } from "@/hooks/use-form";
 import { useSocialAuth } from "@/hooks/use-social-auth";
 import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
-import { validateEmail, validatePassword, validateConfirmPassword } from "@/lib/validation";
+import { registerSchema } from "@/lib/schemas";
 import { getClerkErrorMessage } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
 import { OAUTH_GOOGLE, OAUTH_APPLE } from "@/constants/auth";
@@ -24,11 +24,7 @@ export default function RegisterScreen() {
 
   const { values, errors, setValue, validate } = useForm(
     { email: "", password: "", confirmPassword: "" },
-    {
-      email: (v) => validateEmail(v),
-      password: (v) => validatePassword(v),
-      confirmPassword: (v, all) => validateConfirmPassword(all.password, v),
-    },
+    registerSchema,
   );
 
   const { handleSocialAuth, loadingAction, setLoadingAction, authError, setAuthError } =

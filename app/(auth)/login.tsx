@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, ImageBackground } from "react-native";
+import { Text, Pressable, ScrollView, ImageBackground } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -12,7 +12,7 @@ import * as Sentry from "@sentry/react-native";
 import { useForm } from "@/hooks/use-form";
 import { useSocialAuth } from "@/hooks/use-social-auth";
 import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
-import { validateEmail } from "@/lib/validation";
+import { loginSchema } from "@/lib/schemas";
 import { getClerkErrorMessage } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
 import { OAUTH_GOOGLE, OAUTH_APPLE } from "@/constants/auth";
@@ -22,13 +22,7 @@ export default function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { routeAfterAuth } = usePostAuthRouting();
 
-  const { values, errors, setValue, validate } = useForm(
-    { email: "", password: "" },
-    {
-      email: (v) => validateEmail(v),
-      password: (v) => (v ? null : "Password is required"),
-    },
-  );
+  const { values, errors, setValue, validate } = useForm({ email: "", password: "" }, loginSchema);
 
   const { handleSocialAuth, loadingAction, setLoadingAction, authError, setAuthError } =
     useSocialAuth();
@@ -131,7 +125,7 @@ export default function LoginScreen() {
 
             <Button
               title="Forgot Password?"
-              onPress={() => router.push("/(auth)/forgot-password")}
+              onPress={() => router.push("/(auth)/forgot-password" as never)}
               variant="ghost"
               size="sm"
               className="h-auto self-end px-0"

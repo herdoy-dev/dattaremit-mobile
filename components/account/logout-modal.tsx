@@ -14,9 +14,7 @@ export function LogoutModal({ onLogout, onCancel }: LogoutModalProps) {
       <View className="mb-4 h-14 w-14 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-900/30">
         <LogOut size={28} color={COLORS.error} />
       </View>
-      <Text className="text-xl font-bold text-light-text dark:text-dark-text">
-        Log Out?
-      </Text>
+      <Text className="text-xl font-bold text-light-text dark:text-dark-text">Log Out?</Text>
       <Text className="mt-2 text-center text-sm text-light-text-secondary dark:text-dark-text-secondary">
         Are you sure you want to log out of your account?
       </Text>

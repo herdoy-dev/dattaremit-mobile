@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View, Text, Pressable } from "react-native";
 import { ChevronRight } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
@@ -13,7 +14,7 @@ interface SettingItemProps {
   danger?: boolean;
 }
 
-export function SettingItem({
+export const SettingItem = memo(function SettingItem({
   icon,
   label,
   value,
@@ -32,9 +33,7 @@ export function SettingItem({
     >
       <View
         className={`mr-3.5 h-10 w-10 items-center justify-center rounded-xl ${danger ? "bg-red-100 dark:bg-red-900/30" : ""}`}
-        style={
-          !danger ? { backgroundColor: hexToRgba(primary, 0.1) } : undefined
-        }
+        style={!danger ? { backgroundColor: hexToRgba(primary, 0.1) } : undefined}
       >
         {icon}
       </View>
@@ -50,8 +49,7 @@ export function SettingItem({
           </Text>
         )}
       </View>
-      {rightElement ||
-        (onPress && <ChevronRight size={18} color={COLORS.placeholder} />)}
+      {rightElement || (onPress && <ChevronRight size={18} color={COLORS.placeholder} />)}
     </Pressable>
   );
-}
+});
