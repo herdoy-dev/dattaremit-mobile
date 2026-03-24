@@ -36,14 +36,6 @@ export default function ReferralScreen() {
     await copy(referCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-    // Auto-clear after 60 seconds
-    setTimeout(async () => {
-      const current = await Clipboard.getStringAsync();
-      if (current === referCode) {
-        await Clipboard.setStringAsync("");
-        lastCopiedRef.current = null;
-      }
-    }, 60000);
   };
 
   const handleShare = async () => {

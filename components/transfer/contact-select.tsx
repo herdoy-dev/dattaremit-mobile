@@ -1,4 +1,4 @@
-import { View, Text, FlatList } from "react-native";
+import { Text, FlatList } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Search } from "lucide-react-native";
 import { useQuery } from "@tanstack/react-query";

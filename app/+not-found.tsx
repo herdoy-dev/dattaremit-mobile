@@ -13,7 +13,7 @@ export default function NotFoundScreen() {
           Page Not Found
         </Text>
         <Text className="mt-2 text-center text-sm text-gray-500">
-          The page you're looking for doesn't exist.
+          The page you&apos;re looking for doesn&apos;t exist.
         </Text>
         <View className="mt-6">
           <Button title="Go Home" onPress={() => router.replace("/")} />

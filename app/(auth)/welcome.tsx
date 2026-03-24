@@ -1,17 +1,13 @@
-import { View, Text, ImageBackground } from "react-native";
+import { View, ImageBackground } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
-import { Shield, ArrowRight, Wallet } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/onboarding-store";
-import { useThemeColors } from "@/hooks/use-theme-colors";
-import { hexToRgba } from "@/lib/utils";
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const { advanceStep } = useOnboardingStore();
-  const { primary } = useThemeColors();
 
   const handleLogin = async () => {
     await advanceStep();

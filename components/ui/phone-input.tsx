@@ -43,7 +43,7 @@ export function PhoneInput({
   defaultCountryCode = "US",
   className = "",
 }: PhoneInputProps) {
-  const { primary, border, borderFocus, surface } = useThemeColors();
+  const { border, borderFocus, surface } = useThemeColors();
   const [pickerVisible, setPickerVisible] = useState(false);
   const focusProgress = useSharedValue(0);
 

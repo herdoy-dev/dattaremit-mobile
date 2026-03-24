@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, ImageBackground } from "react-native";
+import { Text, Pressable, ScrollView, ImageBackground } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -125,7 +125,7 @@ export default function LoginScreen() {
 
             <Button
               title="Forgot Password?"
-              onPress={() => router.push("/(auth)/forgot-password")}
+              onPress={() => router.push("/(auth)/forgot-password" as never)}
               variant="ghost"
               size="sm"
               className="h-auto self-end px-0"

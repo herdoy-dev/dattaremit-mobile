@@ -103,7 +103,7 @@ export default function KycScreen() {
             </Text>
             <Text className="text-center text-sm leading-6 text-light-text-secondary dark:text-dark-text-secondary">
               To comply with financial regulations and keep your account secure,
-              we need to verify your identity. Tap the button below and we'll
+              we need to verify your identity. Tap the button below and we&apos;ll
               send a verification link to your registered email.
             </Text>
           </View>

@@ -58,7 +58,7 @@ export function Input({
   const [showPassword, setShowPassword] = useState(false);
   const focusProgress = useSharedValue(0);
   const inputRef = useRef<TextInput>(null);
-  const { border, borderFocus, surface } = useThemeColors();
+  const { border, borderFocus } = useThemeColors();
 
   const borderStyle = useAnimatedStyle(() => ({
     borderColor: error

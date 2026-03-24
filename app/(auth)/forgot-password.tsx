@@ -8,6 +8,7 @@ import { Mail, ArrowLeft } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
+// eslint-disable-next-line import/no-unresolved
 import { z } from "zod";
 import { useForm } from "@/hooks/use-form";
 import { emailSchema } from "@/lib/schemas";

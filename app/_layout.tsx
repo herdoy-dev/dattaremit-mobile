@@ -26,6 +26,7 @@ import { useColorScheme } from "nativewind";
 import { setAuthToken } from "@/lib/api-client";
 import { buildThemeVars, useThemeStore } from "@/store/theme-store";
 import { useEffect } from "react";
+// eslint-disable-next-line import/no-unresolved
 import NetInfo from "@react-native-community/netinfo";
 import { QUERY_RETRY_COUNT, QUERY_STALE_TIME_MS } from "@/constants/api";
 

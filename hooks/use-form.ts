@@ -1,9 +1,9 @@
 import { useState, useCallback } from "react";
-import type { z } from "zod";
+import type { ZodType } from "zod";
 
 export function useForm<T extends Record<string, string>>(
   initialValues: T,
-  schema: z.ZodType<unknown>,
+  schema: ZodType<unknown>,
 ) {
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof T, string | null>>>({});
