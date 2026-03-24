@@ -41,7 +41,7 @@ export function BankSuccessModal({
       textOpacity.value = withDelay(400, withTiming(1, { duration: 300 }));
       buttonOpacity.value = withDelay(500, withTiming(1, { duration: 300 }));
     }
-  }, [visible]);
+  }, [visible, backdropOpacity, buttonOpacity, cardOpacity, cardScale, iconScale, textOpacity]);
 
   const backdropStyle = useAnimatedStyle(() => ({ opacity: backdropOpacity.value }));
   const cardStyle = useAnimatedStyle(() => ({

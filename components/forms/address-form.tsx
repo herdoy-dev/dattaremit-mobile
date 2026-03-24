@@ -9,7 +9,7 @@ import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import { AddressValidationBadge } from "@/components/ui/address-validation-badge";
 import { useForm } from "@/hooks/use-form";
 import { useAddressAutocomplete } from "@/hooks/use-address-autocomplete";
-import { validateRequired, validatePostalCode } from "@/lib/validation";
+import { addressSchema } from "@/lib/schemas";
 import { COLORS } from "@/constants/theme";
 import type { AddressValidationResult } from "@/types/address";
 
@@ -105,7 +105,7 @@ export function AddressForm({
       if (initialValues.street) setValue("street", initialValues.street);
       if (initialValues.postalCode) setValue("postalCode", initialValues.postalCode);
     }
-  }, [initialValues]);
+  }, [initialValues, setValue]);
 
   // Auto-fill all fields when street place details are fetched
   useEffect(() => {
@@ -117,7 +117,7 @@ export function AddressForm({
       if (sc.postalCode) setValue("postalCode", sc.postalCode);
       if (sc.country) setValue("country", sc.country);
     }
-  }, [streetAC.selectedComponents]);
+  }, [streetAC.selectedComponents, setValue]);
 
   // Fire onFieldsComplete when all fields are filled
   useEffect(() => {
@@ -143,7 +143,7 @@ export function AddressForm({
         }
       }
     }
-  }, [validationResult]);
+  }, [validationResult, onAcceptCorrections, setValue]);
 
   const handleSubmit = () => {
     if (!validate()) return;

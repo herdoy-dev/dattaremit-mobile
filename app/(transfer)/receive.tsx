@@ -2,7 +2,6 @@ import { View, Text, Pressable, Share, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Copy, Share2 } from "lucide-react-native";
-// eslint-disable-next-line import/no-unresolved
 import QRCode from "react-native-qrcode-svg";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";

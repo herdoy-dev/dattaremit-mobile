@@ -46,7 +46,7 @@ export default function HomeTab() {
     hasBeenPrompted().then((prompted) => {
       if (!prompted) setShowEnrollment(true);
     });
-  }, [biometricLoaded, biometricEnabled, hardwareStatus]);
+  }, [biometricLoaded, biometricEnabled, hardwareStatus, hasBeenPrompted]);
 
   const user = account?.data?.user;
   const address = account?.data?.addresses?.[0];

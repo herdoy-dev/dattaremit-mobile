@@ -49,7 +49,7 @@ export function ProfileForm({
       if (initialValues.phoneNumber) setValue("phoneNumber", initialValues.phoneNumber);
       if (initialValues.nationality) setValue("nationality", initialValues.nationality);
     }
-  }, [initialValues]);
+  }, [initialValues, setValue]);
 
   const handleSubmit = () => {
     if (!validate()) return;

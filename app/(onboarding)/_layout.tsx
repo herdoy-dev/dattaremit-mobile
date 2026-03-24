@@ -12,7 +12,7 @@ const SEGMENT_TO_STEP: Record<string, OnboardingStep> = {
 };
 
 export default function OnboardingLayout() {
-  const segments = useSegments();
+  const segments = useSegments() as string[];
   const router = useRouter();
   const { step, isLoaded, canAccess } = useOnboardingStore();
 
@@ -27,14 +27,14 @@ export default function OnboardingLayout() {
       return;
     }
 
-    const currentSegment = segments[1];
-    const requiredStep = SEGMENT_TO_STEP[currentSegment as string];
+    const currentSegment = segments[1] as string | undefined;
+    const requiredStep = currentSegment ? SEGMENT_TO_STEP[currentSegment] : undefined;
 
     if (requiredStep && !canAccess(requiredStep)) {
       const correctRoute = ONBOARDING_STEP_ROUTES[step] || "/(onboarding)/profile";
       typedReplace(router, correctRoute);
     }
-  }, [isLoaded, step, segments, canAccess]);
+  }, [isLoaded, step, segments, canAccess, router]);
 
   return (
     <Stack
