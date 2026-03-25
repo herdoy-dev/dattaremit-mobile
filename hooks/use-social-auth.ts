@@ -30,8 +30,12 @@ export function useSocialAuth() {
           }
         });
       } catch (err: unknown) {
-        Sentry.captureException(err);
-        setAuthError(getClerkErrorMessage(err, "Social sign-in failed. Please try again."));
+        const message = getClerkErrorMessage(err, "Social sign-in failed. Please try again.");
+        // Empty message means user cancelled — not an error
+        if (message) {
+          Sentry.captureException(err);
+          setAuthError(message);
+        }
       } finally {
         setLoadingAction(null);
       }

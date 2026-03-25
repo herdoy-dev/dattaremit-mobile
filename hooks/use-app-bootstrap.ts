@@ -40,7 +40,14 @@ export function useAppBootstrap() {
         typedReplace(router, target);
       } catch {
         span.setStatus({ code: 2, message: "error" });
-        typedReplace(router, "/(auth)/welcome");
+        // Use locally cached onboarding step if available, instead of
+        // sending the user back to login on a temporary network error.
+        if (step && step !== "welcome" && step !== "auth") {
+          const fallbackRoute = ONBOARDING_STEP_ROUTES[step] || "/(onboarding)/profile";
+          typedReplace(router, fallbackRoute);
+        } else {
+          typedReplace(router, "/(auth)/welcome");
+        }
       }
     });
   }, [isClerkLoaded, isOnboardingLoaded, isSignedIn]);

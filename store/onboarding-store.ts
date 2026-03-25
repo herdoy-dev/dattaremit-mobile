@@ -43,9 +43,13 @@ function getSnapshot() {
 }
 
 async function loadStep() {
-  const stored = await SecureStore.getItemAsync(STORAGE_KEY);
-  if (stored && STEP_ORDER.includes(stored as OnboardingStep)) {
-    currentStep = stored as OnboardingStep;
+  try {
+    const stored = await SecureStore.getItemAsync(STORAGE_KEY);
+    if (stored && STEP_ORDER.includes(stored as OnboardingStep)) {
+      currentStep = stored as OnboardingStep;
+    }
+  } catch {
+    // SecureStore unavailable — continue with default step
   }
   isLoaded = true;
   emitChange();
@@ -53,8 +57,12 @@ async function loadStep() {
 
 async function setStep(step: OnboardingStep) {
   currentStep = step;
-  await SecureStore.setItemAsync(STORAGE_KEY, step);
   emitChange();
+  try {
+    await SecureStore.setItemAsync(STORAGE_KEY, step);
+  } catch {
+    // SecureStore write failed — in-memory state still updated
+  }
 }
 
 async function advanceStep() {

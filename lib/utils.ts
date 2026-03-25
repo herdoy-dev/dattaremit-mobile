@@ -30,7 +30,30 @@ export function resolveOnboardingStep(accountData: AccountStatusResponse): Onboa
  */
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   if (isAxiosError(error)) {
-    return error.response?.data?.message || fallback;
+    const data = error.response?.data;
+
+    // Standard API response: { message: "..." }
+    if (data?.message && typeof data.message === "string") {
+      return data.message;
+    }
+    // Array format: { errors: [{ message: "..." }] }
+    if (Array.isArray(data?.errors) && data.errors[0]?.message) {
+      return data.errors[0].message;
+    }
+    // Nested format: { error: { message: "..." } }
+    if (data?.error?.message && typeof data.error.message === "string") {
+      return data.error.message;
+    }
+
+    // Network/timeout errors
+    if (error.code === "ECONNABORTED" || error.code === "ERR_CANCELED") {
+      return "Request timed out. Please check your connection and try again.";
+    }
+    if (!error.response) {
+      return "Unable to connect to the server. Please check your internet connection.";
+    }
+
+    return fallback;
   }
   if (error instanceof Error) {
     return error.message || fallback;
@@ -42,16 +65,26 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
  * Extracts a user-friendly error message from Clerk SDK errors.
  */
 export function getClerkErrorMessage(error: unknown, fallback: string): string {
+  // User cancelled the auth flow — not an error
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code: string }).code;
+    if (code === "ERR_CANCELED" || code === "user_cancelled") {
+      return "";
+    }
+  }
+
   if (
     error &&
     typeof error === "object" &&
     "errors" in error &&
     Array.isArray((error as { errors: unknown[] }).errors)
   ) {
-    const clerkErrors = (error as { errors: { longMessage?: string }[] }).errors;
-    if (clerkErrors[0]?.longMessage) {
-      return clerkErrors[0].longMessage;
-    }
+    const clerkErrors = (
+      error as { errors: { longMessage?: string; message?: string; code?: string }[] }
+    ).errors;
+    const first = clerkErrors[0];
+    if (first?.longMessage) return first.longMessage;
+    if (first?.message) return first.message;
   }
   if (error instanceof Error) {
     return error.message || fallback;

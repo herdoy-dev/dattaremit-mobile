@@ -20,12 +20,12 @@ export async function getNotifications(
   params: NotificationFilters = {},
 ): Promise<PaginatedNotifications> {
   const response = await apiClient.get("/notifications", { params });
-  return response.data?.data ?? { items: [], total: 0, limit: 20, offset: 0 };
+  return response.data?.data;
 }
 
 export async function getUnreadCount(): Promise<{ count: number }> {
   const response = await apiClient.get("/notifications/unread-count");
-  return response.data?.data ?? { count: 0 };
+  return response.data?.data;
 }
 
 export async function markAsRead(id: string): Promise<Notification> {
