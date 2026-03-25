@@ -1,12 +1,19 @@
 import { useEffect, useRef, useCallback } from "react";
 import { Platform, AppState } from "react-native";
-import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
-import Constants from "expo-constants";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Sentry from "@sentry/react-native";
 import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { registerDevice, unregisterDevice as unregisterDeviceApi } from "@/services/notifications";
+
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+// Only import expo-notifications in non-Expo Go environments
+let Notifications: typeof import("expo-notifications") | null = null;
+if (!isExpoGo) {
+  Notifications = require("expo-notifications");
+}
 
 const MAX_RETRIES = 3;
 
@@ -15,6 +22,8 @@ async function delay(ms: number) {
 }
 
 async function getExpoPushToken(): Promise<string | null> {
+  if (!Notifications) return null;
+
   const projectId = Constants.expoConfig?.extra?.eas?.projectId;
   if (!projectId) {
     Sentry.captureMessage("Missing EAS projectId for push notifications", "warning");
@@ -54,6 +63,7 @@ export function usePushNotifications(isSignedIn: boolean) {
   const registeredRef = useRef(false);
 
   const register = useCallback(async () => {
+    if (!Notifications) return;
     if (!Device.isDevice) return;
     if (registeredRef.current) return;
 
