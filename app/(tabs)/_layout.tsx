@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { View, Platform } from "react-native";
+import { View, Platform, ActivityIndicator } from "react-native";
 import { Home, Activity, UserCircle } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useColorScheme } from "nativewind";
@@ -16,7 +16,13 @@ export default function TabLayout() {
   const { isReady } = useAuthGuard();
   useOnboardingGuard();
 
-  if (!isReady) return null;
+  if (!isReady) {
+    return (
+      <View className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
+        <ActivityIndicator size="large" color={primary} />
+      </View>
+    );
+  }
 
   return (
     <Tabs

@@ -11,6 +11,7 @@ import { ErrorBanner } from "@/components/ui/error-banner";
 import { z } from "zod";
 import { useForm } from "@/hooks/use-form";
 import { emailSchema, passwordSchema } from "@/lib/schemas";
+import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
 import { getClerkErrorMessage } from "@/lib/utils";
 import { COLORS } from "@/constants/theme";
 import * as Sentry from "@sentry/react-native";
@@ -20,6 +21,7 @@ type Step = "email" | "code";
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { routeAfterAuth } = usePostAuthRouting();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<Step>("email");
   const [authError, setAuthError] = useState<string | null>(null);
@@ -67,7 +69,7 @@ export default function ForgotPasswordScreen() {
 
       if (result.status === "complete" && result.createdSessionId) {
         await setActive({ session: result.createdSessionId });
-        router.replace("/(tabs)");
+        await routeAfterAuth();
       }
     } catch (err: unknown) {
       Sentry.captureException(err);
