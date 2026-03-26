@@ -176,7 +176,7 @@ describe("resolveOnboardingStep", () => {
         accountStatus: "SOME_UNKNOWN_STATUS",
         hasBankAccount: false,
       },
-    } as AccountStatusResponse;
+    } as unknown as AccountStatusResponse;
     expect(resolveOnboardingStep(data)).toBe("profile");
   });
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import Constants, { ExecutionEnvironment } from "expo-constants";
+import * as ExpoNotifications from "expo-notifications";
 import { useRouter, usePathname } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Sentry from "@sentry/react-native";
@@ -14,10 +15,9 @@ export function setCurrentPathname(path: string) {
   currentPathname = path;
 }
 
-let Notifications: typeof import("expo-notifications") | null = null;
-if (!isExpoGo) {
-  Notifications = require("expo-notifications");
+const Notifications = isExpoGo ? null : ExpoNotifications;
 
+if (Notifications) {
   // Configure foreground behavior: show both system push and in-app banner,
   // except when on the notifications screen (WhatsApp-like suppression)
   Notifications.setNotificationHandler({
