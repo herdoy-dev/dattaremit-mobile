@@ -111,6 +111,7 @@ function NotificationIcon({ type, color }: { type: string; color: string }) {
     case "KYC_APPROVED":
     case "ACCOUNT_ACTIVATED":
     case "TRANSACTION_COMPLETED":
+    case "PROFILE_UPDATED":
       return <CheckCircle2 size={size} color={color} />;
     case "KYC_REJECTED":
     case "KYC_FAILED":
@@ -120,6 +121,7 @@ function NotificationIcon({ type, color }: { type: string; color: string }) {
     case "TRANSACTION_INITIATED":
       return <Clock size={size} color={color} />;
     case "SYSTEM_ALERT":
+    case "PASSWORD_CHANGED":
       return <AlertTriangle size={size} color={color} />;
     case "PROMOTIONAL":
       return <Megaphone size={size} color={color} />;

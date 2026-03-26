@@ -5,9 +5,10 @@ const SUCCESS_TYPES = [
   "ACCOUNT_ACTIVATED",
   "TRANSACTION_COMPLETED",
   "REFERRAL_BONUS",
+  "PROFILE_UPDATED",
 ];
 const ERROR_TYPES = ["KYC_REJECTED", "KYC_FAILED", "TRANSACTION_FAILED"];
-const PENDING_TYPES = ["KYC_PENDING", "TRANSACTION_INITIATED", "SYSTEM_ALERT"];
+const PENDING_TYPES = ["KYC_PENDING", "TRANSACTION_INITIATED", "SYSTEM_ALERT", "PASSWORD_CHANGED"];
 
 export function getNotificationColor(type?: string): string {
   if (!type) return COLORS.muted;
@@ -23,6 +24,7 @@ export function getNotificationRoute(type?: string): string {
   if (type.startsWith("KYC_")) return "/(tabs)/account";
   if (type.startsWith("TRANSACTION_")) return "/(tabs)/activity";
   if (type === "ACCOUNT_ACTIVATED") return "/(tabs)";
+  if (type === "PROFILE_UPDATED" || type === "PASSWORD_CHANGED") return "/(tabs)/account";
   return "/notifications";
 }
 

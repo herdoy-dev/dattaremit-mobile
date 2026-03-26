@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import Constants, { ExecutionEnvironment } from "expo-constants";
-import { useRouter } from "expo-router";
+import { useRouter, usePathname } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Sentry from "@sentry/react-native";
 import { showBanner } from "@/store/notification-banner-store";
@@ -8,27 +8,45 @@ import { getNotificationRoute } from "@/lib/notification-helpers";
 
 const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
+// Module-level state shared with setNotificationHandler
+let currentPathname = "";
+export function setCurrentPathname(path: string) {
+  currentPathname = path;
+}
+
 let Notifications: typeof import("expo-notifications") | null = null;
 if (!isExpoGo) {
   Notifications = require("expo-notifications");
 
-  // Configure foreground behavior: suppress system notification, use in-app banner instead
+  // Configure foreground behavior: show both system push and in-app banner,
+  // except when on the notifications screen (WhatsApp-like suppression)
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: false,
-      shouldPlaySound: false,
-      shouldSetBadge: false,
-      shouldShowBanner: false,
-      shouldShowList: false,
-    }),
+    handleNotification: async () => {
+      const isOnNotificationsScreen = currentPathname === "/notifications";
+      return {
+        shouldShowAlert: !isOnNotificationsScreen,
+        shouldPlaySound: !isOnNotificationsScreen,
+        shouldSetBadge: false,
+        shouldShowBanner: !isOnNotificationsScreen,
+        shouldShowList: !isOnNotificationsScreen,
+      };
+    },
   });
 }
 
 export function useNotificationHandler() {
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const responseListenerRef = useRef<{ remove(): void } | null>(null);
   const receivedListenerRef = useRef<{ remove(): void } | null>(null);
+  const pathnameRef = useRef(pathname);
+
+  // Keep refs in sync so listener callbacks always have the latest value
+  useEffect(() => {
+    pathnameRef.current = pathname;
+    setCurrentPathname(pathname);
+  }, [pathname]);
 
   useEffect(() => {
     if (!Notifications) return;
@@ -44,14 +62,22 @@ export function useNotificationHandler() {
         level: "info",
       });
 
-      showBanner({
-        title: title ?? "New notification",
-        body: body ?? "",
-        type: data?.type as string | undefined,
-        data: data as Record<string, string> | undefined,
-      });
+      const isOnNotificationsScreen = pathnameRef.current === "/notifications";
 
-      // Refresh unread count
+      if (isOnNotificationsScreen) {
+        // Smart suppression: skip banner, refresh list directly
+        queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
+      } else {
+        // Show in-app banner alongside the system push notification
+        showBanner({
+          title: title ?? "New notification",
+          body: body ?? "",
+          type: data?.type as string | undefined,
+          data: data as Record<string, string> | undefined,
+        });
+      }
+
+      // Always refresh unread count
       queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
     });
 
