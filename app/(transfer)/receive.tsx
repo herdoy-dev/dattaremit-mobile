@@ -26,7 +26,11 @@ export default function ReceiveScreen() {
   // Only non-US users can receive money
   const isRestricted = account && address?.country === "US";
 
-  const { data: info, isLoading: isInfoLoading } = useQuery({
+  const {
+    data: info,
+    isLoading: isInfoLoading,
+    isError: isInfoError,
+  } = useQuery({
     queryKey: ["receiveInfo"],
     queryFn: getReceiveInfo,
   });
@@ -50,6 +54,22 @@ export default function ReceiveScreen() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
         <ActivityIndicator size="large" color={primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (isInfoError) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg px-6 dark:bg-dark-bg">
+        <Text className="text-center text-lg font-bold text-light-text dark:text-dark-text">
+          Unable to load receive info
+        </Text>
+        <Text className="mt-2 text-center text-base text-light-text-secondary dark:text-dark-text-secondary">
+          Please make sure your bank account is linked and try again.
+        </Text>
+        <View className="mt-4">
+          <Button title="Go Back" onPress={() => router.back()} />
+        </View>
       </SafeAreaView>
     );
   }

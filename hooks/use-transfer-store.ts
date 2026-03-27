@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { randomUUID } from "expo-crypto";
 import type { Contact } from "@/services/transfer";
 
@@ -12,7 +12,6 @@ export function useTransferStore() {
   const [note, setNote] = useState("");
   const [amountError, setAmountError] = useState<string | null>(null);
   const [transactionId, setTransactionId] = useState("");
-  const sendingRef = useRef(false);
 
   const selectContact = useCallback((contact: Contact) => {
     setSelectedContact(contact);
@@ -53,7 +52,6 @@ export function useTransferStore() {
     transactionId,
     markSuccess,
     goBackToSelect,
-    sendingRef,
     generateIdempotencyKey,
   };
 }

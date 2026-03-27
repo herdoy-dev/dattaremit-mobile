@@ -36,32 +36,38 @@ export default function SendScreen() {
     onSuccess: (data) => {
       transfer.markSuccess(data.transactionId);
     },
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || "Transfer failed. Please try again.";
+      transfer.setAmountError(message);
+    },
   });
 
   async function handleSend() {
-    if (transfer.sendingRef.current) return;
+    if (mutation.isPending) return;
     const result = amountSchema.safeParse(transfer.amount);
     if (!result.success) {
       transfer.setAmountError(result.error.issues[0].message);
       return;
     }
+
+    const amountCents = Math.round(parseFloat(transfer.amount) * 100);
+    if (amountCents < 100 || amountCents > 1000000) {
+      transfer.setAmountError("Amount must be between $1.00 and $10,000.00");
+      return;
+    }
+
     transfer.setAmountError(null);
     if (!transfer.selectedContact) return;
 
-    transfer.sendingRef.current = true;
     const idempotencyKey = transfer.generateIdempotencyKey();
-    try {
-      await gate(() => {
-        mutation.mutate({
-          contactId: transfer.selectedContact!.id,
-          amountCents: Math.round(parseFloat(transfer.amount) * 100),
-          note: transfer.note || undefined,
-          _idempotencyKey: idempotencyKey,
-        });
+    await gate(async () => {
+      await mutation.mutateAsync({
+        contactId: transfer.selectedContact!.id,
+        amountCents,
+        note: transfer.note || undefined,
+        _idempotencyKey: idempotencyKey,
       });
-    } finally {
-      transfer.sendingRef.current = false;
-    }
+    });
   }
 
   if (isLoading) {

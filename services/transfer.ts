@@ -16,9 +16,15 @@ export interface SendMoneyPayload {
 }
 
 export interface SendMoneyResponse {
-  success: boolean;
   transactionId: string;
-  timestamp: string;
+  zynkTransactionId: string;
+  status: string;
+  quote: {
+    sendAmount: { amount: number; currency: string };
+    receiveAmount: { amount: number; currency: string };
+    exchangeRate: { rate: number; conversion: string };
+    fees: { amount: number; currency: string };
+  };
 }
 
 export interface ReceiveInfo {
