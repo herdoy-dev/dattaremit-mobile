@@ -67,6 +67,16 @@ export function usePushNotifications(isSignedIn: boolean) {
     if (!Device.isDevice) return;
     if (registeredRef.current) return;
 
+    // Set up default notification channel for Android (required for Android 8+)
+    if (Platform.OS === "android" && Notifications) {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "Default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#E6F4FE",
+      });
+    }
+
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 

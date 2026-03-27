@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "357910168865",
+    "project_id": "dattaremit-f605a",
+    "storage_bucket": "dattaremit-f605a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:357910168865:android:7811373284f0c56205aa60",
+        "android_client_info": {
+          "package_name": "com.dattapay.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbLXEm_aVahMn7QeZSEy9TsJPkJw4oLR8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
