@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import Constants, { ExecutionEnvironment } from "expo-constants";
-import * as ExpoNotifications from "expo-notifications";
 import { useRouter, usePathname } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Sentry from "@sentry/react-native";
@@ -15,7 +14,11 @@ export function setCurrentPathname(path: string) {
   currentPathname = path;
 }
 
-const Notifications = isExpoGo ? null : ExpoNotifications;
+// Dynamically require expo-notifications only outside Expo Go to avoid
+// the SDK 53+ crash where remote notification support was removed from Expo Go.
+const Notifications = isExpoGo
+  ? null
+  : (require("expo-notifications") as typeof import("expo-notifications"));
 
 if (Notifications) {
   // Configure foreground behavior: show both system push and in-app banner,
