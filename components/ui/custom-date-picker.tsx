@@ -173,7 +173,7 @@ export function CustomDatePicker({
   className = "",
 }: CustomDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { primary, border, surface } = useThemeColors();
+  const { primary, border } = useThemeColors();
 
   const today = new Date();
   const parsed = value ? new Date(value) : null;
@@ -243,7 +243,7 @@ export function CustomDatePicker({
         className="flex-row items-center rounded-xl border-2 px-4 py-3.5"
         style={{
           borderColor: error ? COLORS.error : value ? primary : border,
-          backgroundColor: surface,
+          backgroundColor: "transparent",
         }}
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${formatDisplay() || "not set"}`}
