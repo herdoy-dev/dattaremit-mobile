@@ -3,6 +3,7 @@ import { View, Text, FlatList, Pressable, ActivityIndicator } from "react-native
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Search, Filter } from "lucide-react-native";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { TransactionItem } from "@/components/ui/transaction-item";
@@ -68,12 +69,10 @@ export default function ActivityTab() {
   const renderEmpty = useCallback(
     () =>
       !isLoading ? (
-        <View className="items-center justify-center py-16">
-          <Filter size={48} color={COLORS.placeholder} />
-          <Text className="mt-4 text-base font-medium text-light-text-muted dark:text-dark-text-muted">
-            No transactions found
-          </Text>
-        </View>
+        <EmptyState
+          icon={<Filter size={48} color={COLORS.placeholder} />}
+          title="No transactions found"
+        />
       ) : null,
     [isLoading],
   );

@@ -2,20 +2,19 @@ import { ScrollView, KeyboardAvoidingView, Platform, View, ActivityIndicator } f
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2 } from "lucide-react-native";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { ManualBankForm } from "@/components/bank/manual-bank-form";
-import { BankSuccessModal } from "@/components/bank/bank-success-modal";
+import { SuccessModal } from "@/components/ui/success-modal";
 import { addRecipientBank } from "@/services/recipient";
-import { getApiErrorMessage } from "@/lib/utils";
+import { getApiErrorMessage, hexToRgba } from "@/lib/utils";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-import { buildThemeVars } from "@/store/theme-store";
 import { useState } from "react";
 
 export default function RecipientBankScreen() {
   const router = useRouter();
   const { recipientId } = useLocalSearchParams<{ recipientId: string }>();
-  const { primary, surface, rawColors } = useThemeColors();
-  const themeVars = buildThemeVars(rawColors);
+  const { primary } = useThemeColors();
   const queryClient = useQueryClient();
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -77,12 +76,13 @@ export default function RecipientBankScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <BankSuccessModal
+      <SuccessModal
         visible={showSuccessModal}
         onDismiss={() => router.back()}
-        primary={primary}
-        surface={surface}
-        themeVars={themeVars}
+        icon={<CheckCircle2 size={36} color="#16a34a" />}
+        iconBackgroundColor={hexToRgba("#22c55e", 0.1)}
+        title="Bank Account Linked!"
+        description="Your bank account has been successfully connected. You can now send and receive transfers."
       />
     </SafeAreaView>
   );

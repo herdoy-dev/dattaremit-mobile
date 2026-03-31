@@ -1,39 +1,25 @@
-import { useEffect, useState } from "react";
-import { View, Text, Modal, Pressable } from "react-native";
+import { useState } from "react";
+import { View, Text } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Animated, {
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, Mail } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
+import { IconCircle } from "@/components/ui/icon-circle";
+import { SuccessModal } from "@/components/ui/success-modal";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { hexToRgba, getApiErrorMessage } from "@/lib/utils";
-import { buildThemeVars } from "@/store/theme-store";
 
 export default function KycScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setStep } = useOnboardingStore();
-  const { primary, surface, rawColors } = useThemeColors();
-  const themeVars = buildThemeVars(rawColors);
+  const { primary } = useThemeColors();
 
   const [showModal, setShowModal] = useState(false);
-
-  const backdropOpacity = useSharedValue(0);
-  const cardScale = useSharedValue(0.85);
-  const cardOpacity = useSharedValue(0);
-  const iconScale = useSharedValue(0);
-  const textOpacity = useSharedValue(0);
-  const buttonOpacity = useSharedValue(0);
 
   const kycMutation = useMutation({
     mutationFn: onboardingService.requestKycLink,
@@ -41,38 +27,6 @@ export default function KycScreen() {
       setShowModal(true);
     },
   });
-
-  useEffect(() => {
-    if (showModal) {
-      backdropOpacity.value = withTiming(1, { duration: 300 });
-      cardScale.value = withSpring(1, { damping: 15, stiffness: 150 });
-      cardOpacity.value = withTiming(1, { duration: 300 });
-      iconScale.value = withDelay(200, withSpring(1, { damping: 12, stiffness: 150 }));
-      textOpacity.value = withDelay(400, withTiming(1, { duration: 300 }));
-      buttonOpacity.value = withDelay(500, withTiming(1, { duration: 300 }));
-    }
-  }, [showModal, backdropOpacity, buttonOpacity, cardOpacity, cardScale, iconScale, textOpacity]);
-
-  const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value,
-  }));
-
-  const cardStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: cardScale.value }],
-    opacity: cardOpacity.value,
-  }));
-
-  const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: iconScale.value }],
-  }));
-
-  const textStyle = useAnimatedStyle(() => ({
-    opacity: textOpacity.value,
-  }));
-
-  const buttonStyle = useAnimatedStyle(() => ({
-    opacity: buttonOpacity.value,
-  }));
 
   const handleGotIt = async () => {
     await setStep("completed");
@@ -87,12 +41,7 @@ export default function KycScreen() {
           entering={FadeInDown.delay(200).duration(600).springify()}
           className="items-center gap-6"
         >
-          <View
-            className="h-24 w-24 items-center justify-center rounded-full"
-            style={{ backgroundColor: hexToRgba(primary, 0.1) }}
-          >
-            <ShieldCheck size={48} color={primary} />
-          </View>
+          <IconCircle icon={<ShieldCheck size={48} color={primary} />} size="xl" color={primary} />
 
           <View className="items-center gap-2">
             <Text className="text-center text-lg font-semibold text-light-text dark:text-dark-text">
@@ -123,53 +72,14 @@ export default function KycScreen() {
         </Animated.View>
       </View>
 
-      {/* Success Modal */}
-      <Modal
+      <SuccessModal
         visible={showModal}
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        accessibilityViewIsModal={true}
-      >
-        <View style={[{ flex: 1 }, themeVars]} className="items-center justify-center">
-          <Animated.View style={backdropStyle} className="absolute inset-0 bg-black/50" />
-
-          <Animated.View
-            style={[cardStyle, { backgroundColor: surface }]}
-            className="mx-8 rounded-3xl p-8"
-          >
-            <View className="items-center">
-              <Animated.View
-                style={[iconStyle, { backgroundColor: hexToRgba(primary, 0.1) }]}
-                className="mb-6 h-20 w-20 items-center justify-center rounded-full"
-              >
-                <Mail size={36} color={primary} />
-              </Animated.View>
-
-              <Animated.View style={textStyle} className="items-center">
-                <Text className="text-xl font-bold text-light-text dark:text-dark-text">
-                  KYC Link Sent!
-                </Text>
-                <Text className="mt-3 text-center text-sm leading-6 text-light-text-secondary dark:text-dark-text-secondary">
-                  Please check your email and complete the KYC verification to get started.
-                </Text>
-              </Animated.View>
-
-              <Animated.View style={buttonStyle} className="mt-8 w-full">
-                <Pressable
-                  onPress={handleGotIt}
-                  className="h-14 items-center justify-center rounded-full"
-                  style={{ backgroundColor: primary }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Got it, continue to app"
-                >
-                  <Text className="text-lg font-semibold text-white">Got it</Text>
-                </Pressable>
-              </Animated.View>
-            </View>
-          </Animated.View>
-        </View>
-      </Modal>
+        onDismiss={handleGotIt}
+        icon={<Mail size={36} color={primary} />}
+        iconBackgroundColor={hexToRgba(primary, 0.1)}
+        title="KYC Link Sent!"
+        description="Please check your email and complete the KYC verification to get started."
+      />
     </SafeAreaView>
   );
 }

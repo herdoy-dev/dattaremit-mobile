@@ -3,6 +3,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { CheckCircle } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { Button } from "@/components/ui/button";
+import { IconCircle } from "@/components/ui/icon-circle";
 import { COLORS } from "@/constants/theme";
 
 interface SendSuccessProps {
@@ -23,9 +24,11 @@ export function SendSuccess({
   return (
     <View className="flex-1 items-center justify-center px-6">
       <Animated.View entering={FadeInDown.delay(100).duration(500)} className="items-center">
-        <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-          <CheckCircle size={48} color={COLORS.success} />
-        </View>
+        <IconCircle
+          icon={<CheckCircle size={48} color={COLORS.success} />}
+          color={COLORS.success}
+          className="mb-6"
+        />
         <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
           Transfer Successful
         </Text>

@@ -7,24 +7,31 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { CheckCircle2 } from "lucide-react-native";
-import { hexToRgba } from "@/lib/utils";
+import { useThemeColors } from "@/hooks/use-theme-colors";
+import { buildThemeVars } from "@/store/theme-store";
 
-interface BankSuccessModalProps {
+interface SuccessModalProps {
   visible: boolean;
   onDismiss: () => void;
-  primary: string;
-  surface: string;
-  themeVars: Record<string, string>;
+  icon: React.ReactNode;
+  iconBackgroundColor: string;
+  title: string;
+  description: string;
+  buttonText?: string;
 }
 
-export function BankSuccessModal({
+export function SuccessModal({
   visible,
   onDismiss,
-  primary,
-  surface,
-  themeVars,
-}: BankSuccessModalProps) {
+  icon,
+  iconBackgroundColor,
+  title,
+  description,
+  buttonText = "Got it",
+}: SuccessModalProps) {
+  const { primary, surface, rawColors } = useThemeColors();
+  const themeVars = buildThemeVars(rawColors);
+
   const backdropOpacity = useSharedValue(0);
   const cardScale = useSharedValue(0.85);
   const cardOpacity = useSharedValue(0);
@@ -69,19 +76,16 @@ export function BankSuccessModal({
         >
           <View className="items-center">
             <Animated.View
-              style={[iconStyle, { backgroundColor: hexToRgba("#22c55e", 0.1) }]}
+              style={[iconStyle, { backgroundColor: iconBackgroundColor }]}
               className="mb-6 h-20 w-20 items-center justify-center rounded-full"
             >
-              <CheckCircle2 size={36} color="#16a34a" />
+              {icon}
             </Animated.View>
 
             <Animated.View style={textStyle} className="items-center">
-              <Text className="text-xl font-bold text-light-text dark:text-dark-text">
-                Bank Account Linked!
-              </Text>
+              <Text className="text-xl font-bold text-light-text dark:text-dark-text">{title}</Text>
               <Text className="mt-3 text-center text-sm leading-6 text-light-text-secondary dark:text-dark-text-secondary">
-                Your bank account has been successfully connected. You can now send and receive
-                transfers.
+                {description}
               </Text>
             </Animated.View>
 
@@ -91,9 +95,9 @@ export function BankSuccessModal({
                 className="h-14 items-center justify-center rounded-full"
                 style={{ backgroundColor: primary }}
                 accessibilityRole="button"
-                accessibilityLabel="Got it, continue to app"
+                accessibilityLabel={buttonText}
               >
-                <Text className="text-lg font-semibold text-white">Got it</Text>
+                <Text className="text-lg font-semibold text-white">{buttonText}</Text>
               </Pressable>
             </Animated.View>
           </View>

@@ -1,8 +1,9 @@
-import { View, Text } from "react-native";
+import { Text } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { ShieldCheck } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { Button } from "@/components/ui/button";
+import { IconCircle } from "@/components/ui/icon-circle";
 import type { AccountStatus } from "@/types/api";
 
 interface KycGateViewProps {
@@ -18,12 +19,7 @@ export function KycGateView({ accountStatus, primary }: KycGateViewProps) {
       entering={FadeInDown.delay(200).duration(600).springify()}
       className="items-center gap-5 pt-8"
     >
-      <View
-        className="h-20 w-20 items-center justify-center rounded-full"
-        style={{ backgroundColor: `${primary}15` }}
-      >
-        <ShieldCheck size={36} color={primary} />
-      </View>
+      <IconCircle icon={<ShieldCheck size={36} color={primary} />} color={primary} />
 
       <Text className="text-2xl font-bold text-light-text dark:text-dark-text">
         Verify Your Identity

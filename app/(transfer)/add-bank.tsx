@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { CheckCircle2 } from "lucide-react-native";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { useAccountQuery } from "@/hooks/use-account-query";
 import { usePlaidLink } from "@/hooks/use-plaid-link";
@@ -9,13 +10,12 @@ import { useBiometricGate } from "@/hooks/use-biometric-gate";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { KycGateView } from "@/components/bank/kyc-gate-view";
 import { PlaidBankFlow } from "@/components/bank/plaid-bank-flow";
-import { BankSuccessModal } from "@/components/bank/bank-success-modal";
-import { buildThemeVars } from "@/store/theme-store";
+import { SuccessModal } from "@/components/ui/success-modal";
+import { hexToRgba } from "@/lib/utils";
 
 export default function AddBankScreen() {
   const router = useRouter();
-  const { primary, surface, rawColors } = useThemeColors();
-  const themeVars = buildThemeVars(rawColors);
+  const { primary } = useThemeColors();
 
   const { data: account, isLoading: isAccountLoading } = useAccountQuery();
   const accountStatus = account?.data?.accountStatus;
@@ -64,12 +64,13 @@ export default function AddBankScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <BankSuccessModal
+      <SuccessModal
         visible={showSuccessModal}
         onDismiss={() => router.back()}
-        primary={primary}
-        surface={surface}
-        themeVars={themeVars}
+        icon={<CheckCircle2 size={36} color="#16a34a" />}
+        iconBackgroundColor={hexToRgba("#22c55e", 0.1)}
+        title="Bank Account Linked!"
+        description="Your bank account has been successfully connected. You can now send and receive transfers."
       />
     </SafeAreaView>
   );

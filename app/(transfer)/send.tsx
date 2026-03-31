@@ -1,5 +1,6 @@
-import { KeyboardAvoidingView, Platform, ActivityIndicator, View, Text } from "react-native";
+import { KeyboardAvoidingView, Platform, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
@@ -70,11 +71,7 @@ export default function SendScreen() {
   }
 
   if (isLoading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
-        <ActivityIndicator size="large" color={primary} />
-      </SafeAreaView>
-    );
+    return <LoadingScreen />;
   }
 
   if (!hasBankConnected) {

@@ -1,6 +1,8 @@
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { UserPlus } from "lucide-react-native";
+import { UserPlus, Users } from "lucide-react-native";
+import { EmptyState } from "@/components/ui/empty-state";
+import { COLORS } from "@/constants/theme";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -66,9 +68,11 @@ export function RecipientList({ onSelectRecipient, onAddBank }: RecipientListPro
             </Animated.View>
           )}
           ListEmptyComponent={
-            <Text className="mt-8 text-center text-sm text-light-text-muted dark:text-dark-text-muted">
-              No recipients yet. Add one to get started.
-            </Text>
+            <EmptyState
+              icon={<Users size={48} color={COLORS.placeholder} />}
+              title="No recipients yet"
+              description="Add one to get started"
+            />
           }
         />
       )}

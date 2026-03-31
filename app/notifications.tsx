@@ -3,6 +3,7 @@ import { View, Text, FlatList, Pressable, RefreshControl, ActivityIndicator } fr
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ArrowLeft, BellOff, CheckCheck } from "lucide-react-native";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useThemeColors } from "@/hooks/use-theme-colors";
 import { NotificationItem } from "@/components/ui/notification-item";
 import {
@@ -118,15 +119,11 @@ export default function NotificationsScreen() {
             <View className="h-px bg-light-surface dark:bg-dark-surface" />
           )}
           ListEmptyComponent={
-            <View className="flex-1 items-center justify-center px-8 pt-24">
-              <BellOff size={48} color={COLORS.muted} />
-              <Text className="mt-4 text-center text-base font-medium text-light-text-muted dark:text-dark-text-muted">
-                No notifications yet
-              </Text>
-              <Text className="mt-1 text-center text-sm text-light-text-muted/60 dark:text-dark-text-muted/60">
-                We will notify you about important updates
-              </Text>
-            </View>
+            <EmptyState
+              icon={<BellOff size={48} color={COLORS.muted} />}
+              title="No notifications yet"
+              description="We will notify you about important updates"
+            />
           }
           ListFooterComponent={
             isFetchingNextPage ? (

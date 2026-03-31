@@ -1,5 +1,6 @@
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
 import { Send, Landmark, Eye, EyeOff, Bell, CheckCircle2 } from "lucide-react-native";
 import { useState, useMemo, useEffect, useRef } from "react";
@@ -68,11 +69,7 @@ export default function HomeTab() {
   }
 
   if (isLoading) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
-        <ActivityIndicator size="large" color={primary} />
-      </SafeAreaView>
-    );
+    return <LoadingScreen />;
   }
 
   if (isError) {

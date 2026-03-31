@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { View, Text, TextInput, ImageBackground, Pressable } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,16 +6,10 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSignUp, useSignIn } from "@clerk/clerk-expo";
 import * as Sentry from "@sentry/react-native";
 import { Button } from "@/components/ui/button";
+import { useCodeInput } from "@/hooks/use-code-input";
 import { usePostAuthRouting } from "@/hooks/use-post-auth-routing";
 import { getClerkErrorMessage } from "@/lib/utils";
-import {
-  MAX_VERIFY_ATTEMPTS,
-  RESEND_COOLDOWN_SECONDS,
-  VERIFICATION_CODE_LENGTH,
-} from "@/constants/limits";
 import { EMAIL_CODE_STRATEGY } from "@/constants/auth";
-
-const CODE_LENGTH = VERIFICATION_CODE_LENGTH;
 
 export default function VerifyEmailScreen() {
   const { flow } = useLocalSearchParams<{ flow?: string }>();
@@ -25,59 +19,20 @@ export default function VerifyEmailScreen() {
   const { signUp, setActive: setActiveSignUp, isLoaded: isSignUpLoaded } = useSignUp();
   const { signIn, setActive: setActiveSignIn, isLoaded: isSignInLoaded } = useSignIn();
 
-  const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(""));
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cooldownSeconds, setCooldownSeconds] = useState(0);
-  const [attempts, setAttempts] = useState(0);
-
-  const inputs = useRef<(TextInput | null)[]>([]);
-
-  // Cooldown timer
-  useEffect(() => {
-    if (cooldownSeconds <= 0) return;
-    const timer = setTimeout(() => setCooldownSeconds((s) => s - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [cooldownSeconds]);
 
   const isLoaded = isSignIn ? isSignInLoaded : isSignUpLoaded;
   const displayEmail = isSignIn ? signIn?.identifier : signUp?.emailAddress;
 
-  const handleChange = (text: string, index: number) => {
-    const digit = text.replace(/[^0-9]/g, "").slice(-1);
-    const newCode = [...code];
-    newCode[index] = digit;
-    setCode(newCode);
-    setError(null);
+  const handleVerify = async (verificationCode: string) => {
+    if (!isLoaded) return;
 
-    if (digit && index < CODE_LENGTH - 1) {
-      inputs.current[index + 1]?.focus();
-    }
-
-    if (digit && index === CODE_LENGTH - 1 && newCode.every((d) => d)) {
-      handleVerify(newCode.join(""));
-    }
-  };
-
-  const handleKeyPress = (key: string, index: number) => {
-    if (key === "Backspace" && !code[index] && index > 0) {
-      inputs.current[index - 1]?.focus();
-      const newCode = [...code];
-      newCode[index - 1] = "";
-      setCode(newCode);
-    }
-  };
-
-  const handleVerify = async (verificationCode?: string) => {
-    const finalCode = verificationCode || code.join("");
-    if (finalCode.length !== CODE_LENGTH || !isLoaded) return;
-
-    if (attempts >= MAX_VERIFY_ATTEMPTS) {
+    if (codeInput.tooManyAttempts) {
       setError("Too many attempts. Please request a new code.");
       return;
     }
-    setAttempts((a) => a + 1);
+    codeInput.setAttempts((a) => a + 1);
 
     setLoading(true);
     setError(null);
@@ -86,7 +41,7 @@ export default function VerifyEmailScreen() {
       if (isSignIn) {
         const result = await signIn!.attemptFirstFactor({
           strategy: EMAIL_CODE_STRATEGY,
-          code: finalCode,
+          code: verificationCode,
         });
 
         const sessionId = result.createdSessionId ?? signIn!.createdSessionId;
@@ -98,7 +53,7 @@ export default function VerifyEmailScreen() {
         }
       } else {
         const result = await signUp!.attemptEmailAddressVerification({
-          code: finalCode,
+          code: verificationCode,
         });
 
         const sessionId = result.createdSessionId ?? signUp!.createdSessionId;
@@ -106,14 +61,11 @@ export default function VerifyEmailScreen() {
           await setActiveSignUp!({ session: sessionId });
           await routeAfterAuth();
         } else if (result.status === "missing_requirements") {
-          // Email verified but Clerk wants additional required fields.
-          // Attempt to complete by providing placeholder values for missing fields.
           try {
             await signUp!.update({
               firstName: signUp!.firstName || "User",
               lastName: signUp!.lastName || "User",
             });
-            // After update, check if sign-up is now complete
             if (signUp!.status === "complete" && signUp!.createdSessionId) {
               await setActiveSignUp!({ session: signUp!.createdSessionId });
               await routeAfterAuth();
@@ -135,12 +87,13 @@ export default function VerifyEmailScreen() {
     }
   };
 
-  const handleResend = async () => {
-    if (!isLoaded || resending || cooldownSeconds > 0) return;
+  const codeInput = useCodeInput({ onComplete: handleVerify });
 
-    setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
-    setAttempts(0);
-    setResending(true);
+  const handleResend = async () => {
+    if (!isLoaded || codeInput.resending || codeInput.cooldownSeconds > 0) return;
+
+    codeInput.startCooldown();
+    codeInput.setResending(true);
     setError(null);
 
     try {
@@ -161,7 +114,7 @@ export default function VerifyEmailScreen() {
       Sentry.captureException(err);
       setError(getClerkErrorMessage(err, "Failed to resend code. Please try again."));
     } finally {
-      setResending(false);
+      codeInput.setResending(false);
     }
   };
 
@@ -172,7 +125,6 @@ export default function VerifyEmailScreen() {
       resizeMode="cover"
     >
       <SafeAreaView className="flex-1 justify-center px-6">
-        {/* Logo */}
         <Animated.Image
           entering={FadeInDown.delay(100).duration(600).springify()}
           source={require("@/assets/images/logo.png")}
@@ -192,20 +144,22 @@ export default function VerifyEmailScreen() {
           </Text>
         </Animated.View>
 
-        {/* Code Inputs */}
         <Animated.View
           entering={FadeInDown.delay(400).duration(600).springify()}
           className="mb-6 flex-row justify-center gap-3"
         >
-          {code.map((digit, index) => (
+          {codeInput.code.map((digit, index) => (
             <TextInput
               key={index}
               ref={(ref) => {
-                inputs.current[index] = ref;
+                codeInput.inputs.current[index] = ref;
               }}
               value={digit}
-              onChangeText={(text) => handleChange(text, index)}
-              onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
+              onChangeText={(text) => {
+                setError(null);
+                codeInput.handleChange(text, index);
+              }}
+              onKeyPress={({ nativeEvent }) => codeInput.handleKeyPress(nativeEvent.key, index)}
               keyboardType="number-pad"
               maxLength={1}
               selectTextOnFocus
@@ -227,19 +181,22 @@ export default function VerifyEmailScreen() {
         <Animated.View entering={FadeInDown.delay(600).duration(600).springify()} className="gap-4">
           <Button
             title="Verify"
-            onPress={() => handleVerify()}
+            onPress={() => handleVerify(codeInput.code.join(""))}
             loading={loading}
-            disabled={code.some((d) => !d) || loading}
+            disabled={!codeInput.isComplete || loading}
             size="lg"
           />
 
           <View className="flex-row items-center justify-center">
             <Text className="text-sm text-white/70">Didn&apos;t receive the code? </Text>
-            <Pressable onPress={handleResend} disabled={resending || cooldownSeconds > 0}>
+            <Pressable
+              onPress={handleResend}
+              disabled={codeInput.resending || codeInput.cooldownSeconds > 0}
+            >
               <Text className="text-sm font-semibold text-white">
-                {cooldownSeconds > 0
-                  ? `Resend in ${cooldownSeconds}s`
-                  : resending
+                {codeInput.cooldownSeconds > 0
+                  ? `Resend in ${codeInput.cooldownSeconds}s`
+                  : codeInput.resending
                     ? "Sending..."
                     : "Resend"}
               </Text>
