@@ -3,12 +3,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { User, Mail, Phone, MapPin, Building2 } from "lucide-react-native";
+import { User, Mail, Phone } from "lucide-react-native";
 import { CustomDatePicker } from "@/components/ui/custom-date-picker";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { AddressFields } from "@/components/forms/address-fields";
 import { useForm } from "@/hooks/use-form";
 import { addRecipientSchema } from "@/lib/schemas";
 import { createRecipient } from "@/services/recipient";
@@ -26,8 +27,7 @@ export default function AddRecipientScreen() {
       email: "",
       phoneNumber: "+91",
       dateOfBirth: "",
-      addressLine1: "",
-      addressLine2: "",
+      street: "",
       city: "",
       state: "",
       postalCode: "",
@@ -56,8 +56,7 @@ export default function AddRecipientScreen() {
         phoneNumberPrefix,
         phoneNumber,
         dateOfBirth: new Date(values.dateOfBirth).toISOString(),
-        addressLine1: values.addressLine1.trim(),
-        addressLine2: values.addressLine2?.trim() || undefined,
+        addressLine1: values.street.trim(),
         city: values.city.trim(),
         state: values.state.trim(),
         postalCode: values.postalCode.trim(),
@@ -138,54 +137,7 @@ export default function AddRecipientScreen() {
               error={errors.dateOfBirth}
             />
 
-            <Input
-              label="Address Line 1"
-              value={values.addressLine1}
-              onChangeText={(t) => setValue("addressLine1", t)}
-              placeholder="Street address"
-              autoCapitalize="words"
-              error={errors.addressLine1}
-              icon={<MapPin size={20} color={COLORS.placeholder} />}
-            />
-
-            <Input
-              label="Address Line 2 (Optional)"
-              value={values.addressLine2}
-              onChangeText={(t) => setValue("addressLine2", t)}
-              placeholder="Apartment, suite, etc."
-              autoCapitalize="words"
-              error={errors.addressLine2}
-            />
-
-            <Input
-              label="City"
-              value={values.city}
-              onChangeText={(t) => setValue("city", t)}
-              placeholder="Enter city"
-              autoCapitalize="words"
-              error={errors.city}
-              icon={<Building2 size={20} color={COLORS.placeholder} />}
-            />
-
-            <Input
-              label="State"
-              value={values.state}
-              onChangeText={(t) => setValue("state", t)}
-              placeholder="Enter state"
-              autoCapitalize="words"
-              error={errors.state}
-              icon={<Building2 size={20} color={COLORS.placeholder} />}
-            />
-
-            <Input
-              label="Postal Code"
-              value={values.postalCode}
-              onChangeText={(t) => setValue("postalCode", t)}
-              placeholder="Enter postal code"
-              keyboardType="number-pad"
-              error={errors.postalCode}
-              icon={<MapPin size={20} color={COLORS.placeholder} />}
-            />
+            <AddressFields values={values} errors={errors} setValue={setValue} />
 
             {mutation.isError && (
               <ErrorBanner

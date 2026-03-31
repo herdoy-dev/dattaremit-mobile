@@ -1,16 +1,11 @@
 import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { MapPin, Building2, Hash } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
-// Country is fixed to US — no selector needed
-import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import { AddressValidationBadge } from "@/components/ui/address-validation-badge";
+import { AddressFields } from "@/components/forms/address-fields";
 import { useForm } from "@/hooks/use-form";
-import { useAddressAutocomplete } from "@/hooks/use-address-autocomplete";
 import { addressSchema } from "@/lib/schemas";
-import { COLORS } from "@/constants/theme";
 import type { AddressValidationResult } from "@/types/address";
 
 export interface AddressFormValues {
@@ -73,30 +68,6 @@ export function AddressForm({
   // Track whether we've already fired onFieldsComplete for current field values
   const lastCompletedRef = useRef<string>("");
 
-  // Country is always US
-  const country = "US" as const;
-
-  // Three independent autocomplete instances
-  const stateAC = useAddressAutocomplete({
-    country,
-    types: "(regions)",
-    mode: "simple",
-  });
-
-  const cityAC = useAddressAutocomplete({
-    country,
-    locationContext: { state: values.state },
-    types: "(cities)",
-    mode: "simple",
-  });
-
-  const streetAC = useAddressAutocomplete({
-    country,
-    locationContext: { state: values.state, city: values.city },
-    types: "address",
-    mode: "full",
-  });
-
   useEffect(() => {
     if (initialValues) {
       if (initialValues.country) setValue("country", initialValues.country);
@@ -106,18 +77,6 @@ export function AddressForm({
       if (initialValues.postalCode) setValue("postalCode", initialValues.postalCode);
     }
   }, [initialValues, setValue]);
-
-  // Auto-fill all fields when street place details are fetched
-  useEffect(() => {
-    const sc = streetAC.selectedComponents;
-    if (sc) {
-      if (sc.street) setValue("street", sc.street);
-      if (sc.city) setValue("city", sc.city);
-      if (sc.state) setValue("state", sc.state);
-      if (sc.postalCode) setValue("postalCode", sc.postalCode);
-      if (sc.country) setValue("country", sc.country);
-    }
-  }, [streetAC.selectedComponents, setValue]);
 
   // Fire onFieldsComplete when all fields are filled
   useEffect(() => {
@@ -150,21 +109,6 @@ export function AddressForm({
     onSubmit(values);
   };
 
-  const handleStreetChange = (text: string) => {
-    setValue("street", text);
-    streetAC.onSearchChange(text);
-  };
-
-  const handleStateChange = (text: string) => {
-    setValue("state", text);
-    stateAC.onSearchChange(text);
-  };
-
-  const handleCityChange = (text: string) => {
-    setValue("city", text);
-    cityAC.onSearchChange(text);
-  };
-
   const handleAcceptCorrections = useCallback(() => {
     if (validationResult?.corrections) {
       for (const correction of validationResult.corrections) {
@@ -181,58 +125,13 @@ export function AddressForm({
     <>
       {headerSlot}
       <Animated.View entering={FadeInDown.delay(200).duration(600).springify()} className="gap-5">
-        <AddressAutocomplete
-          label="State / Province"
-          value={values.state}
-          onChangeText={handleStateChange}
-          suggestions={stateAC.suggestions}
-          onSelect={(p) => setValue("state", p.mainText)}
-          isLoading={stateAC.isSearching}
-          placeholder="Enter state or province"
-          emptyText="No states found"
-          error={errors.state}
-          icon={<Building2 size={20} color={COLORS.placeholder} />}
-          className="z-40"
-        />
-
-        <AddressAutocomplete
-          label="City"
-          value={values.city}
-          onChangeText={handleCityChange}
-          suggestions={cityAC.suggestions}
-          onSelect={(p) => setValue("city", p.mainText)}
-          isLoading={cityAC.isSearching}
-          placeholder="Enter your city"
-          emptyText="No cities found"
-          error={errors.city}
-          icon={<MapPin size={20} color={COLORS.placeholder} />}
-          className="z-30"
-        />
-
-        <AddressAutocomplete
-          label="Street Address"
-          value={values.street}
-          onChangeText={handleStreetChange}
-          suggestions={streetAC.suggestions}
-          onSelect={(p) => {
-            setValue("street", p.mainText);
-            streetAC.onSelect(p);
+        <AddressFields
+          values={values}
+          errors={errors}
+          setValue={setValue}
+          onAutoFill={(sc) => {
+            if (sc.country) setValue("country", sc.country);
           }}
-          isLoading={streetAC.isSearching}
-          placeholder="Enter your street address"
-          error={errors.street}
-          icon={<MapPin size={20} color={COLORS.placeholder} />}
-          className="z-50"
-        />
-
-        <Input
-          label="Postal Code"
-          value={values.postalCode}
-          onChangeText={(t) => setValue("postalCode", t)}
-          placeholder="Enter postal code"
-          keyboardType="number-pad"
-          error={errors.postalCode}
-          icon={<Hash size={20} color={COLORS.placeholder} />}
         />
 
         {(validationResult || isValidating) && (
