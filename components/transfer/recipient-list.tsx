@@ -1,4 +1,4 @@
-import { View, Text, FlatList, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { UserPlus, Users } from "lucide-react-native";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -20,7 +20,12 @@ export function RecipientList({ onSelectRecipient, onAddBank }: RecipientListPro
   const router = useRouter();
   const { primary } = useThemeColors();
 
-  const { data: recipients = [], isLoading } = useQuery({
+  const {
+    data: recipients = [],
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useQuery({
     queryKey: ["recipients"],
     queryFn: getRecipients,
   });
@@ -59,6 +64,13 @@ export function RecipientList({ onSelectRecipient, onAddBank }: RecipientListPro
           keyExtractor={(item) => item.id}
           contentContainerClassName="px-6 pt-4 pb-8"
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={() => refetch()}
+              tintColor={primary}
+            />
+          }
           renderItem={({ item, index }) => (
             <Animated.View
               entering={FadeInDown.delay(200 + index * 60).duration(400)}

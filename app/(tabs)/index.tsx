@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
@@ -21,14 +21,31 @@ export default function HomeTab() {
   const router = useRouter();
   const { primary } = useThemeColors();
 
-  const { data: account, isLoading, isError, refetch: refetchAccount } = useAccountQuery();
-  const { data: unreadData } = useUnreadNotificationsQuery();
+  const {
+    data: account,
+    isLoading,
+    isError,
+    isRefetching: isAccountRefetching,
+    refetch: refetchAccount,
+  } = useAccountQuery();
+  const { data: unreadData, refetch: refetchUnread } = useUnreadNotificationsQuery();
   const unreadCount = unreadData?.count ?? 0;
 
-  const { data: recentTransactions = [] } = useQuery({
+  const {
+    data: recentTransactions = [],
+    isRefetching: isTxRefetching,
+    refetch: refetchTx,
+  } = useQuery({
     queryKey: ["recentTransactions"],
     queryFn: () => getRecentTransactions(4),
   });
+
+  const isRefreshing = isAccountRefetching || isTxRefetching;
+  const handleRefresh = () => {
+    refetchAccount();
+    refetchTx();
+    refetchUnread();
+  };
   const {
     isLoaded: biometricLoaded,
     isEnabled: biometricEnabled,
@@ -97,6 +114,9 @@ export default function HomeTab() {
         className="flex-1"
         contentContainerClassName="pb-8"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={primary} />
+        }
       >
         {/* Top Bar */}
         <Animated.View

@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Switch } from "react-native";
+import { View, Text, ScrollView, Switch, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -67,7 +67,7 @@ export default function AccountTab() {
   const showBiometricSetting =
     biometricLoaded && hardwareStatus.hasHardware && hardwareStatus.isEnrolled;
 
-  const { data: account, isLoading } = useAccountQuery();
+  const { data: account, isLoading, isRefetching, refetch } = useAccountQuery();
 
   const user = account?.data?.user;
   const address = account?.data?.addresses?.[0];
@@ -90,6 +90,13 @@ export default function AccountTab() {
         className="flex-1"
         contentContainerClassName="pb-8"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={() => refetch()}
+            tintColor={primary}
+          />
+        }
       >
         {/* Header */}
         <View className="px-6 pb-2 pt-4">

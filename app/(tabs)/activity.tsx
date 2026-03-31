@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { View, Text, FlatList, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, Pressable, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Search, Filter } from "lucide-react-native";
@@ -25,22 +25,23 @@ export default function ActivityTab() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-    queryKey: [
-      "transactions",
-      activeFilter === "all" ? undefined : activeFilter,
-      searchQuery || undefined,
-    ],
-    queryFn: ({ pageParam }) =>
-      getTransactions({
-        cursor: pageParam ?? undefined,
-        limit: PAGE_SIZE,
-        type: activeFilter === "all" ? undefined : activeFilter,
-        search: searchQuery || undefined,
-      }),
-    initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isRefetching, refetch } =
+    useInfiniteQuery({
+      queryKey: [
+        "transactions",
+        activeFilter === "all" ? undefined : activeFilter,
+        searchQuery || undefined,
+      ],
+      queryFn: ({ pageParam }) =>
+        getTransactions({
+          cursor: pageParam ?? undefined,
+          limit: PAGE_SIZE,
+          type: activeFilter === "all" ? undefined : activeFilter,
+          search: searchQuery || undefined,
+        }),
+      initialPageParam: null as string | null,
+      getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.nextCursor : undefined),
+    });
 
   const transactions = data?.pages.flatMap((page) => page.data) ?? [];
 
@@ -136,6 +137,13 @@ export default function ActivityTab() {
         keyExtractor={keyExtractor}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={() => refetch()}
+            tintColor={primary}
+          />
+        }
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32, paddingTop: 8 }}
