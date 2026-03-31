@@ -6,12 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { CustomDatePicker } from "@/components/ui/custom-date-picker";
-import { CountrySelector } from "@/components/ui/country-selector";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { useForm } from "@/hooks/use-form";
 import { profileSchema, type ProfileFormValues } from "@/lib/schemas";
 import { COLORS } from "@/constants/theme";
-import { COUNTRIES } from "@/lib/countries";
 
 interface ProfileFormProps {
   initialValues?: Partial<ProfileFormValues>;
@@ -35,8 +33,8 @@ export function ProfileForm({
       firstName: "",
       lastName: "",
       dateOfBirth: "",
-      phoneNumber: "",
-      nationality: "",
+      phoneNumber: "+1",
+      nationality: "US",
     },
     profileSchema,
   );
@@ -88,20 +86,6 @@ export function ProfileForm({
           value={values.dateOfBirth}
           onChange={(d) => setValue("dateOfBirth", d)}
           error={errors.dateOfBirth}
-        />
-
-        <CountrySelector
-          label="Nationality"
-          value={values.nationality}
-          onChange={(v) => {
-            setValue("nationality", v);
-            const country = COUNTRIES.find((c) => c.code === v);
-            if (country) {
-              setValue("phoneNumber", country.dial);
-            }
-          }}
-          placeholder="Select your nationality"
-          error={errors.nationality}
         />
 
         <PhoneInput

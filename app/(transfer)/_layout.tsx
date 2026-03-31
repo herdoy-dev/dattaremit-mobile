@@ -16,8 +16,9 @@ export default function TransferLayout() {
       }}
     >
       <Stack.Screen name="send" />
-      <Stack.Screen name="receive" />
       <Stack.Screen name="add-bank" />
+      <Stack.Screen name="add-recipient" />
+      <Stack.Screen name="recipient-bank" />
     </Stack>
   );
 }

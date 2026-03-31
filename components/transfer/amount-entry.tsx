@@ -3,14 +3,14 @@ import Animated, { FadeInDown, FadeInRight } from "react-native-reanimated";
 import { Input } from "@/components/ui/input";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { HoldButton } from "@/components/ui/hold-button";
-import { ContactCard } from "@/components/transfer/contact-card";
+import { RecipientCard } from "@/components/transfer/recipient-card";
 import { FieldError } from "@/components/ui/field-error";
 import { FieldLabel } from "@/components/ui/field-label";
-import type { Contact } from "@/services/transfer";
+import type { Recipient } from "@/services/recipient";
 import { COLORS } from "@/constants/theme";
 
 interface AmountEntryProps {
-  selectedContact: Contact;
+  selectedRecipient: Recipient;
   amount: string;
   onAmountChange: (text: string) => void;
   amountError: string | null;
@@ -23,7 +23,7 @@ interface AmountEntryProps {
 }
 
 export function AmountEntry({
-  selectedContact,
+  selectedRecipient,
   amount,
   onAmountChange,
   amountError,
@@ -39,9 +39,9 @@ export function AmountEntry({
       <ScreenHeader title="Send Money" />
 
       <View className="flex-1 px-6 pt-4">
-        {/* Selected Contact */}
+        {/* Selected Recipient */}
         <Animated.View entering={FadeInRight.duration(400)} className="mb-6">
-          <ContactCard contact={selectedContact} onPress={onBack} />
+          <RecipientCard recipient={selectedRecipient} onPress={onBack} />
         </Animated.View>
 
         {/* Amount Input */}

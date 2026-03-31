@@ -12,7 +12,4 @@ export function getFlagEmoji(countryCode: string): string {
   return String.fromCodePoint(...codePoints);
 }
 
-export const COUNTRIES: Country[] = [
-  { code: "US", name: "United States", dial: "+1" },
-  { code: "IN", name: "India", dial: "+91" },
-];
+export const COUNTRIES: Country[] = [{ code: "US", name: "United States", dial: "+1" }];

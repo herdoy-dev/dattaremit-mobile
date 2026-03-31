@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
 import { Landmark } from "lucide-react-native";
-import { ContactSelect } from "@/components/transfer/contact-select";
+import { RecipientList } from "@/components/transfer/recipient-list";
 import { AmountEntry } from "@/components/transfer/amount-entry";
 import { SendSuccess } from "@/components/transfer/send-success";
 import { sendMoney } from "@/services/transfer";
@@ -15,14 +15,13 @@ import { useTransferStore } from "@/hooks/use-transfer-store";
 import { amountSchema } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { ScreenHeader } from "@/components/ui/screen-header";
+import type { Recipient } from "@/services/recipient";
 
 export default function SendScreen() {
   const router = useRouter();
   const { primary } = useThemeColors();
 
   const { data: account, isLoading } = useAccountQuery();
-  const address = account?.data?.addresses?.[0];
-  const isRestricted = account && address?.country !== "US";
   const hasBankConnected = !!account?.data?.hasBankAccount;
 
   const { gate } = useBiometricGate({
@@ -57,12 +56,12 @@ export default function SendScreen() {
     }
 
     transfer.setAmountError(null);
-    if (!transfer.selectedContact) return;
+    if (!transfer.selectedRecipient) return;
 
     const idempotencyKey = transfer.generateIdempotencyKey();
     await gate(async () => {
       await mutation.mutateAsync({
-        contactId: transfer.selectedContact!.id,
+        recipientId: transfer.selectedRecipient!.id,
         amountCents,
         note: transfer.note || undefined,
         _idempotencyKey: idempotencyKey,
@@ -74,19 +73,6 @@ export default function SendScreen() {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-light-bg dark:bg-dark-bg">
         <ActivityIndicator size="large" color={primary} />
-      </SafeAreaView>
-    );
-  }
-
-  if (isRestricted) {
-    return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-light-bg px-6 dark:bg-dark-bg">
-        <Text className="text-center text-lg font-bold text-light-text dark:text-dark-text">
-          This feature is not available in your region.
-        </Text>
-        <View className="mt-4">
-          <Button title="Go Back" onPress={() => router.back()} />
-        </View>
       </SafeAreaView>
     );
   }
@@ -126,14 +112,18 @@ export default function SendScreen() {
       <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
         <SendSuccess
           amount={transfer.amount}
-          recipientName={transfer.selectedContact?.name ?? ""}
+          recipientName={
+            transfer.selectedRecipient
+              ? `${transfer.selectedRecipient.firstName} ${transfer.selectedRecipient.lastName}`.trim()
+              : ""
+          }
           transactionId={transfer.transactionId}
         />
       </SafeAreaView>
     );
   }
 
-  if (transfer.step === "amount" && transfer.selectedContact) {
+  if (transfer.step === "amount" && transfer.selectedRecipient) {
     return (
       <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
         <KeyboardAvoidingView
@@ -141,7 +131,7 @@ export default function SendScreen() {
           className="flex-1"
         >
           <AmountEntry
-            selectedContact={transfer.selectedContact}
+            selectedRecipient={transfer.selectedRecipient}
             amount={transfer.amount}
             onAmountChange={transfer.updateAmount}
             amountError={transfer.amountError}
@@ -158,10 +148,14 @@ export default function SendScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-light-bg dark:bg-dark-bg">
-      <ContactSelect
-        searchQuery={transfer.searchQuery}
-        onSearchChange={transfer.setSearchQuery}
-        onSelectContact={transfer.selectContact}
+      <RecipientList
+        onSelectRecipient={transfer.selectRecipient}
+        onAddBank={(recipient: Recipient) =>
+          router.push({
+            pathname: "/(transfer)/recipient-bank",
+            params: { recipientId: recipient.id },
+          })
+        }
       />
     </SafeAreaView>
   );

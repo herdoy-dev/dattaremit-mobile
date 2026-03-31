@@ -4,7 +4,7 @@ import { MapPin, Building2, Hash } from "lucide-react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorBanner } from "@/components/ui/error-banner";
-import { CountrySelector } from "@/components/ui/country-selector";
+// Country is fixed to US — no selector needed
 import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
 import { AddressValidationBadge } from "@/components/ui/address-validation-badge";
 import { useForm } from "@/hooks/use-form";
@@ -61,7 +61,7 @@ export function AddressForm({
 }: AddressFormProps) {
   const { values, errors, setValue, validate } = useForm(
     {
-      country: "",
+      country: "US",
       city: "",
       street: "",
       postalCode: "",
@@ -73,8 +73,8 @@ export function AddressForm({
   // Track whether we've already fired onFieldsComplete for current field values
   const lastCompletedRef = useRef<string>("");
 
-  // Derive country for autocomplete filtering
-  const country = values.country === "US" || values.country === "IN" ? values.country : undefined;
+  // Country is always US
+  const country = "US" as const;
 
   // Three independent autocomplete instances
   const stateAC = useAddressAutocomplete({
@@ -181,14 +181,6 @@ export function AddressForm({
     <>
       {headerSlot}
       <Animated.View entering={FadeInDown.delay(200).duration(600).springify()} className="gap-5">
-        <CountrySelector
-          label="Country"
-          value={values.country}
-          onChange={(v) => setValue("country", v)}
-          placeholder="Select your country"
-          error={errors.country}
-        />
-
         <AddressAutocomplete
           label="State / Province"
           value={values.state}

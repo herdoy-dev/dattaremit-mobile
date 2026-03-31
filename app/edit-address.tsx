@@ -55,7 +55,7 @@ export default function EditAddressScreen() {
           addressLine1: values.street,
           city: values.city,
           state: values.state,
-          country: values.country as "US" | "IN",
+          country: values.country as "US",
           postalCode: values.postalCode,
         });
       }, VALIDATION_DEBOUNCE_MS);

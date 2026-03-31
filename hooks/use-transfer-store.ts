@@ -1,20 +1,19 @@
 import { useState, useCallback } from "react";
 import { randomUUID } from "expo-crypto";
-import type { Contact } from "@/services/transfer";
+import type { Recipient } from "@/services/recipient";
 
 type TransferStep = "select" | "amount" | "success";
 
 export function useTransferStore() {
   const [step, setStep] = useState<TransferStep>("select");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [amountError, setAmountError] = useState<string | null>(null);
   const [transactionId, setTransactionId] = useState("");
 
-  const selectContact = useCallback((contact: Contact) => {
-    setSelectedContact(contact);
+  const selectRecipient = useCallback((recipient: Recipient) => {
+    setSelectedRecipient(recipient);
     setStep("amount");
   }, []);
 
@@ -39,10 +38,8 @@ export function useTransferStore() {
 
   return {
     step,
-    searchQuery,
-    setSearchQuery,
-    selectedContact,
-    selectContact,
+    selectedRecipient,
+    selectRecipient,
     amount,
     updateAmount,
     note,

@@ -12,7 +12,7 @@ interface LocationContext {
 }
 
 interface AutocompleteOptions {
-  country?: "US" | "IN";
+  country?: "US";
   locationContext?: LocationContext;
   types?: string;
   mode?: "full" | "simple";

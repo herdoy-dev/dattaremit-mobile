@@ -8,7 +8,7 @@ import type {
 export const addressService = {
   async autocomplete(
     input: string,
-    country?: "US" | "IN",
+    country?: "US",
     sessionToken?: string,
     city?: string,
     state?: string,
@@ -36,7 +36,7 @@ export const addressService = {
     addressLine2?: string;
     city: string;
     state: string;
-    country: "US" | "IN";
+    country: "US";
     postalCode: string;
   }) {
     const response = await apiClient.post("/google-maps/validate-address", address);

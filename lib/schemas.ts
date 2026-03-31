@@ -183,6 +183,21 @@ export const bankAccountSchema = z.object({
   phoneNumber: phoneSchema,
 });
 
+export const addRecipientSchema = z.object({
+  firstName: requiredString("First name"),
+  lastName: requiredString("Last name"),
+  email: emailSchema,
+  phoneNumber: phoneSchema,
+  dateOfBirth: dateOfBirthSchema,
+  addressLine1: requiredString("Address line 1"),
+  addressLine2: z.string().optional(),
+  city: requiredString("City"),
+  state: requiredString("State"),
+  postalCode: postalCodeSchema,
+});
+
+export type AddRecipientFormValues = z.infer<typeof addRecipientSchema>;
+
 export const sendMoneySchema = z.object({
   amount: amountSchema,
   note: z.string().optional(),
