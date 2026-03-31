@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useOnboardingStore } from "@/store/onboarding-store";
 import { onboardingService } from "@/services/onboarding";
 import { useThemeColors } from "@/hooks/use-theme-colors";
-import { hexToRgba } from "@/lib/utils";
+import { hexToRgba, getApiErrorMessage } from "@/lib/utils";
 import { buildThemeVars } from "@/store/theme-store";
 
 export default function KycScreen() {
@@ -108,7 +108,7 @@ export default function KycScreen() {
           {kycMutation.isError && (
             <View className="w-full rounded-xl bg-red-50 p-3 dark:bg-red-900/20">
               <Text className="text-sm text-red-600 dark:text-red-400">
-                Something went wrong. Please try again.
+                {getApiErrorMessage(kycMutation.error, "Something went wrong. Please try again.")}
               </Text>
             </View>
           )}
