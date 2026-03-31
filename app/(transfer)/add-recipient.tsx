@@ -3,7 +3,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { User, Mail, Phone, MapPin, Calendar, Building2 } from "lucide-react-native";
+import { User, Mail, Phone, MapPin, Building2 } from "lucide-react-native";
+import { CustomDatePicker } from "@/components/ui/custom-date-picker";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -130,13 +131,11 @@ export default function AddRecipientScreen() {
               icon={<Phone size={20} color={COLORS.placeholder} />}
             />
 
-            <Input
+            <CustomDatePicker
               label="Date of Birth"
               value={values.dateOfBirth}
-              onChangeText={(t) => setValue("dateOfBirth", t)}
-              placeholder="YYYY-MM-DD"
+              onChange={(d) => setValue("dateOfBirth", d)}
               error={errors.dateOfBirth}
-              icon={<Calendar size={20} color={COLORS.placeholder} />}
             />
 
             <Input
