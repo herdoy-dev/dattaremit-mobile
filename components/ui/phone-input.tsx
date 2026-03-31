@@ -43,7 +43,7 @@ export function PhoneInput({
   defaultCountryCode = "US",
   className = "",
 }: PhoneInputProps) {
-  const { border, borderFocus, surface } = useThemeColors();
+  const { border, borderFocus } = useThemeColors();
   const [pickerVisible, setPickerVisible] = useState(false);
   const focusProgress = useSharedValue(0);
 
@@ -80,7 +80,7 @@ export function PhoneInput({
       <FieldLabel label={label} />
 
       <AnimatedView
-        style={[borderStyle, { backgroundColor: surface }]}
+        style={[borderStyle, { backgroundColor: "transparent" }]}
         className="flex-row items-center rounded-xl border-2"
       >
         {/* Country selector */}
